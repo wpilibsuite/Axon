@@ -1,9 +1,11 @@
 {
   "private": true,
-  "name": "ml-app",
+  "name": "ml-react-app",
   "version": "0.0.1",
   "description": "An application for creating ML models",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "client": "yarn workspace client start",
     "server": "yarn workspace server start",
@@ -12,6 +14,7 @@
   "author": "",
   "license": "BSD",
   "devDependencies": {
-    "concurrently": "^5.2.0"
+    "concurrently": "^5.2.0",
+    "prettier": "^2.0.5"
   }
 }
