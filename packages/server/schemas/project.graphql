@@ -1,0 +1,8 @@
+scalar DateTime
+
+type Project {
+    id: ID!
+    name: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
