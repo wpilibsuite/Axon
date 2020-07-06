@@ -5,8 +5,8 @@
   "license": "BSD",
   "private": true,
   "scripts": {
-    "start": "nodemon -e ts,graphql -x ts-node src/index.ts",
-    "codegen": "graphql-codegen"
+    "generate": "graphql-codegen",
+    "start": "concurrently \"nodemon -e ts,graphql -x ts-node src/index.ts\" \"yarn generate --watch\""
   },
   "dependencies": {
     "@graphql-tools/load-files": "^6.0.12",
@@ -27,6 +27,7 @@
     "@types/lowdb": "^1.0.9",
     "@types/node": "^14.0.14",
     "@types/validator": "^13.1.0",
+    "concurrently": "^5.2.0",
     "nodemon": "^2.0.4",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.6"

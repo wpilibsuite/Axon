@@ -25,15 +25,16 @@
     "@types/react-router": "^5.1.8",
     "@types/react-router-dom": "^5.1.5",
     "apollo": "^2.28.3",
+    "concurrently": "^5.2.0",
     "react-scripts": "3.4.1",
     "typescript": "^3.9.6"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "generate": "apollo client:codegen --target=typescript",
+    "start": "concurrently \"yarn generate --watch\" \"react-scripts start\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "apollo-codegen": "apollo client:codegen --target=typescript --watch"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"
