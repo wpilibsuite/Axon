@@ -164,3 +164,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+db.json
+generated/

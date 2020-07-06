@@ -1,0 +1,6 @@
+# import Project from "project.graphql"
+
+type Query {
+    projects: [Project!]!
+    project(id: ID!): Project
+}
