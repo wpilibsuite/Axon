@@ -1,7 +1,7 @@
 import { PubSub } from "graphql-subscriptions";
-import DbService from "./db";
+import DbService from "../db";
 
-export interface MyContext {
+export interface GraphQLContext {
   db: DbService;
   pubsub: PubSub;
 }

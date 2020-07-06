@@ -1,6 +1,6 @@
 import * as lowdb from "lowdb";
 import * as FileAsync from "lowdb/adapters/FileAsync";
-import { Project } from "../generated/graphql";
+import { Project } from "../schema/__generated__/graphql";
 
 interface Database {
   projects: Array<Project>;

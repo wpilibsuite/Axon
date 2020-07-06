@@ -166,4 +166,5 @@ $RECYCLE.BIN/
 *.lnk
 
 db.json
-generated/
+__generated__/
+*.d.ts

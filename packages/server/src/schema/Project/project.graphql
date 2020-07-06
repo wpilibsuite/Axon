@@ -1,0 +1,9 @@
+type Project {
+    id: ID!
+    name: String
+}
+
+extend type Query {
+    project(id: ID!): Project
+    projects: [Project!]!
+}
