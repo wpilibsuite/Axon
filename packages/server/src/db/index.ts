@@ -22,9 +22,5 @@ export default class DbService {
         projects: []
       })
       .write();
-
-    const newProject: Project = { id: "abc", name: "My new project" };
-
-    await this.db.get("projects").push(newProject).write();
   }
 }
