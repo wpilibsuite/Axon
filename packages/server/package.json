@@ -10,12 +10,11 @@
     "generate": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {
-    "apollo-server": "^2.15.1",
-    "apollo-server-express": "^2.15.1",
-    "express": "^4.17.1",
+    "apollo-server-koa": "^2.15.1",
     "graphql": "^15.2.0",
     "graphql-import": "^1.0.2",
     "graphql-subscriptions": "^1.1.0",
+    "koa": "^2.13.0",
     "lowdb": "^1.0.0",
     "reflect-metadata": "^0.1.13"
   },
