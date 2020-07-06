@@ -2,15 +2,11 @@ import { Project, Resolvers } from "../generated/graphql";
 
 const resolver: Resolvers = {
   Query: {
-    projects: async (_, args, { models }): Promise<Project[]> => {
-      const { Project: projectModel } = models;
-
-      return projectModel.findAll();
+    projects: async (_, args, { db }) => {
+      return db.db.get("projects").value();
     },
-    project: (_, args, { models }): Promise<Project> => {
-      const { Project } = models;
-
-      return Project.findOne({ where: args });
+    project: (_, args, { db }) => {
+      return db.db.get("projects").find({ id: args.id }).value();
     }
   }
 };

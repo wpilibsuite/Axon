@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import { GraphQLResolveInfo } from 'graphql';
 import { MyContext } from '../context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: any }> = { [K in keyof T]: T[K] };
@@ -10,7 +10,6 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  DateTime: any;
 };
 
 export type Query = {
@@ -28,10 +27,7 @@ export type Project = {
   __typename?: 'Project';
   id: Scalars['ID'];
   name?: Maybe<Scalars['String']>;
-  createdAt: Scalars['DateTime'];
-  updatedAt: Scalars['DateTime'];
 };
-
 
 
 
@@ -115,7 +111,6 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Project: ResolverTypeWrapper<Project>;
   String: ResolverTypeWrapper<Scalars['String']>;
-  DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
 };
 
@@ -125,7 +120,6 @@ export type ResolversParentTypes = {
   ID: Scalars['ID'];
   Project: Project;
   String: Scalars['String'];
-  DateTime: Scalars['DateTime'];
   Boolean: Scalars['Boolean'];
 };
 
@@ -137,19 +131,12 @@ export type QueryResolvers<ContextType = MyContext, ParentType extends Resolvers
 export type ProjectResolvers<ContextType = MyContext, ParentType extends ResolversParentTypes['Project'] = ResolversParentTypes['Project']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType>;
 };
-
-export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
-  name: 'DateTime';
-}
 
 export type Resolvers<ContextType = MyContext> = {
   Query?: QueryResolvers<ContextType>;
   Project?: ProjectResolvers<ContextType>;
-  DateTime?: GraphQLScalarType;
 };
 
 

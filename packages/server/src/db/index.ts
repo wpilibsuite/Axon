@@ -1,10 +1,30 @@
-import { Sequelize } from "sequelize";
+import * as lowdb from "lowdb";
+import * as FileAsync from "lowdb/adapters/FileAsync";
+import { Project } from "../generated/graphql";
 
-const sequelize = new Sequelize({
-  dialect: "sqlite",
-  storage: "./database.sqlite"
-});
+interface Database {
+  projects: Array<Project>;
+}
 
-sequelize.sync();
+export default class DbService {
+  db: lowdb.LowdbAsync<Database>;
 
-export default sequelize;
+  constructor() {
+    this.initDatabase();
+  }
+
+  private async initDatabase() {
+    const adapter = new FileAsync("db.json");
+    this.db = await lowdb(adapter);
+
+    await this.db
+      .defaults({
+        projects: []
+      })
+      .write();
+
+    const newProject: Project = { id: "abc", name: "My new project" };
+
+    await this.db.get("projects").push(newProject).write();
+  }
+}

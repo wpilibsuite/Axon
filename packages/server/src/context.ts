@@ -1,7 +1,7 @@
-import { ModelType } from "./models";
 import { PubSub } from "graphql-subscriptions";
+import DbService from "./db";
 
 export interface MyContext {
-  models: ModelType;
+  db: DbService;
   pubsub: PubSub;
 }

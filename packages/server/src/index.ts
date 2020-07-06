@@ -1,8 +1,9 @@
 import { ApolloServer, PubSub } from "apollo-server";
 import { importSchema } from "graphql-import";
 import { allResolvers } from "./resolvers";
-import models, { ModelType } from "./models";
+import DbService from "./db";
 
+const db = new DbService();
 const pubsub = new PubSub();
 
 const server = new ApolloServer({
@@ -10,10 +11,10 @@ const server = new ApolloServer({
   context: ({
     req
   }): {
-    models: ModelType;
+    db: DbService;
     pubsub: PubSub;
   } => ({
-    models,
+    db,
     pubsub
   }),
   resolvers: allResolvers
