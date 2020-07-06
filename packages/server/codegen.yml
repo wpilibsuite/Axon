@@ -9,3 +9,6 @@ generates:
       - "typescript"
       - "typescript-resolvers"
       - "./bin/typescript-typedefs.js"
+  src/schema/__generated__/schema.graphql:
+    plugins:
+      - "schema-ast"

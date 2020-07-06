@@ -7,6 +7,9 @@ import NavigationDrawer from "../navigationDrawer";
 import Footer from "../footer";
 import { makeStyles } from "@material-ui/core/styles";
 import { Container, CssBaseline } from "@material-ui/core";
+import { ApolloProvider } from "react-apollo";
+import ApolloClient from "apollo-client";
+import { NormalizedCacheObject } from "apollo-cache-inmemory";
 
 const browserHistory = createBrowserHistory();
 
@@ -24,24 +27,30 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar
 }));
 
-function App() {
+interface AppProps {
+  client: ApolloClient<NormalizedCacheObject>;
+}
+
+function App({ client }: AppProps) {
   const classes = useStyles();
 
   return (
-    <div className={classes.root}>
-      <CssBaseline />
-      <Router history={browserHistory}>
-        <Header />
-        <NavigationDrawer />
-        <main className={classes.content}>
-          <div className={classes.appBarSpacer} />
-          <Container>
-            <AppRoutes />
-          </Container>
-          <Footer />
-        </main>
-      </Router>
-    </div>
+    <ApolloProvider client={client}>
+      <div className={classes.root}>
+        <CssBaseline />
+        <Router history={browserHistory}>
+          <Header />
+          <NavigationDrawer />
+          <main className={classes.content}>
+            <div className={classes.appBarSpacer} />
+            <Container>
+              <AppRoutes />
+            </Container>
+            <Footer />
+          </main>
+        </Router>
+      </div>
+    </ApolloProvider>
   );
 }
 

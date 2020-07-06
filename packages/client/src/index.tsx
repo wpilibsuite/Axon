@@ -2,10 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
 import App from "./components/app";
+import client from "./apollo-client";
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <App client={client} />
   </React.StrictMode>,
   document.getElementById("root")
 );
