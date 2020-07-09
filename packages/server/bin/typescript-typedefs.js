@@ -1,4 +1,5 @@
-import { printSchema } from "graphql";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { printSchema } = require("graphql");
 
 module.exports = {
   plugin: (schema) => {
