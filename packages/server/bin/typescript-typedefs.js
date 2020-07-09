@@ -1,7 +1,7 @@
-const { printSchema } = require("graphql");
+import { printSchema } from "graphql";
 
 module.exports = {
-  plugin: (schema, documents, config) => {
+  plugin: (schema) => {
     return ['import gql from "graphql-tag";', "", "export const typeDefs = gql`", printSchema(schema), "`;", ""].join("\n");
   }
 };

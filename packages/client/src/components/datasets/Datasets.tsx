@@ -24,7 +24,7 @@ export default function Datasets() {
   return (
     <Grid container spacing={2}>
       {datasets.map((dataset) => (
-        <Grid item xs={12}>
+        <Grid key={dataset.name} item xs={12}>
           <Dataset dataset={dataset} />
         </Grid>
       ))}

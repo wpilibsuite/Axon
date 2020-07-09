@@ -10,7 +10,8 @@
     "client": "yarn workspace client start",
     "server": "yarn workspace server start",
     "start": "concurrently --kill-others-on-fail \"yarn server\"  \"yarn client\"",
-    "test:format": "prettier --check ."
+    "test:format": "prettier --check .",
+    "test:lint": "yarn workspaces run test:lint"
   },
   "author": "",
   "license": "BSD",
