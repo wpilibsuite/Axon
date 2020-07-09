@@ -1,16 +1,5 @@
 import React from "react";
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Button,
-  Divider,
-  Paper,
-  TextField,
-  Toolbar,
-  Tooltip,
-  Typography
-} from "@material-ui/core";
+import { Accordion, AccordionDetails, AccordionSummary, Button, Divider, Paper, TextField, Toolbar, Tooltip, Typography } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
 import Grid from "@material-ui/core/Grid";
@@ -24,14 +13,13 @@ export default function Training() {
         </Typography>
       </Toolbar>
       <Button variant="contained">Train Model</Button>
-      <Divider/>
+      <Divider />
       <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography>Advanced</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={2}>
-
             <Grid item xs={10}>
               <TextField
                 variant="outlined"
@@ -45,7 +33,7 @@ export default function Training() {
             </Grid>
             <Grid item xs={2}>
               <Tooltip title="The number of epochs.">
-                <HelpOutlineIcon/>
+                <HelpOutlineIcon />
               </Tooltip>
             </Grid>
 
@@ -62,7 +50,7 @@ export default function Training() {
             </Grid>
             <Grid item xs={2}>
               <Tooltip title="The batch size.">
-                <HelpOutlineIcon/>
+                <HelpOutlineIcon />
               </Tooltip>
             </Grid>
 
@@ -79,7 +67,7 @@ export default function Training() {
             </Grid>
             <Grid item xs={2}>
               <Tooltip title="The learning rate.">
-                <HelpOutlineIcon/>
+                <HelpOutlineIcon />
               </Tooltip>
             </Grid>
           </Grid>
@@ -91,7 +79,7 @@ export default function Training() {
           <Button>Reset defaults</Button>
         </Grid>
         <Grid item xs={12}>
-          <Divider/>
+          <Divider />
         </Grid>
         <Grid item xs={12}>
           <Button>Under the hood</Button>

@@ -9,7 +9,8 @@
   "scripts": {
     "client": "yarn workspace client start",
     "server": "yarn workspace server start",
-    "start": "concurrently --kill-others-on-fail \"yarn server\"  \"yarn client\""
+    "start": "concurrently --kill-others-on-fail \"yarn server\"  \"yarn client\"",
+    "test:format": "prettier --check ."
   },
   "author": "",
   "license": "BSD",

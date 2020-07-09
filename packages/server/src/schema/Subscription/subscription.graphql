@@ -1,2 +1,5 @@
+scalar DateTime
+
 type Subscription {
+  hello: String
 }
