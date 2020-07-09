@@ -168,3 +168,10 @@ $RECYCLE.BIN/
 db.json
 __generated__/
 *.d.ts
+
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

@@ -1,13 +1,13 @@
 type Project {
-    id: ID!
-    name: String
+  id: ID!
+  name: String
 }
 
 extend type Query {
-    project(id: ID!): Project
-    projects: [Project!]!
+  project(id: ID!): Project
+  projects: [Project!]!
 }
 
 extend type Mutation {
-    startTraining(id: ID!): Project
+  startTraining(id: ID!): Project
 }

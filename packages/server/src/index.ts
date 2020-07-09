@@ -10,6 +10,7 @@ const trainer = new Trainer();
 const server = new ApolloServer({
   schema: schema,
   context: ({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     req
   }): {
     db: DbService;
