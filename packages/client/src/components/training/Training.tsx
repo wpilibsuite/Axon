@@ -2,6 +2,7 @@ import React from "react";
 import { Accordion, AccordionDetails, AccordionSummary, Button, Divider, Paper, TextField, Toolbar, Tooltip, Typography } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
+import Grid from "@material-ui/core/Grid";
 
 export default function Training() {
   return (
@@ -18,8 +19,11 @@ export default function Training() {
           <Typography>Advanced</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <form>
+          <Grid container spacing={2}>
+
+            <Grid item xs={10}>
             <TextField
+              variant="outlined"
               id="standard-number"
               label="Epochs"
               type="number"
@@ -27,10 +31,59 @@ export default function Training() {
                 shrink: true
               }}
             />
+            </Grid>
+            <Grid item xs={2}>
             <Tooltip title="The number of epochs.">
               <HelpOutlineIcon />
             </Tooltip>
-          </form>
+            </Grid>
+
+            <Grid item xs={10}>
+            <TextField
+              variant="outlined"
+              id="standard-number"
+              label="Batch size"
+              type="number"
+              InputLabelProps={{
+                shrink: true
+              }}
+            />
+            </Grid>
+            <Grid item xs={2}>
+            <Tooltip title="The batch size.">
+              <HelpOutlineIcon />
+            </Tooltip>
+            </Grid>
+
+            <Grid item xs={10}>
+            <TextField
+              variant="outlined"
+              id="standard-number"
+              label="Learning rate"
+              type="number"
+              InputLabelProps={{
+                shrink: true
+              }}
+            />
+            </Grid>
+            <Grid item xs={2}>
+            <Tooltip title="The learning rate.">
+              <HelpOutlineIcon />
+            </Tooltip>
+            </Grid>
+            <Grid item xs={12}>
+            <Divider />
+            </Grid>
+            <Grid item xs={12}>
+            <Button>Reset defaults</Button>
+            </Grid>
+            <Grid item xs={12}>
+            <Divider />
+            </Grid>
+            <Grid item xs={12}>
+            <Button>Under the hood</Button>
+            </Grid>
+          </Grid>
         </AccordionDetails>
       </Accordion>
     </Paper>
