@@ -6,34 +6,27 @@ jobs:
   format:
     name: Format Check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14]
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-          uses: actions/setup-node@v1
-          with:
-            node-version: ${{ matrix.node-version }}
+      - name: Use Node.js 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Install Packages
-          run: yarn
-      - name: Install Packages
-          run: yarn test:format
+        run: yarn
+      - name: Check Format
+        run: yarn test:format
 
   lint:
     name: Lint Check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14]
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-          uses: actions/setup-node@v1
-          with:
-            node-version: ${{ matrix.node-version }}
+      - name: Use Node.js 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Install Packages
-          run: yarn
-      - name: Install Packages
-          run: yarn test:lint
-
+        run: yarn
+      - name: Lint
+        run: yarn test:lint
