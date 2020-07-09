@@ -7,3 +7,7 @@ extend type Query {
     project(id: ID!): Project
     projects: [Project!]!
 }
+
+extend type Mutation {
+    startTraining(id: ID!): Project
+}
