@@ -10,8 +10,9 @@ const resolvers: Resolvers = {
     }
   },
   Mutation: {
-    startTraining: (parent, args, { db }) => {
+    startTraining: (parent, args, { db, pubsub, trainer }) => {
       const project = db.db.get("projects").find({ id: args.id }).value();
+      trainer.start(project);
       console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
       return project;
     }

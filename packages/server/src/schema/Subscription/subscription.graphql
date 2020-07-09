@@ -1,2 +1,4 @@
+scalar DateTime
 type Subscription {
+    date: DateTime
 }
