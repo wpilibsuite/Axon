@@ -43,9 +43,9 @@ function App({ client }: AppProps) {
           <NavigationDrawer />
           <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <Container>
-              <AppRoutes />
-            </Container>
+            {/*<Container>*/}
+            <AppRoutes />
+            {/*</Container>*/}
             <Footer />
           </main>
         </Router>
