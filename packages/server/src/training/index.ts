@@ -1,4 +1,6 @@
 import * as Dockerode from 'dockerode';
+const fs = require('fs');
+
 let docker = new Dockerode();
 
 export default class Trainer {
@@ -57,5 +59,13 @@ export default class Trainer {
       ).catch(
         err => console.log(err)
       );
+
+      
+      const log_file = './mount/log.json';
+      
+      fs.watchFile(log_file, (curr, prev) => {
+        console.log(`${log_file} file Changed`);
+      });
+      
     }    
     }
