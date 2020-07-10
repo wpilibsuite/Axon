@@ -3,13 +3,36 @@ let docker = new Dockerode();
 
 export default class Trainer {
   
+    constructor(){
+      
+      docker.listImages({}, function(err, images) { 
+        var tags = images.map(image => image.RepoTags[0])
+        if (!tags.includes('coral:latest')){
+          docker.buildImage({
+            context: __dirname,
+            src: ['Dockerfile', 'pretend_train.py']
+          }, {
+            t: 'coral'
+          }, function(error, output) {
+            if (error) {
+              return console.error(error);
+            }
+            output.pipe(process.stdout);
+          });
+        }
+      })
+
+  }
   
     start(project) {
 
       var mount = process.cwd();
-      // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
-      mount = mount.replace('C:\\', '/c/')
-      mount = mount.replace(/\\/g,'/')
+      if (mount.includes(':\\'))
+      {
+        // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
+        mount = mount.replace('C:\\', '/c/')
+        mount = mount.replace(/\\/g,'/')
+      }
       mount = mount.concat('/mount')
       var mount = `${mount}:/opt/ml/model:rw`
 
@@ -19,22 +42,20 @@ export default class Trainer {
       docker.createContainer({
         Image: 'coral',
         name: 'trainjob',
-        Entrypoint: 'python',
-        Cmd: ['pretend_train.py'],
         'Volumes': {'/opt/ml/model': {}},
-        'Hostconfig': {'Binds': [mount]},
-      }).then(function(container) {
-        training_container = container;
-        return training_container.start();
-      }).then(function(data) {
-        return training_container.stop();
-      }).then(function(data) {
-        return training_container.remove();
-      }).then(function(data) {
-        console.log('container removed');
-      }).catch(function(err) {
-        console.log(err);
-      });
-
+        'Hostconfig': {'Binds': [mount]}
+      }).then(
+        container => {
+          training_container = container;
+          return training_container.start();
+      }).then(
+        data => training_container.wait()
+      ).then(
+        data => training_container.remove()
+      ).then(
+        data => console.log('container removed')
+      ).catch(
+        err => console.log(err)
+      );
     }    
     }
