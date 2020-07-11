@@ -1,7 +1,19 @@
 import React from "react";
-import { Typography } from "@material-ui/core";
+import { Button, Typography } from "@material-ui/core";
+import { useMutation } from "@apollo/react-hooks";
+import gql from "graphql-tag";
+
+const START_PROJECT = gql`
+  mutation StartProject {
+    startTraining(id: "abc") {
+      id
+    }
+  }
+`;
 
 export default function About() {
+  const [startTraining, { data }] = useMutation(START_PROJECT);
+
   return (
     <>
       <Typography variant="h3" gutterBottom>
@@ -12,6 +24,7 @@ export default function About() {
         years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from
         a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source.
       </Typography>
+      <Button onClick={() => startTraining({ variables: { id: "abc" } })}>Start</Button>
     </>
   );
 }

@@ -1,9 +1,11 @@
 import { ApolloServer, PubSub } from "apollo-server";
 import DbService from "./db";
 import { schema } from "./schema";
+import Trainer from "./training";
 
 const db = new DbService();
 const pubsub = new PubSub();
+const trainer = new Trainer();
 
 const server = new ApolloServer({
   schema: schema,
@@ -13,9 +15,11 @@ const server = new ApolloServer({
   }): {
     db: DbService;
     pubsub: PubSub;
+    trainer: Trainer;
   } => ({
     db,
-    pubsub
+    pubsub,
+    trainer
   }),
   uploads: {
     // Limits here should be stricter than config for surrounding
