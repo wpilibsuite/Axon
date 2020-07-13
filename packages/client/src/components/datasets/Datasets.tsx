@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import { Grid } from "@material-ui/core";
 import Dataset from "./Dataset";
 
@@ -20,7 +20,7 @@ function randomDatasets(count: number) {
 
 const datasets: IDataset[] = randomDatasets(5);
 
-export default function Datasets() {
+export default function Datasets(): ReactElement {
   return (
     <Grid container spacing={2}>
       {datasets.map((dataset) => (

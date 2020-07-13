@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Box, Link, Typography } from "@material-ui/core";
+import { ReactElement } from "react";
 
 function Copyright() {
   return (
@@ -14,7 +15,7 @@ function Copyright() {
   );
 }
 
-export default function Footer() {
+export default function Footer(): ReactElement {
   return (
     <Box pt={4}>
       <Copyright />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import AppRoutes from "./AppRoutes";
 import Header from "../header";
 import { Router } from "react-router";
@@ -27,11 +27,11 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar
 }));
 
-interface AppProps {
+interface Props {
   client: ApolloClient<NormalizedCacheObject>;
 }
 
-function App({ client }: AppProps) {
+function App({ client }: Props): ReactElement {
   const classes = useStyles();
 
   return (

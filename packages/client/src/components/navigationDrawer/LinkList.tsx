@@ -5,6 +5,7 @@ import { Dashboard, Info, PermMedia } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { SvgIconTypeMap } from "@material-ui/core/SvgIcon/SvgIcon";
 import { makeStyles } from "@material-ui/core/styles";
+import { ReactElement } from "react";
 
 const useStyles = makeStyles((theme) => ({
   link: {
@@ -20,7 +21,7 @@ export const links: { [link: string]: { name: string; icon: OverridableComponent
   "/about": { name: "About", icon: Info }
 };
 
-export default function LinkList() {
+export default function LinkList(): ReactElement {
   const classes = useStyles();
 
   return (

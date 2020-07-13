@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Container, Grid, Paper, Typography } from "@material-ui/core";
 
@@ -25,7 +25,7 @@ function ProjectInfo() {
   );
 }
 
-export default function Home() {
+export default function Home(): ReactElement {
   const classes = useStyles();
 
   return (

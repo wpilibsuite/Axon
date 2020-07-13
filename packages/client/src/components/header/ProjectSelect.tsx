@@ -3,6 +3,7 @@ import { FormControl, MenuItem, Select } from "@material-ui/core";
 import { useQuery } from "@apollo/react-hooks";
 import gql from "graphql-tag";
 import * as GetProjectsTypes from "./__generated__/GetProjects";
+import { ReactElement } from "react";
 
 const GET_PROJECTS = gql`
   query GetProjects {
@@ -13,12 +14,7 @@ const GET_PROJECTS = gql`
   }
 `;
 
-export default function ProjectSelect() {
-  // const [projects] = React.useState([
-  //   { id: 0, name: "2020 Power Cells" },
-  //   { id: 1, name: "2019" },
-  //   { id: 2, name: "2018" }
-  // ]);
+export default function ProjectSelect(): ReactElement {
   const [selected, setSelected] = React.useState("");
 
   const { data, loading, error } = useQuery<GetProjectsTypes.GetProjects, GetProjectsTypes.GetProjects>(GET_PROJECTS);

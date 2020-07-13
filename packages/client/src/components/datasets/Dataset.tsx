@@ -1,13 +1,13 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import { Container, Divider, IconButton, Paper, Toolbar, Typography } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { IDataset } from "./Datasets";
 
-export interface DatasetProps {
+export interface Props {
   dataset: IDataset;
 }
 
-export default function Dataset({ dataset }: DatasetProps) {
+export default function Dataset({ dataset }: Props): ReactElement {
   return (
     <Paper>
       <Toolbar>

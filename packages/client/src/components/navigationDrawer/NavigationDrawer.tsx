@@ -2,6 +2,7 @@ import * as React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Drawer } from "@material-ui/core";
 import LinkList from "./LinkList";
+import { ReactElement } from "react";
 
 const drawerWidth = 200;
 
@@ -23,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar
 }));
 
-export default function NavigationDrawer() {
+export default function NavigationDrawer(): ReactElement {
   const classes = useStyles();
 
   return (

@@ -2,8 +2,9 @@ import * as React from "react";
 import { Grid } from "@material-ui/core";
 import DataInputCard from "./DataInputCard";
 import Section from "../Section";
+import { ReactElement } from "react";
 
-export default function DataInputs() {
+export default function DataInputs(): ReactElement {
   return (
     <Section title="Data Inputs">
       <Grid container spacing={3}>

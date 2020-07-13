@@ -1,10 +1,10 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import { Accordion, AccordionDetails, AccordionSummary, Button, Divider, Paper, TextField, Toolbar, Tooltip, Typography } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
 import Grid from "@material-ui/core/Grid";
 
-export default function Training() {
+export default function Training(): ReactElement {
   return (
     <Paper>
       <Toolbar>

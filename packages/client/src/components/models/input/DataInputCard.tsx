@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Button, Card, CardActions, CardContent, Grid, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+import { ReactElement } from "react";
 
 const useStyles = makeStyles({
   root: {
@@ -14,11 +15,11 @@ const useStyles = makeStyles({
   }
 });
 
-type CardProps = {
+type Props = {
   title: string;
 };
 
-export default function DataInputCard({ title }: CardProps) {
+export default function DataInputCard({ title }: Props): ReactElement {
   const classes = useStyles();
 
   return (

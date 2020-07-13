@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import { Button, Typography } from "@material-ui/core";
 import { useMutation } from "@apollo/react-hooks";
 import gql from "graphql-tag";
@@ -11,8 +11,8 @@ const START_PROJECT = gql`
   }
 `;
 
-export default function About() {
-  const [startTraining, { data }] = useMutation(START_PROJECT);
+export default function About(): ReactElement {
+  const [startTraining] = useMutation(START_PROJECT);
 
   return (
     <>

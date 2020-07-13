@@ -2,6 +2,7 @@ import * as React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppBar, Toolbar, Typography } from "@material-ui/core";
 import ProjectSelect from "./ProjectSelect";
+import { ReactElement } from "react";
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
@@ -9,7 +10,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function Header() {
+export default function Header(): ReactElement {
   const classes = useStyles();
 
   return (
