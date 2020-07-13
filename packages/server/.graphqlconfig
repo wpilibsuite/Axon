@@ -1,6 +1,5 @@
 {
-  "schemaPath": "./src/schema/__generated__/schema.graphql",
-  "includes": ["./src/schema/*.graphql"],
+  "schemaPath": "./src/schema/schema.graphql",
   "extensions": {
     "endpoints": {
       "dev": {

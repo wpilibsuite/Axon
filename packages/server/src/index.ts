@@ -1,9 +1,11 @@
 import { ApolloServer, PubSub } from "apollo-server";
-import DbService from "./db";
 import { schema } from "./schema";
 import Trainer from "./training";
+import LowConnector from "./connectors/LowConnector";
+import { DockerConnector } from "./connectors";
 
-const db = new DbService();
+const docker = new DockerConnector();
+const low = new LowConnector("db.json");
 const pubsub = new PubSub();
 const trainer = new Trainer();
 
@@ -13,11 +15,13 @@ const server = new ApolloServer({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     req
   }): {
-    db: DbService;
+    docker: DockerConnector;
+    low: LowConnector;
     pubsub: PubSub;
     trainer: Trainer;
   } => ({
-    db,
+    docker,
+    low,
     pubsub,
     trainer
   }),

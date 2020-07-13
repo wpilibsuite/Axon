@@ -1,0 +1,26 @@
+scalar DateTime
+
+type Query {
+  isDockerConnected: Boolean!
+
+  dataset(id: ID!): Dataset
+  datasets: [Dataset!]!
+  project(id: ID!): Project
+  projects: [Project!]!
+}
+
+type Mutation {
+  startTraining(id: ID!): Project
+}
+
+type Dataset {
+  dateAdded: DateTime
+  id: ID!
+  name: String
+  path: String
+}
+
+type Project {
+  id: ID!
+  name: String
+}

@@ -3,7 +3,7 @@ import * as Dockerode from "dockerode";
 export default class Trainer {
   readonly docker = new Dockerode();
 
-  start() {
+  start(): void {
     this.docker
       .run("hello-world", [], process.stdout)
       .then(function (data) {
@@ -12,7 +12,7 @@ export default class Trainer {
         console.log(output.StatusCode);
         return container.remove();
       })
-      .then(function (data) {
+      .then(function () {
         console.log("container removed");
       })
       .catch(function (err) {

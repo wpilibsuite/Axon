@@ -1,14 +1,11 @@
 overwrite: true
-schema: src/**/*.graphql
+schema: src/schema/schema.graphql
 documents: null
 generates:
   src/schema/__generated__/graphql.ts:
     config:
-      contextType: ../context#GraphQLContext
+      contextType: ../../context#Context
     plugins:
       - "typescript"
       - "typescript-resolvers"
       - "./bin/typescript-typedefs.js"
-  src/schema/__generated__/schema.graphql:
-    plugins:
-      - "schema-ast"

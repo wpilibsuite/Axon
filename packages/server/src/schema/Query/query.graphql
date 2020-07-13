@@ -1,5 +1,0 @@
-scalar DateTime
-
-type Query {
-  time: DateTime
-}

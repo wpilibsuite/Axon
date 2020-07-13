@@ -6,7 +6,7 @@ import { createBrowserHistory } from "history";
 import NavigationDrawer from "../navigationDrawer";
 import Footer from "../footer";
 import { makeStyles } from "@material-ui/core/styles";
-import { Container, CssBaseline } from "@material-ui/core";
+import { CssBaseline } from "@material-ui/core";
 import { ApolloProvider } from "react-apollo";
 import ApolloClient from "apollo-client";
 import { NormalizedCacheObject } from "apollo-cache-inmemory";
