@@ -1,5 +1,10 @@
-import { makeExecutableSchema } from "graphql-tools";
+import * as path from "path";
+import { loadSchemaSync } from "@graphql-tools/load";
+import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader";
+import { addResolversToSchema } from "@graphql-tools/schema";
 import { resolvers } from "../resolvers";
-import { typeDefs } from "./__generated__/graphql";
 
-export const schema = makeExecutableSchema({ typeDefs, resolvers });
+export const schema = addResolversToSchema({
+  schema: loadSchemaSync(path.join(__dirname, "schema.graphql"), { loaders: [new GraphQLFileLoader()] }),
+  resolvers
+});

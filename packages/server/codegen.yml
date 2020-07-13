@@ -8,4 +8,3 @@ generates:
     plugins:
       - "typescript"
       - "typescript-resolvers"
-      - "./bin/typescript-typedefs.js"

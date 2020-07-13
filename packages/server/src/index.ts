@@ -1,30 +1,26 @@
-import { ApolloServer, PubSub } from "apollo-server";
+import * as Koa from "koa";
+import { ApolloServer, PubSub } from "apollo-server-koa";
 import { schema } from "./schema";
 import Trainer from "./training";
 import LowConnector from "./connectors/LowConnector";
 import { DockerConnector } from "./connectors";
+import * as serve from "koa-static";
+import * as mount from "koa-mount";
 
 const docker = new DockerConnector();
 const low = new LowConnector("db.json");
 const pubsub = new PubSub();
 const trainer = new Trainer();
 
+const app = new Koa();
 const server = new ApolloServer({
   schema: schema,
-  context: ({
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    req
-  }): {
-    docker: DockerConnector;
-    low: LowConnector;
-    pubsub: PubSub;
-    trainer: Trainer;
-  } => ({
+  context: {
     docker,
     low,
     pubsub,
     trainer
-  }),
+  },
   uploads: {
     // Limits here should be stricter than config for surrounding
     // infrastructure such as Nginx so errors can be handled elegantly by
@@ -35,6 +31,10 @@ const server = new ApolloServer({
   }
 });
 
-server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
-  console.log(`🚀 app running at ${url}`);
+app.use(mount("/uploads", serve("uploads")));
+server.applyMiddleware({ app });
+
+const port = process.env.PORT || 4000;
+app.listen(port, () => {
+  console.info(`Serving http://localhost:${port}.`);
 });
