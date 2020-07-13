@@ -1,6 +1,7 @@
 import React, { ReactElement } from "react";
-import { Grid } from "@material-ui/core";
+import { Grid, Paper } from "@material-ui/core";
 import Dataset from "./Dataset";
+import AddDatasetButton from "./AddDatasetButton";
 
 export interface IDataset {
   name: string;
@@ -28,6 +29,11 @@ export default function Datasets(): ReactElement {
           <Dataset dataset={dataset} />
         </Grid>
       ))}
+      <Grid item xs={12}>
+        <Paper>
+          <AddDatasetButton />
+        </Paper>
+      </Grid>
     </Grid>
   );
 }

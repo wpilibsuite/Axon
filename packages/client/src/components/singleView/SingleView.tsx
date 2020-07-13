@@ -6,7 +6,7 @@ import Training from "../training";
 export default function SingleView(): ReactElement {
   return (
     <Grid container spacing={3}>
-      <Grid item xs={4}>
+      <Grid item xs={2}>
         <Datasets />
       </Grid>
       <Grid item xs={2}>
