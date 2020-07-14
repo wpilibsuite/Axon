@@ -26,4 +26,9 @@ type Dataset {
 type Project {
   id: ID!
   name: String
+  hyperparameters: Hyperparameters
+}
+
+type Hyperparameters {
+  steps: Int
 }
