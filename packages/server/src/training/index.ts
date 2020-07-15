@@ -20,11 +20,11 @@ export default class Trainer {
 
   async pull(name: string): Promise<string> {
     return new Promise((resolve,reject) => {
-      this.docker.pull(name, (err, stream) => {
+      this.docker.pull(name, (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void; }) => {
         stream.pipe(process.stdout);
         console.log(err)
         this.docker.modem.followProgress(stream, onFinished);
-        function onFinished(err: any, output: any) {
+        function onFinished(err: string, output: string) {
             if (!err) {resolve(output); }
             else { reject(err); }
           }
