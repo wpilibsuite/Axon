@@ -10,8 +10,9 @@ export default class Trainer {
     this.pull("gcperkins/wpilib-ml-base")
       .then(() => this.pull("gcperkins/wpilib-ml-dataset"))
       .then(() => {
-        this.running = true;
+        this.running = false;
         console.log("image pull complete");
+        setTimeout(() => this.halt("abc"), 10000);
         this.start("abc", "proj", { steps: 15 });
       });
   }
@@ -63,7 +64,12 @@ export default class Trainer {
       .then((message) => {
         console.log(message);
 
-        return this.runContainer("testtrain", id, mount, "training complete");
+        return this.runContainer("testtrain", id, mount, "training finished");
+      })
+      .then((message) => {
+        console.log(message);
+
+        return this.exportBuffer(this.running);
       })
       .then((message) => {
         console.log(message);
@@ -100,6 +106,36 @@ export default class Trainer {
         .then(() => training_container.remove())
         .then(() => resolve(message))
         .catch((err) => reject(err));
+    });
+  }
+
+  async exportBuffer(running: boolean): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (running) {
+        resolve("automatic export enabled");
+      } else {
+        reject("automatic export disabled");
+      }
+    });
+  }
+
+  halt(id: string): void {
+    let docker = this.docker;
+    let opts = {
+      limit: 1,
+      filters: `{"name": ["${id}"]}`
+    };
+    this.docker.listContainers(opts, function (err, containers) {
+      if (err) {
+        console.log(err);
+      }
+      if (containers.length == 0) {
+        console.log("no container");
+      } else {
+        console.log(containers[0].Image);
+        let container = docker.getContainer(containers[0].Id);
+        container.kill({ force: true }).then(() => console.log(`container ${id} killed`));
+      }
     });
   }
 }

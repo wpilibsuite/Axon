@@ -11,5 +11,11 @@ export const Mutation: MutationResolvers = {
     context.trainer.start(id, project.name, project.hyperparameters);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
+  },
+  haltTraining: (parent, { id }, context) => {
+    const project = ProjectModel.findById(id, context);
+    context.trainer.halt(id);
+    console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
+    return project;
   }
 };
