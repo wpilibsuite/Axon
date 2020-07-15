@@ -1,5 +1,5 @@
 import * as Dockerode from "dockerode";
-const fs = require('fs');
+import * as fs from 'fs';
 
 export default class Trainer {
   running: boolean;
@@ -13,27 +13,28 @@ export default class Trainer {
       this.pull('gcperkins/wpilib-ml-dataset')).then(() => {
       this.running = true;
       console.log("image pull complete")
-      // this.start("abc", "proj", {steps:15})
+      this.start("abc", "proj", {steps:15})
     })
 
   }
 
-  async pull(name){
+  async pull(name: string): Promise<string> {
     return new Promise((resolve,reject) => {
       this.docker.pull(name, (err, stream) => {
         stream.pipe(process.stdout);
+        console.log(err)
         this.docker.modem.followProgress(stream, onFinished);
-        function onFinished(err, output) {
-            if (!err) {resolve('\nDone pulling.'); }
+        function onFinished(err: any, output: any) {
+            if (!err) {resolve(output); }
             else { reject(err); }
           }
         })
     });
   }
   
-  start(id, name, hyperparameters): void {
+  start(id: string, name: string, hyperparameters: object): void {
       
-      var mount = process.cwd();
+      let mount = process.cwd();
       if (mount.includes(':\\'))
       {
         // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
@@ -48,8 +49,8 @@ export default class Trainer {
       fs.writeFileSync(`mount/${id}/hyperparameters.json`, JSON.stringify(hyperparameters)); 
       fs.writeFileSync(`mount/${id}/log.json`, JSON.stringify({status:"starting"})); 
 
-      var timebuffer = true
-      const watcher = fs.watch(`./mount/${id}/log.json`, (curr, prev) => {
+      let timebuffer = true
+      const watcher = fs.watch(`./mount/${id}/log.json`, () => {
         setTimeout(() => timebuffer = false, 1000)
         if (!timebuffer){
           console.log("log changed")
@@ -59,20 +60,19 @@ export default class Trainer {
 
       console.log("starting")
 
-      var training_container
-      this.runContainer('testdataset',id,mount, this.running, "dataset ready. Training...")
+      this.runContainer('testdataset',id,mount, "dataset ready. Training...")
         .then(message => {
           console.log(message)
 
-      return this.runContainer('testtrain',id,mount, this.running, "training complete")})
+      return this.runContainer('testtrain',id,mount, "training complete")})
         .then(message => {
           console.log(message)
 
-      return this.runContainer('testtflite',id,mount, this.running, "tflite conversion complete")})
+      return this.runContainer('testtflite',id,mount, "tflite conversion complete")})
         .then(message => {
           console.log(message)
 
-      return this.runContainer('testcoral',id,mount, this.running, "done")})
+      return this.runContainer('testcoral',id,mount, "done")})
         .then(message => {
           console.log(message)
           watcher.close()
@@ -82,8 +82,8 @@ export default class Trainer {
       );
     }
 
-    async runContainer(image, id, mount, running, message){
-      var training_container;
+    async runContainer(image: string, id: string, mount: string, message: string): Promise<string> {
+      let training_container: Dockerode.Container;
       return new Promise((resolve, reject) => {
         this.docker.createContainer({
           Image: image,
