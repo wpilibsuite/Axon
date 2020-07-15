@@ -34,7 +34,7 @@ export default class Trainer {
     });
   }
 
-  start(id: string, name: string, hyperparameters: any): void {
+  start(id: string, name: string, hyperparameters: Object): void {
     let mount = process.cwd();
     if (mount.includes(":\\")) {
       // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
@@ -120,8 +120,8 @@ export default class Trainer {
   }
 
   halt(id: string): void {
-    let docker = this.docker;
-    let opts = {
+    const docker = this.docker;
+    const opts = {
       limit: 1,
       filters: `{"name": ["${id}"]}`
     };
@@ -133,7 +133,7 @@ export default class Trainer {
         console.log("no container");
       } else {
         console.log(containers[0].Image);
-        let container = docker.getContainer(containers[0].Id);
+        const container = docker.getContainer(containers[0].Id);
         container.kill({ force: true }).then(() => console.log(`container ${id} killed`));
       }
     });
