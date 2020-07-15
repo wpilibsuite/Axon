@@ -34,7 +34,7 @@ export default class Trainer {
     });
   }
 
-  start(id: string, name: string, hyperparameters: Object): void {
+  start(id: string, name: string, hyperparameters: unknown): void {
     let mount = process.cwd();
     if (mount.includes(":\\")) {
       // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
