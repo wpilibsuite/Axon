@@ -1,6 +1,10 @@
 import * as lowdb from "lowdb";
 import * as FileAsync from "lowdb/adapters/FileAsync";
 import { Dataset, Project } from "../schema/__generated__/graphql";
+import { DATA_DIR } from "../constants";
+import * as path from "path";
+
+const DB_FILE = path.join(DATA_DIR, "db.json");
 
 interface Database {
   projects: Project[];
@@ -10,8 +14,8 @@ interface Database {
 export default class LowConnector {
   connection: lowdb.LowdbAsync<Database>;
 
-  constructor(path: string) {
-    this.createConnection(path);
+  constructor() {
+    this.createConnection(DB_FILE);
   }
 
   private async createConnection(path: string) {

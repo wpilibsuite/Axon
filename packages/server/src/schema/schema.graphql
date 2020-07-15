@@ -17,11 +17,38 @@ type Mutation {
   haltTraining(id: ID!): Project
 }
 
+type Size {
+  width: Int!
+  height: Int!
+}
+
+type Point {
+  x: Int!
+  y: Int!
+}
+
+type ObjectLabel {
+  className: String!
+  points: [Point!]!
+}
+
+type LabeledImage {
+  path: String!
+  size: Size!
+  tags: [String!]!
+  object_labels: [ObjectLabel!]!
+}
+
 type Dataset {
-  dateAdded: DateTime
   id: ID!
-  name: String
-  path: String
+  dateAdded: DateTime!
+  name: String!
+  path: String!
+
+  classes: [String!]
+  tags: [String!]
+
+  images: [LabeledImage!]
 }
 
 type Project {
