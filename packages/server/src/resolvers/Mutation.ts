@@ -8,8 +8,14 @@ export const Mutation: MutationResolvers = {
   },
   startTraining: (parent, { id }, context) => {
     const project = ProjectModel.findById(id, context);
-    context.trainer.start();
+    context.trainer.start(id, project.hyperparameters);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
+    return project;
+  },
+  haltTraining: (parent, { id }, context) => {
+    const project = ProjectModel.findById(id, context);
+    context.trainer.halt(id);
+    console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 };

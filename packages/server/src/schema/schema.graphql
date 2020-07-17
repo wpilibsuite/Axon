@@ -14,6 +14,7 @@ type Mutation {
   createDataset(upload: Upload!): Dataset
 
   startTraining(id: ID!): Project
+  haltTraining(id: ID!): Project
 }
 
 type Dataset {
@@ -26,4 +27,15 @@ type Dataset {
 type Project {
   id: ID!
   name: String
+  hyperparameters: Hyperparameters
+}
+
+type Hyperparameters {
+  name: String
+  epochs: Int
+  batchsize: Int
+  evalfrequency: Int
+  checkpoint: String
+  datasetpath: String
+  percenteval: Int
 }
