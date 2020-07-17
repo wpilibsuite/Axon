@@ -8,20 +8,20 @@ export default class Trainer {
 
   constructor() {
     this.pull("gcperkins/wpilib-ml-dataset")
-    this.pull("gcperkins/wpilib-ml-train")
+      .then(() => this.pull("gcperkins/wpilib-ml-train"))
       .then(() => this.pull("gcperkins/wpilib-ml-tflite"))
       .then(() => {
         this.running = true;
         console.log("image pull complete");
         // setTimeout(() => this.halt("abc"), 10000);
         this.start("abc", {
-          "name": "model",
-          "epochs": 1,
-          "batchsize": 1,
-          "evalfrequency": 1,
-          "checkpoint": "default",
-          "datasetpath": "/opt/ml/model/dataset/full_data.tar",
-          "percenteval": 50
+          name: "model",
+          epochs: 1,
+          batchsize: 1,
+          evalfrequency: 1,
+          checkpoint: "default",
+          datasetpath: "/opt/ml/model/dataset/full_data.tar",
+          percenteval: 50
         });
       });
   }
@@ -55,14 +55,14 @@ export default class Trainer {
     mount = `${mount}:/opt/ml/model:rw`;
 
     //bridge between the graphql naming convention and the python naming convention
-    hyperparameters['batch-size'] = hyperparameters['batchsize'];
-    delete hyperparameters['batchsize']; 
-    hyperparameters['eval-frequency'] = hyperparameters['evalfrequency'];
-    delete hyperparameters['evalfrequency']; 
-    hyperparameters['dataset-path'] = hyperparameters['datasetpath'];
-    delete hyperparameters['datasetpath']; 
-    hyperparameters['percent-eval'] = hyperparameters['percenteval'];
-    delete hyperparameters['percenteval']; 
+    hyperparameters["batch-size"] = hyperparameters["batchsize"];
+    delete hyperparameters["batchsize"];
+    hyperparameters["eval-frequency"] = hyperparameters["evalfrequency"];
+    delete hyperparameters["evalfrequency"];
+    hyperparameters["dataset-path"] = hyperparameters["datasetpath"];
+    delete hyperparameters["datasetpath"];
+    hyperparameters["percent-eval"] = hyperparameters["percenteval"];
+    delete hyperparameters["percenteval"];
 
     fs.writeFileSync(`mount/${id}/hyperparameters.json`, JSON.stringify(hyperparameters));
     fs.writeFileSync(`mount/${id}/log.json`, JSON.stringify({ status: "starting" }));
@@ -119,10 +119,10 @@ export default class Trainer {
         })
         .then((container) => {
           training_container = container;
-          return container.attach({stream: true, stdout: true, stderr: true})
+          return container.attach({ stream: true, stdout: true, stderr: true });
         })
         .then((stream) => {
-          stream.pipe(process.stdout)
+          stream.pipe(process.stdout);
           return training_container.start();
         })
         .then(() => training_container.wait())
