@@ -7,13 +7,22 @@ export default class Trainer {
   readonly docker = new Dockerode();
 
   constructor() {
-    this.pull("gcperkins/wpilib-ml-base")
-      .then(() => this.pull("gcperkins/wpilib-ml-dataset"))
+    this.pull("gcperkins/wpilib-ml-dataset")
+    this.pull("gcperkins/wpilib-ml-train")
+      .then(() => this.pull("gcperkins/wpilib-ml-tflite"))
       .then(() => {
-        this.running = false;
+        this.running = true;
         console.log("image pull complete");
-        setTimeout(() => this.halt("abc"), 10000);
-        this.start("abc", "proj", { steps: 15 });
+        // setTimeout(() => this.halt("abc"), 10000);
+        this.start("abc", {
+          "name": "model",
+          "epochs": 1,
+          "batchsize": 1,
+          "evalfrequency": 1,
+          "checkpoint": "default",
+          "datasetpath": "/opt/ml/model/dataset/full_data.tar",
+          "percenteval": 50
+        });
       });
   }
 
@@ -34,7 +43,7 @@ export default class Trainer {
     });
   }
 
-  start(id: string, name: string, hyperparameters: unknown): void {
+  start(id: string, hyperparameters: unknown): void {
     let mount = process.cwd();
     if (mount.includes(":\\")) {
       // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
@@ -45,7 +54,16 @@ export default class Trainer {
     fs.mkdirSync(mount, { recursive: true });
     mount = `${mount}:/opt/ml/model:rw`;
 
-    hyperparameters["name"] = name;
+    //bridge between the graphql naming convention and the python naming convention
+    hyperparameters['batch-size'] = hyperparameters['batchsize'];
+    delete hyperparameters['batchsize']; 
+    hyperparameters['eval-frequency'] = hyperparameters['evalfrequency'];
+    delete hyperparameters['evalfrequency']; 
+    hyperparameters['dataset-path'] = hyperparameters['datasetpath'];
+    delete hyperparameters['datasetpath']; 
+    hyperparameters['percent-eval'] = hyperparameters['percenteval'];
+    delete hyperparameters['percenteval']; 
+
     fs.writeFileSync(`mount/${id}/hyperparameters.json`, JSON.stringify(hyperparameters));
     fs.writeFileSync(`mount/${id}/log.json`, JSON.stringify({ status: "starting" }));
 
@@ -60,11 +78,11 @@ export default class Trainer {
 
     console.log("starting");
 
-    this.runContainer("testdataset", id, mount, "dataset ready. Training...")
+    this.runContainer("gcperkins/wpilib-ml-dataset", id, mount, "dataset ready. Training...")
       .then((message) => {
         console.log(message);
 
-        return this.runContainer("testtrain", id, mount, "training finished");
+        return this.runContainer("gcperkins/wpilib-ml-train", id, mount, "training finished");
       })
       .then((message) => {
         console.log(message);
@@ -74,12 +92,7 @@ export default class Trainer {
       .then((message) => {
         console.log(message);
 
-        return this.runContainer("testtflite", id, mount, "tflite conversion complete");
-      })
-      .then((message) => {
-        console.log(message);
-
-        return this.runContainer("testcoral", id, mount, "done");
+        return this.runContainer("gcperkins/wpilib-ml-tflite", id, mount, "tflite conversion complete");
       })
       .then((message) => {
         console.log(message);
@@ -96,10 +109,20 @@ export default class Trainer {
           Image: image,
           name: id,
           Volumes: { "/opt/ml/model": {} },
-          HostConfig: { Binds: [mount] }
+          HostConfig: { Binds: [mount] },
+          AttachStdin: false,
+          AttachStdout: true,
+          AttachStderr: true,
+          Tty: true,
+          OpenStdin: false,
+          StdinOnce: false
         })
         .then((container) => {
           training_container = container;
+          return container.attach({stream: true, stdout: true, stderr: true})
+        })
+        .then((stream) => {
+          stream.pipe(process.stdout)
           return training_container.start();
         })
         .then(() => training_container.wait())

@@ -31,5 +31,11 @@ type Project {
 }
 
 type Hyperparameters {
-  steps: Int
+  name: String
+  epochs: Int
+  batchsize: Int
+  evalfrequency: Int
+  checkpoint: String
+  datasetpath: String
+  percenteval: Int
 }

@@ -8,7 +8,7 @@ export const Mutation: MutationResolvers = {
   },
   startTraining: (parent, { id }, context) => {
     const project = ProjectModel.findById(id, context);
-    context.trainer.start(id, project.name, project.hyperparameters);
+    context.trainer.start(id, project.hyperparameters);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   },
