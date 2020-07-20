@@ -45,15 +45,15 @@ type Dataset {
   name: String!
   path: String!
 
-  classes: [String!]
-  tags: [String!]
+  classes: [String!]!
+  tags: [String!]!
 
-  images: [LabeledImage!]
+  images: [LabeledImage!]!
 }
 
 type Project {
   id: ID!
-  name: String
+  name: String!
   hyperparameters: Hyperparameters
 }
 

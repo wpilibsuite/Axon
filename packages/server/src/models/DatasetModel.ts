@@ -8,12 +8,19 @@ import SuperviselyDatasetFilestore from "../connectors/SuperviselyDatasetFilesto
 const UPLOAD_DIR = "uploads";
 mkdirp.sync(UPLOAD_DIR);
 
-async function mergeLowDataWithFileSystemData(dataset: Dataset, datasetFilestore: SuperviselyDatasetFilestore): Promise<Dataset> {
-  const metaData = datasetFilestore.readMetaData(dataset.path);
+interface FileSystemData {
+  classes: string[];
+  images: LabeledImage[];
+}
 
-  dataset.classes = metaData.classes.map((c) => c.title);
-  const images = await datasetFilestore.listImages(dataset.path);
-  dataset.images = images.map(
+async function getFileSystemData(path: string, datasetFilestore: SuperviselyDatasetFilestore): Promise<FileSystemData> {
+  const metaData = datasetFilestore.readMetaData(path);
+
+  const data: FileSystemData = <FileSystemData>{};
+
+  data.classes = metaData.classes.map((c) => c.title);
+  const images = await datasetFilestore.listImages(path);
+  data.images = images.map(
     (image): LabeledImage => ({
       path: image.imagePath,
       size: image.annotation.size,
@@ -31,16 +38,27 @@ async function mergeLowDataWithFileSystemData(dataset: Dataset, datasetFilestore
       )
     })
   );
-  return dataset;
+  return data;
 }
 
 export const DatasetModel = {
   all: async function ({ datasetFilestore, low }: Context): Promise<Dataset[]> {
     const datasets = low.connection.get("datasets").value();
-    return Promise.all(datasets.map((dataset) => mergeLowDataWithFileSystemData(dataset, datasetFilestore)));
+    return Promise.all(
+      datasets.map(async (dataset) => {
+        const fsData = await getFileSystemData(dataset.path, datasetFilestore);
+        dataset.classes = fsData.classes;
+        dataset.images = fsData.images;
+        return dataset;
+      })
+    );
   },
-  findById(id: string, { datasetFilestore, low }: Context): Promise<Dataset> {
-    return mergeLowDataWithFileSystemData(low.connection.get("datasets").find({ id: id }).value(), datasetFilestore);
+  async findById(id: string, { datasetFilestore, low }: Context): Promise<Dataset> {
+    const dataset = low.connection.get("datasets").find({ id: id }).value();
+    const fsData = await getFileSystemData(dataset.path, datasetFilestore);
+    dataset.classes = fsData.classes;
+    dataset.images = fsData.images;
+    return dataset;
   },
   async create(filename: string, stream: fs.ReadStream, { datasetFilestore, low }: Context): Promise<Dataset> {
     const id = shortid.generate();
@@ -51,7 +69,15 @@ export const DatasetModel = {
     console.log(await JSON.stringify(datasetFilestore.listImages(path)));
 
     const dateAdded = new Date();
-    const dataset: Dataset = { id, dateAdded, name: filename, path, classes: meta.classes.map((c) => c.title) };
+    const dataset: Dataset = {
+      images: undefined,
+      tags: undefined,
+      id,
+      dateAdded,
+      name: filename,
+      path,
+      classes: meta.classes.map((c) => c.title)
+    };
 
     low.connection.get("datasets").push(dataset).write();
     return dataset;
