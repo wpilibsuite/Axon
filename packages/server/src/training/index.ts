@@ -14,15 +14,15 @@ export default class Trainer {
         this.running = true;
         console.log("image pull complete");
         // setTimeout(() => this.halt("abc"), 10000);
-        this.start("abc", {
-          name: "model",
-          epochs: 1,
-          batchsize: 1,
-          evalfrequency: 1,
-          checkpoint: "default",
-          datasetpath: "/opt/ml/model/dataset/full_data.tar",
-          percenteval: 50
-        });
+        // this.start("abc", {
+        //   name: "model",
+        //   epochs: 1,
+        //   batchsize: 1,
+        //   evalfrequency: 1,
+        //   checkpoint: "default",
+        //   datasetpath: "/opt/ml/model/dataset/full_data.tar",
+        //   percenteval: 50
+        // });
       });
   }
 
@@ -56,13 +56,13 @@ export default class Trainer {
 
     //bridge between the graphql naming convention and the python naming convention
     hyperparameters["batch-size"] = hyperparameters["batchsize"];
-    delete hyperparameters["batchsize"];
+    // delete hyperparameters["batchsize"];
     hyperparameters["eval-frequency"] = hyperparameters["evalfrequency"];
-    delete hyperparameters["evalfrequency"];
+    // delete hyperparameters["evalfrequency"];
     hyperparameters["dataset-path"] = hyperparameters["datasetpath"];
-    delete hyperparameters["datasetpath"];
+    // delete hyperparameters["datasetpath"];
     hyperparameters["percent-eval"] = hyperparameters["percenteval"];
-    delete hyperparameters["percenteval"];
+    // delete hyperparameters["percenteval"];
 
     fs.writeFileSync(`mount/${id}/hyperparameters.json`, JSON.stringify(hyperparameters));
     fs.writeFileSync(`mount/${id}/log.json`, JSON.stringify({ status: "starting" }));
