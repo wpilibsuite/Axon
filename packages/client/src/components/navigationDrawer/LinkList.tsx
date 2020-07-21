@@ -1,7 +1,7 @@
 import * as React from "react";
 import { List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
 import { Link } from "react-router-dom";
-import { Dashboard, Info, PermMedia } from "@material-ui/icons";
+import { Info, PermMedia } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { SvgIconTypeMap } from "@material-ui/core/SvgIcon/SvgIcon";
 import { makeStyles } from "@material-ui/core/styles";
@@ -15,9 +15,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export const links: { [link: string]: { name: string; icon: OverridableComponent<SvgIconTypeMap> } } = {
-  "/": { name: "Home", icon: Dashboard },
   "/datasets": { name: "Datasets", icon: PermMedia },
-  "/models": { name: "Models", icon: PermMedia },
+  "/projects": { name: "Projects", icon: PermMedia },
   "/about": { name: "About", icon: Info }
 };
 

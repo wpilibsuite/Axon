@@ -51,10 +51,24 @@ type Dataset {
   images: [LabeledImage!]!
 }
 
+type TrainingMetrics {
+  loss: Float
+  precision: Float
+  intersectionOverUnion: Float
+}
+
+type Checkpoint {
+  step: Int
+  metrics: TrainingMetrics
+}
+
 type Project {
   id: ID!
   name: String!
   hyperparameters: Hyperparameters
+
+  inProgress: Boolean
+  checkpoints: [Checkpoint]
 }
 
 type Hyperparameters {

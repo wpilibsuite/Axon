@@ -176,4 +176,4 @@ __generated__/
 !.yarn/versions
 .pnp.*
 
-server/data/
+packages/server/data/
