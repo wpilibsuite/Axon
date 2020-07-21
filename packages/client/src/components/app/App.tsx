@@ -7,9 +7,7 @@ import NavigationDrawer from "../navigationDrawer";
 import Footer from "../footer";
 import { makeStyles } from "@material-ui/core/styles";
 import { CssBaseline } from "@material-ui/core";
-import { ApolloProvider } from "react-apollo";
-import ApolloClient from "apollo-client";
-import { NormalizedCacheObject } from "apollo-cache-inmemory";
+import { ApolloClient, ApolloProvider, NormalizedCacheObject } from "@apollo/client";
 
 const browserHistory = createBrowserHistory();
 
@@ -43,9 +41,7 @@ function App({ client }: Props): ReactElement {
           <NavigationDrawer />
           <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            {/*<Container>*/}
             <AppRoutes />
-            {/*</Container>*/}
             <Footer />
           </main>
         </Router>

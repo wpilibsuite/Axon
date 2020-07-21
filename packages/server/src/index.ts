@@ -6,9 +6,11 @@ import LowConnector from "./connectors/LowConnector";
 import { DockerConnector } from "./connectors";
 import * as serve from "koa-static";
 import * as mount from "koa-mount";
+import SuperviselyDatasetFilestore, { DATASET_DIR } from "./connectors/SuperviselyDatasetFilestore";
 
+const datasetFilestore = new SuperviselyDatasetFilestore();
 const docker = new DockerConnector();
-const low = new LowConnector("db.json");
+const low = new LowConnector();
 const pubsub = new PubSub();
 const trainer = new Trainer();
 
@@ -16,6 +18,7 @@ const app = new Koa();
 const server = new ApolloServer({
   schema: schema,
   context: {
+    datasetFilestore,
     docker,
     low,
     pubsub,
@@ -31,7 +34,7 @@ const server = new ApolloServer({
   }
 });
 
-app.use(mount("/uploads", serve("uploads")));
+app.use(mount("/dataset", serve(DATASET_DIR)));
 server.applyMiddleware({ app });
 
 const port = process.env.PORT || 4000;

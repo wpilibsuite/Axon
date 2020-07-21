@@ -175,3 +175,5 @@ __generated__/
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+
+packages/server/data/
