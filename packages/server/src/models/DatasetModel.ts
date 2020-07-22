@@ -2,11 +2,7 @@ import { Context } from "../context";
 import { Dataset, LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import * as shortid from "shortid";
 import * as fs from "fs";
-import * as mkdirp from "mkdirp";
 import SuperviselyDatasetFilestore from "../connectors/SuperviselyDatasetFilestore";
-
-const UPLOAD_DIR = "uploads";
-mkdirp.sync(UPLOAD_DIR);
 
 interface FileSystemData {
   classes: string[];
