@@ -12,7 +12,14 @@ export const Query: QueryResolvers = {
     return DatasetModel.all(context);
   },
   project: (_, { id }, context) => {
-    return ProjectModel.findById(id, context);
+    let retproject = ProjectModel.findById(id, context);
+    retproject["checkpoints"] = [
+      {
+        step:context.trainer.checkpoint.step,
+        metrics:{precision:context.trainer.checkpoint.precision}
+      }
+    ]
+    return retproject
   },
   projects: (_, args, context) => {
     return ProjectModel.all(context);

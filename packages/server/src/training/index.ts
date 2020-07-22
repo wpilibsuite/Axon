@@ -3,6 +3,7 @@ import * as fs from "fs";
 
 export default class Trainer {
   running: boolean;
+  checkpoint: any;
 
   readonly docker = new Dockerode();
 
@@ -10,6 +11,7 @@ export default class Trainer {
     this.pull("gcperkins/wpilib-ml-dataset")
       .then(() => this.pull("gcperkins/wpilib-ml-train"))
       .then(() => this.pull("gcperkins/wpilib-ml-tflite"))
+      .then(() => this.pull("gcperkins/wpilib-ml-metrics"))
       .then(() => {
         this.running = true;
         console.log("image pull complete");
@@ -24,7 +26,12 @@ export default class Trainer {
         //   percenteval: 50
         // });
       });
-  }
+      
+      this.checkpoint = {
+        step:0,
+        precision:0
+      }
+    }
 
   async pull(name: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -65,19 +72,43 @@ export default class Trainer {
     // delete hyperparameters["percenteval"];
 
     fs.writeFileSync(`mount/${id}/hyperparameters.json`, JSON.stringify(hyperparameters));
-    fs.writeFileSync(`mount/${id}/log.json`, JSON.stringify({ status: "starting" }));
+    fs.writeFileSync(`mount/${id}/metrics.json`, JSON.stringify({ status: "starting" }));
 
     let timebuffer = true;
-    const watcher = fs.watch(`./mount/${id}/log.json`, () => {
+    const watcher = fs.watch(`./mount/${id}/metrics.json`, () => {
       setTimeout(() => (timebuffer = false), 1000);
       if (!timebuffer) {
-        console.log("log changed");
-        timebuffer = true;
+        console.log("metrics saved");
+        fs.readFile(`mount/${id}/metrics.json`, 'utf8', (err, metricsFile) => {
+          try {
+            const metrics = JSON.parse(metricsFile)
+              let currentstep = 0;
+              for (var step in metrics.precision) {
+                currentstep = (currentstep < parseInt(step)) ? parseInt(step) : currentstep;
+              }
+              this.checkpoint.step = currentstep
+              this.checkpoint.precision = metrics.precision[currentstep.toString(10)]
+              console.log("current step: ",currentstep)
+
+          } catch(err) {
+            console.log('could not read metrics', err)
+          }
+          timebuffer = true;
+        }) 
       }
     });
 
     console.log("starting");
 
+      this.docker
+      .createContainer({
+        Image: 'gcperkins/wpilib-ml-metrics',
+        name: 'metrics',
+        Volumes: { "/opt/ml/model": {} },
+        HostConfig: { Binds: [mount] },
+      })
+      .then((container) => container.start())
+      
     this.runContainer("gcperkins/wpilib-ml-dataset", id, mount, "dataset ready. Training...")
       .then((message) => {
         console.log(message);
