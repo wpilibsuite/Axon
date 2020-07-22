@@ -2,7 +2,6 @@ import React, { ReactElement } from "react";
 import {
   Container,
   createStyles,
-  IconButton,
   Paper,
   Table,
   TableBody,
@@ -12,15 +11,14 @@ import {
   TableRow,
   Theme,
   Toolbar,
-  Tooltip,
   Typography
 } from "@material-ui/core";
 import gql from "graphql-tag";
-import AddIcon from "@material-ui/icons/Add";
 import { makeStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 import { GetProjectList } from "./__generated__/GetProjectList";
 import { useQuery } from "@apollo/client";
+import AddProjectDialogButton from "./AddProjectDialogButton";
 
 const GET_PROJECTS = gql`
   query GetProjectList {
@@ -30,14 +28,6 @@ const GET_PROJECTS = gql`
     }
   }
 `;
-
-// const CREATE_Project_MUTATION = gql`
-//   mutation CreateProject() {
-//     createDataset() {
-//       id
-//     }
-//   }
-// `;
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -62,11 +52,7 @@ export default function Projects(): ReactElement {
           <Typography variant="h6" className={classes.title}>
             Projects
           </Typography>
-          <Tooltip title="Add dataset">
-            <IconButton onClick={() => alert("Hi")}>
-              <AddIcon />
-            </IconButton>
-          </Tooltip>
+          <AddProjectDialogButton />
         </Toolbar>
         <TableContainer component={Paper}>
           <Table>

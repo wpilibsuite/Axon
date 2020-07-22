@@ -6,6 +6,9 @@ export const Mutation: MutationResolvers = {
     const { createReadStream, filename } = await upload;
     return DatasetModel.create(filename, createReadStream(), context);
   },
+  createProject: async (parent, { name }, context) => {
+    return ProjectModel.create(name, context);
+  },
   startTraining: (parent, { id }, context) => {
     const project = ProjectModel.findById(id, context);
     context.trainer.start(id, project.hyperparameters);

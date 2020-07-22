@@ -7,23 +7,23 @@ export default class Trainer {
   readonly docker = new Dockerode();
 
   constructor() {
-    this.pull("gcperkins/wpilib-ml-dataset")
-      .then(() => this.pull("gcperkins/wpilib-ml-train"))
-      .then(() => this.pull("gcperkins/wpilib-ml-tflite"))
-      .then(() => {
-        this.running = true;
-        console.log("image pull complete");
-        // setTimeout(() => this.halt("abc"), 10000);
-        // this.start("abc", {
-        //   name: "model",
-        //   epochs: 1,
-        //   batchsize: 1,
-        //   evalfrequency: 1,
-        //   checkpoint: "default",
-        //   datasetpath: "/opt/ml/model/dataset/full_data.tar",
-        //   percenteval: 50
-        // });
-      });
+    // this.pull("gcperkins/wpilib-ml-dataset")
+    //   .then(() => this.pull("gcperkins/wpilib-ml-train"))
+    //   .then(() => this.pull("gcperkins/wpilib-ml-tflite"))
+    //   .then(() => {
+    //     this.running = true;
+    //     console.log("image pull complete");
+    //     // setTimeout(() => this.halt("abc"), 10000);
+    //     // this.start("abc", {
+    //     //   name: "model",
+    //     //   epochs: 1,
+    //     //   batchsize: 1,
+    //     //   evalfrequency: 1,
+    //     //   checkpoint: "default",
+    //     //   datasetpath: "/opt/ml/model/dataset/full_data.tar",
+    //     //   percenteval: 50
+    //     // });
+    //   });
   }
 
   async pull(name: string): Promise<string> {
