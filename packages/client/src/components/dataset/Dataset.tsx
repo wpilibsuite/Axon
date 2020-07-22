@@ -31,7 +31,7 @@ function DataGalleryBase(props: { images: GetDataset_dataset_images[]; scrollPos
             alt={image.path}
             height={image.size.height}
             width={image.size.width}
-            src={encodeURI(`http://localhost:4000/${image.path.replace("data/datasets", "dataset")}`)}
+            src={encodeURI(`http://localhost:4000/${image.path}`)}
             scrollPosition={props.scrollPosition}
           />
         </GridListTile>

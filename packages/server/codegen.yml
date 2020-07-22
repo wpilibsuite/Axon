@@ -4,6 +4,8 @@ documents: null
 generates:
   src/schema/__generated__/graphql.ts:
     config:
+      mappers:
+        Dataset: ../../models#DatasetModel
       contextType: ../../context#Context
     plugins:
       - "typescript"

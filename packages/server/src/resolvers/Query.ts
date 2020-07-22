@@ -1,20 +1,19 @@
 import { QueryResolvers } from "../schema/__generated__/graphql";
-import { DatasetModel, ProjectModel } from "../models";
 
 export const Query: QueryResolvers = {
   isDockerConnected: async (parent, args, { docker }) => {
     return await docker.isConnected();
   },
-  dataset: (parent, { id }, context) => {
-    return DatasetModel.findById(id, context);
+  dataset: (parent, { id }, { dataSources }) => {
+    return dataSources.datasetService.getDataset(id);
   },
-  datasets: (parent, args, context) => {
-    return DatasetModel.all(context);
+  datasets: async (parent, args, { dataSources }) => {
+    return await dataSources.datasetService.getDatasets();
   },
-  project: (_, { id }, context) => {
-    return ProjectModel.findById(id, context);
+  project: (_, { id }, { dataSources }) => {
+    return dataSources.projectService.getProject(id);
   },
-  projects: (_, args, context) => {
-    return ProjectModel.all(context);
+  projects: (_, args, { dataSources }) => {
+    return dataSources.projectService.getProjects();
   }
 };

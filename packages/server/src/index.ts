@@ -2,28 +2,30 @@ import * as Koa from "koa";
 import { ApolloServer, PubSub } from "apollo-server-koa";
 import { schema } from "./schema";
 import Trainer from "./training";
-import LowConnector from "./connectors/LowConnector";
 import { DockerConnector } from "./connectors";
 import * as serve from "koa-static";
 import * as mount from "koa-mount";
-import SuperviselyDatasetFilestore, { DATASET_DIR } from "./connectors/SuperviselyDatasetFilestore";
+import { ProjectService } from "./datasources/project-service";
+import { DATASET_DATA_DIR, PROJECT_DATA_DIR } from "./constants";
+import { Context } from "./context";
+import { DatasetService } from "./datasources/dataset-service";
 
-const datasetFilestore = new SuperviselyDatasetFilestore();
 const docker = new DockerConnector();
-const low = new LowConnector();
 const pubsub = new PubSub();
 const trainer = new Trainer();
 
 const app = new Koa();
 const server = new ApolloServer({
   schema: schema,
+  dataSources: () => ({
+    datasetService: new DatasetService(DATASET_DATA_DIR),
+    projectService: new ProjectService(PROJECT_DATA_DIR)
+  }),
   context: {
-    datasetFilestore,
     docker,
-    low,
     pubsub,
     trainer
-  },
+  } as Context,
   uploads: {
     // Limits here should be stricter than config for surrounding
     // infrastructure such as Nginx so errors can be handled elegantly by
@@ -34,7 +36,7 @@ const server = new ApolloServer({
   }
 });
 
-app.use(mount("/dataset", serve(DATASET_DIR)));
+app.use(mount("/datasets", serve(DATASET_DATA_DIR)));
 server.applyMiddleware({ app });
 
 const port = process.env.PORT || 4000;

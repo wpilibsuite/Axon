@@ -1,23 +1,22 @@
 import { MutationResolvers } from "../schema/__generated__/graphql";
-import { DatasetModel, ProjectModel } from "../models";
 
 export const Mutation: MutationResolvers = {
-  createDataset: async (parent, { upload }, context) => {
+  createDataset: async (parent, { upload }, { dataSources }) => {
     const { createReadStream, filename } = await upload;
-    return DatasetModel.create(filename, createReadStream(), context);
+    return dataSources.datasetService.createDataset(filename, createReadStream());
   },
-  createProject: async (parent, { name }, context) => {
-    return ProjectModel.create(name, context);
+  createProject: async (parent, { name }, { dataSources }) => {
+    return dataSources.projectService.createProject(name);
   },
-  startTraining: (parent, { id }, context) => {
-    const project = ProjectModel.findById(id, context);
-    context.trainer.start(id, project.hyperparameters);
+  startTraining: (parent, { id }, { dataSources }) => {
+    const project = dataSources.projectService.getProject(id);
+    // trainer.start(id, project.hyperparameters);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   },
-  haltTraining: (parent, { id }, context) => {
-    const project = ProjectModel.findById(id, context);
-    context.trainer.halt(id);
+  haltTraining: (parent, { id }, { dataSources }) => {
+    const project = dataSources.projectService.getProject(id);
+    // context.trainer.halt(id);
     console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
