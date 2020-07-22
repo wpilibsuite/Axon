@@ -73,7 +73,6 @@ type Project {
 }
 
 type Hyperparameters {
-  name: String
   epochs: Int
   batchsize: Int
   evalfrequency: Int
