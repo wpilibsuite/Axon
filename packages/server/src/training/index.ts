@@ -4,7 +4,7 @@ import * as Path from "path";
 
 export default class Trainer {
   running: boolean;
-  projects: unknown
+  projects: unknown;
   checkpoint: any;
 
   readonly docker = new Dockerode();
@@ -28,14 +28,14 @@ export default class Trainer {
         //   percenteval: 50
         // });
       });
-      
-      this.projects = {}
 
-      this.checkpoint = {
-        step:0,
-        precision:0
-      }
-    }
+    this.projects = {};
+
+    this.checkpoint = {
+      step: 0,
+      precision: 0
+    };
+  }
 
   async pull(name: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -55,12 +55,11 @@ export default class Trainer {
   }
 
   start(id: string, hyperparameters: unknown): void {
-
     this.projects[id] = {
-      training_container : null,
-      metrics_container : null,
-      metrics : null
-    }
+      training_container: null,
+      metrics_container: null,
+      metrics: null
+    };
 
     let mount = process.cwd();
     if (mount.includes(":\\")) {
@@ -83,7 +82,7 @@ export default class Trainer {
     // delete hyperparameters["percenteval"];
 
     fs.writeFileSync(`mount/${id}/hyperparameters.json`, JSON.stringify(hyperparameters));
-    fs.writeFileSync(`mount/${id}/metrics.json`, JSON.stringify({"precision": {"0": 0}}));
+    fs.writeFileSync(`mount/${id}/metrics.json`, JSON.stringify({ precision: { "0": 0 } }));
 
     //#watcher is not working- currently using query based file read
     // let timebuffer = true;
@@ -106,34 +105,34 @@ export default class Trainer {
     //         console.log('could not read metrics', err)
     //       }
     //       timebuffer = true;
-    //     }) 
+    //     })
     //   }
     // });
 
     console.log("starting");
 
     this.deleteContainer(id)
-    .then(message => {
-      console.log(message)
-      return this.deleteContainer("metrics")
-    })
-    .then(message => {
-      console.log(message)
-
-      fs.rmdirSync(`./mount/${id}/train/`, { recursive: true });
-
-      return this.docker.createContainer({
-        Image: 'gcperkins/wpilib-ml-metrics',
-        name: 'metrics',
-        Volumes: { "/opt/ml/model": {} },
-        HostConfig: { Binds: [mount] },
+      .then((message) => {
+        console.log(message);
+        return this.deleteContainer("metrics");
       })
-    })
-    .then((container) => {
-      this.projects[id].metrics_container = container
-      return container.start()
-    })
-    .then(() => this.runContainer("gcperkins/wpilib-ml-dataset", id, mount, "dataset ready. Training..."))
+      .then((message) => {
+        console.log(message);
+
+        fs.rmdirSync(`./mount/${id}/train/`, { recursive: true });
+
+        return this.docker.createContainer({
+          Image: "gcperkins/wpilib-ml-metrics",
+          name: "metrics",
+          Volumes: { "/opt/ml/model": {} },
+          HostConfig: { Binds: [mount] }
+        });
+      })
+      .then((container) => {
+        this.projects[id].metrics_container = container;
+        return container.start();
+      })
+      .then(() => this.runContainer("gcperkins/wpilib-ml-dataset", id, mount, "dataset ready. Training..."))
       .then((message) => {
         console.log(message);
 
@@ -171,7 +170,7 @@ export default class Trainer {
           Tty: true
         })
         .then((container) => {
-          this.projects[id].training_container = container
+          this.projects[id].training_container = container;
           return container.attach({ stream: true, stdout: true, stderr: true });
         })
         .then((stream) => {
@@ -197,15 +196,15 @@ export default class Trainer {
 
   halt(id: string): void {
     this.deleteContainer(id)
-    .then(message => {
-      console.log(message)
-      return this.deleteContainer("metrics")
-    })
-    .then(message => console.log(message))
-    .catch(error => console.log(error))
+      .then((message) => {
+        console.log(message);
+        return this.deleteContainer("metrics");
+      })
+      .then((message) => console.log(message))
+      .catch((error) => console.log(error));
   }
 
-  async deleteContainer(id: string) : Promise<string> {
+  async deleteContainer(id: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const docker = this.docker;
       const opts = {
@@ -220,12 +219,12 @@ export default class Trainer {
           resolve(`no ${id} container yet`);
         } else {
           const container = docker.getContainer(containers[0].Id);
-          container.kill({ force: true })
-          .then(() => container.remove())
-          .then(() => resolve(`container ${id} killed`));
+          container
+            .kill({ force: true })
+            .then(() => container.remove())
+            .then(() => resolve(`container ${id} killed`));
         }
-      })
+      });
     });
   }
-
 }
