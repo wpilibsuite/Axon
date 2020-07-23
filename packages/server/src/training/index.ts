@@ -30,11 +30,7 @@ export default class Trainer {
       });
 
     this.projects = {};
-
-    this.checkpoint = {
-      step: 0,
-      precision: 0
-    };
+    
   }
 
   async pull(name: string): Promise<string> {
