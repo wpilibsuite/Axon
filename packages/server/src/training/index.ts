@@ -1,29 +1,40 @@
 import * as Dockerode from "dockerode";
 import * as fs from "fs";
+import * as Path from "path";
 
 export default class Trainer {
   running: boolean;
+  projects: unknown;
+  checkpoint: any;
 
   readonly docker = new Dockerode();
 
   constructor() {
-    // this.pull("gcperkins/wpilib-ml-dataset")
-    //   .then(() => this.pull("gcperkins/wpilib-ml-train"))
-    //   .then(() => this.pull("gcperkins/wpilib-ml-tflite"))
-    //   .then(() => {
-    //     this.running = true;
-    //     console.log("image pull complete");
-    //     // setTimeout(() => this.halt("abc"), 10000);
-    //     // this.start("abc", {
-    //     //   name: "model",
-    //     //   epochs: 1,
-    //     //   batchsize: 1,
-    //     //   evalfrequency: 1,
-    //     //   checkpoint: "default",
-    //     //   datasetpath: "/opt/ml/model/dataset/full_data.tar",
-    //     //   percenteval: 50
-    //     // });
-    //   });
+    this.pull("gcperkins/wpilib-ml-dataset")
+      .then(() => this.pull("gcperkins/wpilib-ml-train"))
+      .then(() => this.pull("gcperkins/wpilib-ml-tflite"))
+      .then(() => this.pull("gcperkins/wpilib-ml-metrics"))
+      .then(() => {
+        this.running = true;
+        console.log("image pull complete");
+        // setTimeout(() => this.halt("abc"), 10000);
+        // this.start("abc", {
+        //   name: "model",
+        //   epochs: 1,
+        //   batchsize: 1,
+        //   evalfrequency: 1,
+        //   checkpoint: "default",
+        //   datasetpath: "/opt/ml/model/dataset/full_data.tar",
+        //   percenteval: 50
+        // });
+      });
+
+    this.projects = {};
+
+    this.checkpoint = {
+      step: 0,
+      precision: 0
+    };
   }
 
   async pull(name: string): Promise<string> {
@@ -44,6 +55,12 @@ export default class Trainer {
   }
 
   start(id: string, hyperparameters: unknown): void {
+    this.projects[id] = {
+      training_container: null,
+      metrics_container: null,
+      metrics: null
+    };
+
     let mount = process.cwd();
     if (mount.includes(":\\")) {
       // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
@@ -65,20 +82,57 @@ export default class Trainer {
     // delete hyperparameters["percenteval"];
 
     fs.writeFileSync(`mount/${id}/hyperparameters.json`, JSON.stringify(hyperparameters));
-    fs.writeFileSync(`mount/${id}/log.json`, JSON.stringify({ status: "starting" }));
+    fs.writeFileSync(`mount/${id}/metrics.json`, JSON.stringify({ precision: { "0": 0 } }));
 
-    let timebuffer = true;
-    const watcher = fs.watch(`./mount/${id}/log.json`, () => {
-      setTimeout(() => (timebuffer = false), 1000);
-      if (!timebuffer) {
-        console.log("log changed");
-        timebuffer = true;
-      }
-    });
+    //#watcher is not working- currently using query based file read
+    // let timebuffer = true;
+    // const watcher = fs.watch(`./mount/${id}/metrics.json`, () => {
+    //   setTimeout(() => (timebuffer = false), 1000);
+    //   if (!timebuffer) {
+    //     console.log("metrics saved");
+    //     fs.readFile(`mount/${id}/metrics.json`, 'utf8', (err, metricsFile) => {
+    //       try {
+    //         const metrics = JSON.parse(metricsFile)
+    //           let currentstep = 0;
+    //           for (var step in metrics.precision) {
+    //             currentstep = (currentstep < parseInt(step)) ? parseInt(step) : currentstep;
+    //           }
+    //           this.checkpoint.step = currentstep
+    //           this.checkpoint.precision = metrics.precision[currentstep.toString(10)]
+    //           console.log("current step: ",currentstep)
+
+    //       } catch(err) {
+    //         console.log('could not read metrics', err)
+    //       }
+    //       timebuffer = true;
+    //     })
+    //   }
+    // });
 
     console.log("starting");
 
-    this.runContainer("gcperkins/wpilib-ml-dataset", id, mount, "dataset ready. Training...")
+    this.deleteContainer(id)
+      .then((message) => {
+        console.log(message);
+        return this.deleteContainer("metrics");
+      })
+      .then((message) => {
+        console.log(message);
+
+        fs.rmdirSync(`./mount/${id}/train/`, { recursive: true });
+
+        return this.docker.createContainer({
+          Image: "gcperkins/wpilib-ml-metrics",
+          name: "metrics",
+          Volumes: { "/opt/ml/model": {} },
+          HostConfig: { Binds: [mount] }
+        });
+      })
+      .then((container) => {
+        this.projects[id].metrics_container = container;
+        return container.start();
+      })
+      .then(() => this.runContainer("gcperkins/wpilib-ml-dataset", id, mount, "dataset ready. Training..."))
       .then((message) => {
         console.log(message);
 
@@ -96,13 +150,11 @@ export default class Trainer {
       })
       .then((message) => {
         console.log(message);
-        watcher.close();
       })
       .catch((err) => console.log(err));
   }
 
   async runContainer(image: string, id: string, mount: string, message: string): Promise<string> {
-    let training_container: Dockerode.Container;
     return new Promise((resolve, reject) => {
       this.docker
         .createContainer({
@@ -113,20 +165,20 @@ export default class Trainer {
           AttachStdin: false,
           AttachStdout: true,
           AttachStderr: true,
-          Tty: true,
           OpenStdin: false,
-          StdinOnce: false
+          StdinOnce: false,
+          Tty: true
         })
         .then((container) => {
-          training_container = container;
+          this.projects[id].training_container = container;
           return container.attach({ stream: true, stdout: true, stderr: true });
         })
         .then((stream) => {
           stream.pipe(process.stdout);
-          return training_container.start();
+          return this.projects[id].training_container.start();
         })
-        .then(() => training_container.wait())
-        .then(() => training_container.remove())
+        .then(() => this.projects[id].training_container.wait())
+        .then(() => this.projects[id].training_container.remove())
         .then(() => resolve(message))
         .catch((err) => reject(err));
     });
@@ -143,22 +195,36 @@ export default class Trainer {
   }
 
   halt(id: string): void {
-    const docker = this.docker;
-    const opts = {
-      limit: 1,
-      filters: `{"name": ["${id}"]}`
-    };
-    this.docker.listContainers(opts, function (err, containers) {
-      if (err) {
-        console.log(err);
-      }
-      if (containers.length == 0) {
-        console.log("no container");
-      } else {
-        console.log(containers[0].Image);
-        const container = docker.getContainer(containers[0].Id);
-        container.kill({ force: true }).then(() => console.log(`container ${id} killed`));
-      }
+    this.deleteContainer(id)
+      .then((message) => {
+        console.log(message);
+        return this.deleteContainer("metrics");
+      })
+      .then((message) => console.log(message))
+      .catch((error) => console.log(error));
+  }
+
+  async deleteContainer(id: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const docker = this.docker;
+      const opts = {
+        limit: 1,
+        filters: `{"name": ["${id}"]}`
+      };
+      this.docker.listContainers(opts, function (err, containers) {
+        if (err) {
+          reject(err);
+        }
+        if (containers.length == 0) {
+          resolve(`no ${id} container yet`);
+        } else {
+          const container = docker.getContainer(containers[0].Id);
+          container
+            .kill({ force: true })
+            .then(() => container.remove())
+            .then(() => resolve(`container ${id} killed`));
+        }
+      });
     });
   }
 }
