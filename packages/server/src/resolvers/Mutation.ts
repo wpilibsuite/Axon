@@ -8,6 +8,9 @@ export const Mutation: MutationResolvers = {
   createProject: async (parent, { name }, { dataSources }) => {
     return dataSources.projectService.createProject(name);
   },
+  updateHyperparameters: async (parent, { id, hyperparameters }, { dataSources }) => {
+    return dataSources.projectService.updateHyperparameters(id, hyperparameters);
+  },
   startTraining: (parent, { id }, { dataSources }) => {
     const project = dataSources.projectService.getProject(id);
     // trainer.start(id, project.hyperparameters);

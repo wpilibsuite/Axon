@@ -12,7 +12,9 @@ type Query {
 
 type Mutation {
   createDataset(upload: Upload!): Dataset
+
   createProject(name: String!): Project
+  updateHyperparameters(id: ID!, hyperparameters: HyperparametersInput!): Project
 
   startTraining(id: ID!): Project
   haltTraining(id: ID!): Project
@@ -53,30 +55,34 @@ type Dataset {
 }
 
 type TrainingMetrics {
-  loss: Float
-  precision: Float
-  intersectionOverUnion: Float
+  loss: Float!
+  precision: Float!
+  intersectionOverUnion: Float!
 }
 
 type Checkpoint {
-  step: Int
-  metrics: TrainingMetrics
+  step: Int!
+  metrics: TrainingMetrics!
 }
 
 type Project {
   id: ID!
   name: String!
-  hyperparameters: Hyperparameters
-
-  inProgress: Boolean
+  hyperparameters: Hyperparameters!
+  inProgress: Boolean!
   checkpoints: [Checkpoint]
 }
 
+input HyperparametersInput {
+  epochs: Int!
+  batchSize: Int!
+  evalFrequency: Int!
+  percentEval: Float!
+}
+
 type Hyperparameters {
-  epochs: Int
-  batchsize: Int
-  evalfrequency: Int
-  checkpoint: String
-  datasetpath: String
-  percenteval: Int
+  epochs: Int!
+  batchSize: Int!
+  evalFrequency: Int!
+  percentEval: Float!
 }

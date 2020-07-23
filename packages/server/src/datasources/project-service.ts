@@ -1,7 +1,7 @@
 import { DataSource } from "apollo-datasource";
 import * as lowdb from "lowdb";
 import * as FileAsync from "lowdb/adapters/FileAsync";
-import { Project } from "../schema/__generated__/graphql";
+import { Hyperparameters, HyperparametersInput, Project } from "../schema/__generated__/graphql";
 import * as shortid from "shortid";
 import * as Lowdb from "lowdb";
 import * as path from "path";
@@ -44,10 +44,21 @@ export class ProjectService extends DataSource {
     return (await this.store).low.get("projects").find({ id }).value().name;
   }
 
+  async updateHyperparameters(id: string, hyperparameters: HyperparametersInput): Promise<Project> {
+    return (await this.store).low.get("projects").find({ id }).assign({ hyperparameters }).write();
+  }
+
   async createProject(name: string): Promise<Project> {
     const project: Project = {
       id: shortid.generate(),
-      name
+      name,
+      inProgress: false,
+      hyperparameters: {
+        epochs: 10,
+        batchSize: 8,
+        evalFrequency: 1,
+        percentEval: 0.8
+      }
     };
     (await this.store).low.get("projects").push(project).write();
     return project;
