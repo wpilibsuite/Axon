@@ -1,7 +1,6 @@
 import * as Koa from "koa";
 import { ApolloServer, PubSub } from "apollo-server-koa";
 import { schema } from "./schema";
-import Trainer from "./training";
 import { DockerConnector } from "./connectors";
 import * as serve from "koa-static";
 import * as mount from "koa-mount";
@@ -12,7 +11,6 @@ import { DatasetService } from "./datasources/dataset-service";
 
 const docker = new DockerConnector();
 const pubsub = new PubSub();
-const trainer = new Trainer();
 
 const app = new Koa();
 const server = new ApolloServer({
@@ -24,7 +22,6 @@ const server = new ApolloServer({
   context: {
     docker,
     pubsub,
-    trainer
   } as Context,
   uploads: {
     // Limits here should be stricter than config for surrounding
