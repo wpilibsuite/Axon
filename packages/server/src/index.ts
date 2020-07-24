@@ -8,8 +8,10 @@ import { ProjectService } from "./datasources/project-service";
 import { DATASET_DATA_DIR, PROJECT_DATA_DIR } from "./constants";
 import { Context } from "./context";
 import { DatasetService } from "./datasources/dataset-service";
+import Trainer from "./training";
 
 const docker = new DockerConnector();
+const trainer = new Trainer();
 const pubsub = new PubSub();
 
 const app = new Koa();
@@ -17,7 +19,7 @@ const server = new ApolloServer({
   schema: schema,
   dataSources: () => ({
     datasetService: new DatasetService(DATASET_DATA_DIR),
-    projectService: new ProjectService(PROJECT_DATA_DIR)
+    projectService: new ProjectService(PROJECT_DATA_DIR, trainer)
   }),
   context: {
     docker,

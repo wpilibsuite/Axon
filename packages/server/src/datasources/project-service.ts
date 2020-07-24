@@ -30,10 +30,10 @@ export class ProjectService extends DataSource {
   private store: Promise<{ low: Lowdb.LowdbAsync<Database> }>;
   trainer: Trainer
 
-  constructor(path: string) {
+  constructor(path: string, trainer: Trainer) {
     super();
     this.store = createStore(path);
-    this.trainer = new Trainer();
+    this.trainer = trainer
   }
 
   async getProjects(): Promise<Project[]> {
@@ -43,9 +43,9 @@ export class ProjectService extends DataSource {
   async getProject(id: string): Promise<Project> {
     let project = (await this.store).low.get("projects").find({ id }).value();
 
-    const data = fs.readFileSync(`mount/${id}/metrics.json`, "utf8");
     project.checkpoints = []
     try {
+      const data = fs.readFileSync(`mount/${id}/metrics.json`, "utf8");
       const metrics = JSON.parse(data);
       for (var step in metrics.precision) {
         project.checkpoints.push({
