@@ -14,7 +14,7 @@ type Mutation {
   createDataset(upload: Upload!): Dataset
 
   createProject(name: String!): Project
-  updateHyperparameters(id: ID!, hyperparameters: HyperparametersInput!): Project
+  updateProject(id: ID!, updates: ProjectUpdateInput!): Project
 
   startTraining(id: ID!): Project
   haltTraining(id: ID!): Project
@@ -67,21 +67,21 @@ type Checkpoint {
 type Project {
   id: ID!
   name: String!
-  hyperparameters: Hyperparameters!
-  inProgress: Boolean!
-  checkpoints: [Checkpoint]
-}
 
-input HyperparametersInput {
-  epochs: Int
-  batchSize: Int
-  evalFrequency: Int
-  percentEval: Float
-}
-
-type Hyperparameters {
   epochs: Int!
   batchSize: Int!
   evalFrequency: Int!
   percentEval: Float!
+
+  inProgress: Boolean!
+  checkpoints: [Checkpoint]
+}
+
+input ProjectUpdateInput {
+  name: String
+
+  epochs: Int
+  batchSize: Int
+  evalFrequency: Int
+  percentEval: Float
 }
