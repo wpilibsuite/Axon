@@ -1,5 +1,5 @@
 import { DataSource } from "apollo-datasource";
-import { Hyperparameters, HyperparametersInput } from "../schema/__generated__/graphql";
+import { ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
 
@@ -19,22 +19,23 @@ export class ProjectService extends DataSource {
     return Project.findByPk(id);
   }
 
-  async getHyperparameters(id: string): Promise<Hyperparameters> {
+  async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
     const project = await Project.findByPk(id);
-    return {
-      batchSize: project.batchSize,
-      epochs: project.epochs,
-      evalFrequency: project.evalFrequency,
-      percentEval: project.percentEval
-    };
-  }
-
-  async updateHyperparameters(id: string, hyperparameters: HyperparametersInput): Promise<Project> {
-    const project = await Project.findByPk(id);
-    project.batchSize = hyperparameters.batchSize;
-    project.epochs = hyperparameters.epochs;
-    project.evalFrequency = hyperparameters.evalFrequency;
-    project.percentEval = hyperparameters.percentEval;
+    if (updates.name !== undefined) {
+      project.name = updates.name;
+    }
+    if (updates.epochs !== undefined) {
+      project.epochs = updates.epochs;
+    }
+    if (updates.batchSize !== undefined) {
+      project.batchSize = updates.batchSize;
+    }
+    if (updates.evalFrequency !== undefined) {
+      project.evalFrequency = updates.evalFrequency;
+    }
+    if (updates.percentEval !== undefined) {
+      project.percentEval = updates.percentEval;
+    }
     return await project.save();
   }
 
