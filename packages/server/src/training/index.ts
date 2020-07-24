@@ -30,7 +30,6 @@ export default class Trainer {
       });
 
     this.projects = {};
-    
   }
 
   async pull(name: string): Promise<string> {

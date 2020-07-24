@@ -12,9 +12,9 @@ export const Mutation: MutationResolvers = {
     return dataSources.projectService.updateHyperparameters(id, hyperparameters);
   },
   startTraining: (parent, { id }, { dataSources }) => {
-    return dataSources.projectService.startTraining(id)
+    return dataSources.projectService.startTraining(id);
   },
   haltTraining: (parent, { id }, { dataSources }) => {
-    return dataSources.projectService.haltTraining(id)
+    return dataSources.projectService.haltTraining(id);
   }
 };

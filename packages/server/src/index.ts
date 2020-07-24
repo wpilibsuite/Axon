@@ -23,7 +23,7 @@ const server = new ApolloServer({
   }),
   context: {
     docker,
-    pubsub,
+    pubsub
   } as Context,
   uploads: {
     // Limits here should be stricter than config for surrounding

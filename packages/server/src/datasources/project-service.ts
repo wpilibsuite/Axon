@@ -28,12 +28,12 @@ async function createStore(storePath: string): Promise<{ low: lowdb.LowdbAsync<D
 
 export class ProjectService extends DataSource {
   private store: Promise<{ low: Lowdb.LowdbAsync<Database> }>;
-  trainer: Trainer
+  trainer: Trainer;
 
   constructor(path: string, trainer: Trainer) {
     super();
     this.store = createStore(path);
-    this.trainer = trainer
+    this.trainer = trainer;
   }
 
   async getProjects(): Promise<Project[]> {
@@ -41,31 +41,30 @@ export class ProjectService extends DataSource {
   }
 
   async getProject(id: string): Promise<Project> {
-    let project = (await this.store).low.get("projects").find({ id }).value();
+    const project = (await this.store).low.get("projects").find({ id }).value();
 
-    project.checkpoints = []
+    project.checkpoints = [];
     try {
       const data = fs.readFileSync(`mount/${id}/metrics.json`, "utf8");
       const metrics = JSON.parse(data);
-      for (var step in metrics.precision) {
+      for (const step in metrics.precision) {
         project.checkpoints.push({
           step: parseInt(step, 10),
-          metrics: { 
+          metrics: {
             precision: metrics.precision[step],
             loss: null,
             intersectionOverUnion: null
-           }
-        })
+          }
+        });
       }
-      if (project.checkpoints.length > 0){
-        console.log("current step: ", project.checkpoints[project.checkpoints.length - 1].step)
+      if (project.checkpoints.length > 0) {
+        console.log("current step: ", project.checkpoints[project.checkpoints.length - 1].step);
       }
     } catch (err) {
       console.log("could not read metrics", err);
     }
 
     return project;
-
   }
 
   async getProjectName(id: string): Promise<string> {
@@ -75,7 +74,7 @@ export class ProjectService extends DataSource {
   async updateHyperparameters(id: string, hyperparameters: HyperparametersInput): Promise<Project> {
     return (await this.store).low.get("projects").find({ id }).assign({ hyperparameters }).write();
   }
-  
+
   async createProject(name: string): Promise<Project> {
     const project: Project = {
       id: shortid.generate(),
@@ -91,19 +90,18 @@ export class ProjectService extends DataSource {
     (await this.store).low.get("projects").push(project).write();
     return project;
   }
-  
-  async startTraining(id: string){
-    let project = (await this.store).low.get("projects").find({ id }).value();
+
+  async startTraining(id: string): Promise<Project> {
+    const project = (await this.store).low.get("projects").find({ id }).value();
     this.trainer.start(id, project.hyperparameters);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
-    return project
+    return project;
   }
 
-  async haltTraining(id: string){
-    this.trainer.halt(id)
-    let project = (await this.store).low.get("projects").find({ id }).value();
+  async haltTraining(id: string): Promise<Project> {
+    this.trainer.halt(id);
+    const project = (await this.store).low.get("projects").find({ id }).value();
     console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
-  
 }
