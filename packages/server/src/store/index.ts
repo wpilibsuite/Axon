@@ -3,7 +3,8 @@ import { DATA_DIR } from "../constants";
 
 export const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: `${DATA_DIR}/store.sqlite`
+  storage: `${DATA_DIR}/store.sqlite`,
+  logging: false
 });
 
 interface DatasetAttributes {

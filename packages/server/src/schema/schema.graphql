@@ -73,10 +73,10 @@ type Project {
 }
 
 input HyperparametersInput {
-  epochs: Int!
-  batchSize: Int!
-  evalFrequency: Int!
-  percentEval: Float!
+  epochs: Int
+  batchSize: Int
+  evalFrequency: Int
+  percentEval: Float
 }
 
 type Hyperparameters {
