@@ -3,7 +3,6 @@ import { Hyperparameters, HyperparametersInput } from "../schema/__generated__/g
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
 import Trainer from "../training";
-import * as fs from "fs";
 
 
 export class ProjectService extends DataSource {
@@ -22,29 +21,8 @@ export class ProjectService extends DataSource {
 
   async getProject(id: string): Promise<Project> {
     
-    const project = Project.findByPk(id);
-
-    project.checkpoints = [];
-    try {
-      const data = fs.readFileSync(`mount/${id}/metrics.json`, "utf8");
-      const metrics = JSON.parse(data);
-      for (const step in metrics.precision) {
-        project.checkpoints.push({
-          step: parseInt(step, 10),
-          metrics: {
-            precision: metrics.precision[step],
-            loss: null,
-            intersectionOverUnion: null
-          }
-        });
-      }
-      if (project.checkpoints.length > 0) {
-        console.log("current step: ", project.checkpoints[project.checkpoints.length - 1].step);
-      }
-    } catch (err) {
-      console.log("could not read metrics", err);
-    }
-
+    const project = await Project.findByPk(id);
+    // project.checkpoints = await this.trainer.getProjectCheckpoints(id);
     return project
   }
 

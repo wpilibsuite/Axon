@@ -79,31 +79,6 @@ export default class Trainer {
     fs.writeFileSync(`mount/${id}/hyperparameters.json`, JSON.stringify(hyperparameters));
     fs.writeFileSync(`mount/${id}/metrics.json`, JSON.stringify({ precision: { "0": 0 } }));
 
-    //#watcher is not working- currently using query based file read
-    // let timebuffer = true;
-    // const watcher = fs.watch(`./mount/${id}/metrics.json`, () => {
-    //   setTimeout(() => (timebuffer = false), 1000);
-    //   if (!timebuffer) {
-    //     console.log("metrics saved");
-    //     fs.readFile(`mount/${id}/metrics.json`, 'utf8', (err, metricsFile) => {
-    //       try {
-    //         const metrics = JSON.parse(metricsFile)
-    //           let currentstep = 0;
-    //           for (var step in metrics.precision) {
-    //             currentstep = (currentstep < parseInt(step)) ? parseInt(step) : currentstep;
-    //           }
-    //           this.checkpoint.step = currentstep
-    //           this.checkpoint.precision = metrics.precision[currentstep.toString(10)]
-    //           console.log("current step: ",currentstep)
-
-    //       } catch(err) {
-    //         console.log('could not read metrics', err)
-    //       }
-    //       timebuffer = true;
-    //     })
-    //   }
-    // });
-
     console.log("starting");
 
     this.deleteContainer(id)
@@ -222,4 +197,31 @@ export default class Trainer {
       });
     });
   }
+
+  async getProjectCheckpoints(id: string): Promise<Array<unknown>> {
+    return new Promise((resolve, reject) => {      
+      let checkpoints = [];
+      try {
+        const data = fs.readFileSync(`mount/${id}/metrics.json`, "utf8");
+        const metrics = JSON.parse(data);
+        for (const step in metrics.precision) {
+          checkpoints.push({
+            step: parseInt(step, 10),
+            metrics: {
+              precision: metrics.precision[step],
+              loss: null,
+              intersectionOverUnion: null
+            }
+          });
+        }
+        if (checkpoints.length > 0) {
+          console.log("current step: ", checkpoints[checkpoints.length - 1].step);
+        }
+      } catch (err) {
+        console.log("could not read metrics", err);
+      }
+      resolve(checkpoints)
+    })
+  }
+  
 }
