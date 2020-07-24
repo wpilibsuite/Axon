@@ -7,32 +7,34 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
 import { UpdateHyperparameters, UpdateHyperparametersVariables } from "./__generated__/UpdateHyperparameters";
 
+Parameters.fragments = {
+  hyperparameters: gql`
+    fragment Hyperparameters on Project {
+      id
+      epochs
+      batchSize
+      evalFrequency
+      percentEval
+    }
+  `
+};
+
 const GET_HYPERPARAMETERS = gql`
   query GetHyperparameters($id: ID!) {
     project(id: $id) {
-      id
-      hyperparameters {
-        epochs
-        batchSize
-        evalFrequency
-        percentEval
-      }
+      ...Hyperparameters
     }
   }
+  ${Parameters.fragments.hyperparameters}
 `;
 
 const UPDATE_HYPERPARAMETERS = gql`
-  mutation UpdateHyperparameters($id: ID!, $hyperparameters: HyperparametersInput!) {
-    updateHyperparameters(id: $id, hyperparameters: $hyperparameters) {
-      id
-      hyperparameters {
-        epochs
-        batchSize
-        evalFrequency
-        percentEval
-      }
+  mutation UpdateHyperparameters($id: ID!, $updates: ProjectUpdateInput!) {
+    updateProject(id: $id, updates: $updates) {
+      ...Hyperparameters
     }
   }
+  ${Parameters.fragments.hyperparameters}
 `;
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -68,23 +70,19 @@ export default function Parameters(props: { id: string }): ReactElement {
     updateHyperparameters({
       variables: {
         id: props.id,
-        hyperparameters: {
+        updates: {
           [event.target.name]: Number(event.target.value)
         }
       },
       optimisticResponse: {
-        updateHyperparameters: {
+        updateProject: {
           __typename: "Project",
           id: props.id,
-          hyperparameters: {
-            __typename: "Hyperparameters",
-            epochs: -1,
-            batchSize: -1,
-            evalFrequency: -1,
-            percentEval: -1,
-            ...data?.project?.hyperparameters,
-            [event.target.name]: Number(event.target.value)
-          }
+          epochs: data?.project?.epochs || -1,
+          batchSize: data?.project?.batchSize || -1,
+          evalFrequency: data?.project?.evalFrequency || -1,
+          percentEval: data?.project?.percentEval || -1,
+          [event.target.name]: Number(event.target.value)
         }
       }
     });
@@ -99,7 +97,7 @@ export default function Parameters(props: { id: string }): ReactElement {
             label="Epochs"
             variant="outlined"
             type="number"
-            value={data?.project?.hyperparameters?.epochs}
+            value={data?.project?.epochs}
             onChange={handleOnChange}
           />
           <TextField
@@ -107,7 +105,7 @@ export default function Parameters(props: { id: string }): ReactElement {
             label="Batch Size"
             variant="outlined"
             type="number"
-            value={data?.project?.hyperparameters?.batchSize}
+            value={data?.project?.batchSize}
             onChange={handleOnChange}
           />
           <TextField
@@ -115,7 +113,7 @@ export default function Parameters(props: { id: string }): ReactElement {
             label="Evaluation Frequency"
             variant="outlined"
             type="number"
-            value={data?.project?.hyperparameters?.evalFrequency}
+            value={data?.project?.evalFrequency}
             onChange={handleOnChange}
           />
           <TextField
@@ -123,7 +121,7 @@ export default function Parameters(props: { id: string }): ReactElement {
             label="Percent Evaluation"
             variant="outlined"
             type="number"
-            value={data?.project?.hyperparameters?.percentEval}
+            value={data?.project?.percentEval}
             onChange={handleOnChange}
           />
         </fieldset>
