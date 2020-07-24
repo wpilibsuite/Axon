@@ -1,20 +1,13 @@
 import { DataSource } from "apollo-datasource";
-import * as lowdb from "lowdb";
-import * as Lowdb from "lowdb";
-import * as FileAsync from "lowdb/adapters/FileAsync";
-import * as shortid from "shortid";
 import * as path from "path";
 import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
-import { DatasetModel } from "../models";
 import * as mkdirp from "mkdirp";
 import * as tar from "tar";
 import { glob } from "glob";
 import { LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
-
-interface Database {
-  datasets: DatasetModel[];
-}
+import { Sequelize } from "sequelize";
+import { Dataset } from "../store";
 
 interface SuperviselyMeta {
   classes: {
@@ -49,36 +42,23 @@ interface SuperviselyImage {
   };
 }
 
-async function createStore(storePath: string): Promise<{ low: lowdb.LowdbAsync<Database> }> {
-  const dbFile = path.join(storePath, "db.json");
-  const adapter = new FileAsync(dbFile);
-  const low = await lowdb(adapter);
-
-  await low
-    .defaults({
-      datasets: []
-    })
-    .write();
-
-  return { low };
-}
-
 export class DatasetService extends DataSource {
   private readonly path: string;
-  private readonly store: Promise<{ low: Lowdb.LowdbAsync<Database> }>;
+  private store: Sequelize;
 
-  constructor(path: string) {
+  constructor(store: Sequelize, path: string) {
     super();
+
     this.path = path;
-    this.store = createStore(path);
+    this.store = store;
   }
 
-  async getDatasets(): Promise<DatasetModel[]> {
-    return (await this.store).low.get("datasets").value();
+  async getDatasets(): Promise<Dataset[]> {
+    return Dataset.findAll();
   }
 
-  async getDataset(id: string): Promise<DatasetModel> {
-    return (await this.store).low.get("datasets").find({ id }).value();
+  async getDataset(id: string): Promise<Dataset> {
+    return Dataset.findByPk(id);
   }
 
   async getDatasetClasses(id: string): Promise<string[]> {
@@ -93,16 +73,10 @@ export class DatasetService extends DataSource {
     return this.listImages(id);
   }
 
-  async createDataset(filename: string, stream: fs.ReadStream): Promise<DatasetModel> {
-    const id = shortid.generate();
-    const dataset: DatasetModel = {
-      id: id,
-      name: filename,
-      dateAdded: new Date(),
-      path: `datasets/${id}/${filename}`
-    };
-    await this.upload(dataset.id, dataset.name, stream);
-    (await this.store).low.get("datasets").push(dataset).write();
+  async createDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
+    const dataset = Dataset.build({ name: filename });
+    dataset.path = `datasets/${dataset.id}/${filename}`;
+    await this.upload(dataset.id, dataset.name, stream).then(() => dataset.save());
     return dataset;
   }
 

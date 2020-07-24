@@ -44,7 +44,6 @@ type LabeledImage {
 
 type Dataset {
   id: ID!
-  dateAdded: DateTime!
   name: String!
   path: String!
 
@@ -74,10 +73,10 @@ type Project {
 }
 
 input HyperparametersInput {
-  epochs: Int!
-  batchSize: Int!
-  evalFrequency: Int!
-  percentEval: Float!
+  epochs: Int
+  batchSize: Int
+  evalFrequency: Int
+  percentEval: Float
 }
 
 type Hyperparameters {

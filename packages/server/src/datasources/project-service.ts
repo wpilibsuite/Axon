@@ -1,47 +1,28 @@
 import { DataSource } from "apollo-datasource";
-import * as lowdb from "lowdb";
-import * as FileAsync from "lowdb/adapters/FileAsync";
-import { Hyperparameters, HyperparametersInput, Project } from "../schema/__generated__/graphql";
-import * as shortid from "shortid";
-import * as Lowdb from "lowdb";
-import * as path from "path";
+import { Hyperparameters, HyperparametersInput } from "../schema/__generated__/graphql";
+import { Project } from "../store";
+import { Sequelize } from "sequelize";
 import Trainer from "../training";
 import * as fs from "fs";
 
-interface Database {
-  projects: Project[];
-}
-
-async function createStore(storePath: string): Promise<{ low: lowdb.LowdbAsync<Database> }> {
-  const dbFile = path.join(storePath, "db.json");
-  const adapter = new FileAsync(dbFile);
-  const low = await lowdb(adapter);
-
-  await low
-    .defaults({
-      projects: []
-    })
-    .write();
-
-  return { low };
-}
 
 export class ProjectService extends DataSource {
-  private store: Promise<{ low: Lowdb.LowdbAsync<Database> }>;
+  private store: Sequelize;
   trainer: Trainer;
 
-  constructor(path: string, trainer: Trainer) {
+  constructor(store: Sequelize, trainer: Trainer) {
     super();
-    this.store = createStore(path);
+    this.store = store;
     this.trainer = trainer;
   }
 
   async getProjects(): Promise<Project[]> {
-    return (await this.store).low.get("projects").value();
+    return Project.findAll();
   }
 
   async getProject(id: string): Promise<Project> {
-    const project = (await this.store).low.get("projects").find({ id }).value();
+    
+    const project = Project.findByPk(id);
 
     project.checkpoints = [];
     try {
@@ -64,35 +45,34 @@ export class ProjectService extends DataSource {
       console.log("could not read metrics", err);
     }
 
-    return project;
+    return project
   }
 
-  async getProjectName(id: string): Promise<string> {
-    return (await this.store).low.get("projects").find({ id }).value().name;
+  async getHyperparameters(id: string): Promise<Hyperparameters> {
+    const project = await Project.findByPk(id);
+    return {
+      batchSize: project.batchSize,
+      epochs: project.epochs,
+      evalFrequency: project.evalFrequency,
+      percentEval: project.percentEval
+    };
   }
 
   async updateHyperparameters(id: string, hyperparameters: HyperparametersInput): Promise<Project> {
-    return (await this.store).low.get("projects").find({ id }).assign({ hyperparameters }).write();
+    const project = await Project.findByPk(id);
+    project.batchSize = hyperparameters.batchSize;
+    project.epochs = hyperparameters.epochs;
+    project.evalFrequency = hyperparameters.evalFrequency;
+    project.percentEval = hyperparameters.percentEval;
+    return await project.save();
   }
 
   async createProject(name: string): Promise<Project> {
-    const project: Project = {
-      id: shortid.generate(),
-      name,
-      inProgress: false,
-      hyperparameters: {
-        epochs: 10,
-        batchSize: 8,
-        evalFrequency: 1,
-        percentEval: 0.8
-      }
-    };
-    (await this.store).low.get("projects").push(project).write();
-    return project;
+    return await Project.create({ name });
   }
 
   async startTraining(id: string): Promise<Project> {
-    const project = (await this.store).low.get("projects").find({ id }).value();
+    const project = await Project.findByPk(id);
     this.trainer.start(id, project.hyperparameters);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
@@ -100,7 +80,7 @@ export class ProjectService extends DataSource {
 
   async haltTraining(id: string): Promise<Project> {
     this.trainer.halt(id);
-    const project = (await this.store).low.get("projects").find({ id }).value();
+    const project = await Project.findByPk(id);
     console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }

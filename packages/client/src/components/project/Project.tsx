@@ -43,7 +43,7 @@ export default function Project(props: { id: string }): ReactElement {
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}>
-        <Input />
+        <Input id={props.id} />
       </TabPanel>
     </div>
   );
