@@ -4,7 +4,6 @@ import { Project } from "../store";
 import { Sequelize } from "sequelize";
 import Trainer from "../training";
 
-
 export class ProjectService extends DataSource {
   private store: Sequelize;
   trainer: Trainer;
@@ -20,10 +19,9 @@ export class ProjectService extends DataSource {
   }
 
   async getProject(id: string): Promise<Project> {
-    
     const project = await Project.findByPk(id);
-    // project.checkpoints = await this.trainer.getProjectCheckpoints(id);
-    return project
+    project.checkpoints = await this.trainer.getProjectCheckpoints(id);
+    return project;
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -52,7 +50,16 @@ export class ProjectService extends DataSource {
 
   async startTraining(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    this.trainer.start(id, project.hyperparameters);
+    const hyperparameters = {
+      name: project.name,
+      epochs: project.epochs,
+      batchSize: project.batchSize,
+      evalFrequency: project.evalFrequency,
+      percentEval: project.percentEval,
+      datasetPath: project.datasetPath,
+      checkpoint: project.initialCheckpoint
+    };
+    this.trainer.start(id, hyperparameters);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }

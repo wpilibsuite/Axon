@@ -24,11 +24,11 @@ export class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes>
   public readonly updatedAt!: Date;
 }
 
-
 interface ProjectAttributes {
   id: string;
   name: string;
   initialCheckpoint: string;
+  datasetPath: string;
 
   epochs: number;
   batchSize: number;
@@ -43,16 +43,15 @@ type ProjectCreationAttributes = Optional<ProjectAttributes, keyof ProjectAttrib
 export class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implements ProjectAttributes {
   name: string;
   initialCheckpoint: string;
+  datasetPath: string;
 
   epochs: number;
   batchSize: number;
   evalFrequency: number;
   percentEval: number;
-  
-  inProgress: boolean;
 
-  //This only makes it compile, i dont know how to get all that ^^^^^^ into a hyperparamters "type".
-  hyperparameters: unknown;
+  inProgress: boolean;
+  checkpoints: Array<unknown>;
 
   public readonly id!: string;
   public readonly createdAt!: Date;
@@ -96,6 +95,10 @@ Project.init(
     initialCheckpoint: {
       type: new DataTypes.STRING(),
       defaultValue: "default"
+    },
+    datasetPath: {
+      type: new DataTypes.STRING(),
+      defaultValue: "/opt/ml/model/dataset/full_data.tar"
     },
     epochs: {
       type: DataTypes.INTEGER.UNSIGNED,

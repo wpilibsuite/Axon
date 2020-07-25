@@ -17,16 +17,6 @@ export default class Trainer {
       .then(() => {
         this.running = true;
         console.log("image pull complete");
-        // setTimeout(() => this.halt("abc"), 10000);
-        // this.start("abc", {
-        //   name: "model",
-        //   epochs: 1,
-        //   batchsize: 1,
-        //   evalfrequency: 1,
-        //   checkpoint: "default",
-        //   datasetpath: "/opt/ml/model/dataset/full_data.tar",
-        //   percenteval: 50
-        // });
       });
 
     this.projects = {};
@@ -56,32 +46,35 @@ export default class Trainer {
       metrics: null
     };
 
-    let mount = process.cwd();
-    if (mount.includes(":\\")) {
+    const MOUNT = `Projects/${id}/mount`;
+    const CONTAINERMOUNT = "/opt/ml/model";
+    const DATASET = Path.basename(hyperparameters["datasetPath"]);
+
+    let mountcmd = process.cwd();
+    if (mountcmd.includes(":\\")) {
       // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
-      mount = mount.replace("C:\\", "/c/");
-      mount = mount.replace(/\\/g, "/");
+      mountcmd = mountcmd.replace("C:\\", "/c/");
+      mountcmd = mountcmd.replace(/\\/g, "/");
+      console.log(mountcmd);
     }
-    mount = mount.concat(`/mount/${id}`);
-    fs.mkdirSync(mount, { recursive: true });
-    mount = `${mount}:/opt/ml/model:rw`;
+    mountcmd = Path.posix.join(mountcmd, MOUNT);
+    mountcmd = `${mountcmd}:${CONTAINERMOUNT}:rw`;
 
-    //bridge between the graphql naming convention and the python naming convention
-    hyperparameters["batch-size"] = hyperparameters["batchsize"];
-    // delete hyperparameters["batchsize"];
-    hyperparameters["eval-frequency"] = hyperparameters["evalfrequency"];
-    // delete hyperparameters["evalfrequency"];
-    hyperparameters["dataset-path"] = hyperparameters["datasetpath"];
-    // delete hyperparameters["datasetpath"];
-    hyperparameters["percent-eval"] = hyperparameters["percenteval"];
-    // delete hyperparameters["percenteval"];
+    hyperparameters["batch-size"] = hyperparameters["batchSize"];
+    hyperparameters["eval-frequency"] = hyperparameters["evalFrequency"];
+    hyperparameters["dataset-path"] = hyperparameters["datasetPath"];
+    hyperparameters["percent-eval"] = hyperparameters["percentEval"];
 
-    fs.writeFileSync(`mount/${id}/hyperparameters.json`, JSON.stringify(hyperparameters));
-    fs.writeFileSync(`mount/${id}/metrics.json`, JSON.stringify({ precision: { "0": 0 } }));
+    fs.mkdirSync(Path.posix.join(MOUNT, "dataset"), { recursive: true });
+    fs.writeFileSync(Path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(hyperparameters));
+    fs.writeFileSync(Path.posix.join(MOUNT, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
 
-    console.log("starting");
-
-    this.deleteContainer(id)
+    fs.promises
+      .copyFile(Path.posix.join("data/datasets", DATASET), Path.posix.join(MOUNT, "dataset", DATASET))
+      .then(() => {
+        console.log(`copied ${DATASET} to mount`);
+        return this.deleteContainer(id);
+      })
       .then((message) => {
         console.log(message);
         return this.deleteContainer("metrics");
@@ -89,24 +82,25 @@ export default class Trainer {
       .then((message) => {
         console.log(message);
 
-        fs.rmdirSync(`./mount/${id}/train/`, { recursive: true });
+        //the line below is apparently "experimental" so lets hope that it doesnt delete your root directory
+        // fs.rmdirSync(Path.posix.join(".",MOUNT,"train"), { recursive: true });
 
         return this.docker.createContainer({
           Image: "gcperkins/wpilib-ml-metrics",
           name: "metrics",
-          Volumes: { "/opt/ml/model": {} },
-          HostConfig: { Binds: [mount] }
+          Volumes: { CONTAINERMOUNT: {} },
+          HostConfig: { Binds: [mountcmd] }
         });
       })
       .then((container) => {
         this.projects[id].metrics_container = container;
         return container.start();
       })
-      .then(() => this.runContainer("gcperkins/wpilib-ml-dataset", id, mount, "dataset ready. Training..."))
+      .then(() => this.runContainer("gcperkins/wpilib-ml-dataset", id, mountcmd, "dataset ready. Training..."))
       .then((message) => {
         console.log(message);
 
-        return this.runContainer("gcperkins/wpilib-ml-train", id, mount, "training finished");
+        return this.runContainer("gcperkins/wpilib-ml-train", id, mountcmd, "training finished");
       })
       .then((message) => {
         console.log(message);
@@ -116,7 +110,7 @@ export default class Trainer {
       .then((message) => {
         console.log(message);
 
-        return this.runContainer("gcperkins/wpilib-ml-tflite", id, mount, "tflite conversion complete");
+        return this.runContainer("gcperkins/wpilib-ml-tflite", id, mountcmd, "tflite conversion complete");
       })
       .then((message) => {
         console.log(message);
@@ -130,7 +124,7 @@ export default class Trainer {
         .createContainer({
           Image: image,
           name: id,
-          Volumes: { "/opt/ml/model": {} },
+          Volumes: { CONTAINERMOUNT: {} },
           HostConfig: { Binds: [mount] },
           AttachStdin: false,
           AttachStdout: true,
@@ -199,10 +193,10 @@ export default class Trainer {
   }
 
   async getProjectCheckpoints(id: string): Promise<Array<unknown>> {
-    return new Promise((resolve, reject) => {      
+    return new Promise((resolve, reject) => {
       let checkpoints = [];
       try {
-        const data = fs.readFileSync(`mount/${id}/metrics.json`, "utf8");
+        const data = fs.readFileSync(Path.posix.join("Projects", id, "mount", "metrics.json"), "utf8");
         const metrics = JSON.parse(data);
         for (const step in metrics.precision) {
           checkpoints.push({
@@ -220,8 +214,7 @@ export default class Trainer {
       } catch (err) {
         console.log("could not read metrics", err);
       }
-      resolve(checkpoints)
-    })
+      resolve(checkpoints);
+    });
   }
-  
 }
