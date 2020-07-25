@@ -1,8 +1,9 @@
 import * as Dockerode from "dockerode";
 import * as fs from "fs";
-import * as Path from "path";
+import * as path from "path";
 import { Checkpoint } from "../schema/__generated__/graphql";
 import { Container } from "dockerode";
+import { PROJECT_DATA_DIR } from "../constants";
 
 export default class Trainer {
   running: boolean;
@@ -46,9 +47,9 @@ export default class Trainer {
       metrics: null
     };
 
-    const MOUNT = `Projects/${id}/mount`;
+    const MOUNT = Trainer.getMountPath(id);
     const CONTAINERMOUNT = "/opt/ml/model";
-    const DATASET = Path.basename(hyperparameters["datasetPath"]);
+    const DATASET = path.basename(hyperparameters["datasetPath"]);
 
     let mountcmd = process.cwd();
     if (mountcmd.includes(":\\")) {
@@ -57,7 +58,7 @@ export default class Trainer {
       mountcmd = mountcmd.replace(/\\/g, "/");
       console.log(mountcmd);
     }
-    mountcmd = Path.posix.join(mountcmd, MOUNT);
+    mountcmd = path.posix.join(mountcmd, MOUNT);
     mountcmd = `${mountcmd}:${CONTAINERMOUNT}:rw`;
 
     hyperparameters["batch-size"] = hyperparameters["batchSize"];
@@ -65,12 +66,12 @@ export default class Trainer {
     hyperparameters["dataset-path"] = hyperparameters["datasetPath"];
     hyperparameters["percent-eval"] = hyperparameters["percentEval"];
 
-    fs.mkdirSync(Path.posix.join(MOUNT, "dataset"), { recursive: true });
-    fs.writeFileSync(Path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(hyperparameters));
-    fs.writeFileSync(Path.posix.join(MOUNT, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
+    fs.mkdirSync(path.posix.join(MOUNT, "dataset"), { recursive: true });
+    fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(hyperparameters));
+    fs.writeFileSync(path.posix.join(MOUNT, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
 
     fs.promises
-      .copyFile(Path.posix.join("data/datasets", DATASET), Path.posix.join(MOUNT, "dataset", DATASET))
+      .copyFile(path.posix.join("data/datasets", DATASET), path.posix.join(MOUNT, "dataset", DATASET))
       .then(() => {
         console.log(`copied ${DATASET} to mount`);
         return this.deleteContainer(id);
@@ -83,7 +84,7 @@ export default class Trainer {
         console.log(message);
 
         //the line below is apparently "experimental" so lets hope that it doesnt delete your root directory
-        fs.rmdirSync(Path.posix.join(".", MOUNT, "train"), { recursive: true });
+        fs.rmdirSync(path.posix.join(".", MOUNT, "train"), { recursive: true });
 
         return this.docker.createContainer({
           Image: "gcperkins/wpilib-ml-metrics",
@@ -194,7 +195,7 @@ export default class Trainer {
 
   async getProjectCheckpoints(id: string): Promise<Checkpoint[]> {
     return new Promise((resolve) => {
-      const metricsPath = Path.posix.join("Projects", id, "mount", "metrics.json");
+      const metricsPath = path.posix.join(Trainer.getMountPath(id), "metrics.json");
       const checkpoints = [];
       if (fs.existsSync(metricsPath)) {
         try {
@@ -219,5 +220,9 @@ export default class Trainer {
       }
       resolve(checkpoints);
     });
+  }
+
+  private static getMountPath(id: string): string {
+    return `${PROJECT_DATA_DIR}/${id}/mount`;
   }
 }
