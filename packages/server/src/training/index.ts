@@ -83,7 +83,7 @@ export default class Trainer {
         console.log(message);
 
         //the line below is apparently "experimental" so lets hope that it doesnt delete your root directory
-        fs.rmdirSync(Path.posix.join(".",MOUNT,"train"), { recursive: true });
+        fs.rmdirSync(Path.posix.join(".", MOUNT, "train"), { recursive: true });
 
         return this.docker.createContainer({
           Image: "gcperkins/wpilib-ml-metrics",
