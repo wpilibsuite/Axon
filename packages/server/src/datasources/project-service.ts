@@ -2,13 +2,16 @@ import { DataSource } from "apollo-datasource";
 import { ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
+import Trainer from "../training";
 
 export class ProjectService extends DataSource {
   private store: Sequelize;
+  trainer: Trainer;
 
-  constructor(store: Sequelize) {
+  constructor(store: Sequelize, trainer: Trainer) {
     super();
     this.store = store;
+    this.trainer = trainer;
   }
 
   async getProjects(): Promise<Project[]> {
@@ -16,7 +19,9 @@ export class ProjectService extends DataSource {
   }
 
   async getProject(id: string): Promise<Project> {
-    return Project.findByPk(id);
+    const project = await Project.findByPk(id);
+    project.checkpoints = await this.trainer.getProjectCheckpoints(id);
+    return project;
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -44,15 +49,24 @@ export class ProjectService extends DataSource {
   }
 
   async startTraining(id: string): Promise<Project> {
-    const project = (await this.store).low.get("projects").find({ id }).value();
-    this.trainer.start(id, project.hyperparameters);
+    const project = await Project.findByPk(id);
+    const hyperparameters = {
+      name: project.name,
+      epochs: project.epochs,
+      batchSize: project.batchSize,
+      evalFrequency: project.evalFrequency,
+      percentEval: project.percentEval,
+      datasetPath: project.datasetPath,
+      checkpoint: project.initialCheckpoint
+    };
+    this.trainer.start(id, hyperparameters);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async haltTraining(id: string): Promise<Project> {
     this.trainer.halt(id);
-    const project = (await this.store).low.get("projects").find({ id }).value();
+    const project = await Project.findByPk(id);
     console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
