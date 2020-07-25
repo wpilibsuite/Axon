@@ -51,7 +51,6 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   percentEval: number;
 
   inProgress: boolean;
-  checkpoints: Array<unknown>;
 
   public readonly id!: string;
   public readonly createdAt!: Date;
