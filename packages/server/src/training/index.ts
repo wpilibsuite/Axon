@@ -194,7 +194,7 @@ export default class Trainer {
 
   async getProjectCheckpoints(id: string): Promise<Array<unknown>> {
     return new Promise((resolve, reject) => {
-      let checkpoints = [];
+      const checkpoints = [];
       try {
         const data = fs.readFileSync(Path.posix.join("Projects", id, "mount", "metrics.json"), "utf8");
         const metrics = JSON.parse(data);
