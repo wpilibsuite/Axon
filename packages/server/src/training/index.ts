@@ -1,6 +1,7 @@
 import * as Dockerode from "dockerode";
 import * as fs from "fs";
 import * as Path from "path";
+import { Checkpoint } from "../schema/__generated__/graphql";
 
 export default class Trainer {
   running: boolean;
@@ -192,8 +193,8 @@ export default class Trainer {
     });
   }
 
-  async getProjectCheckpoints(id: string): Promise<Array<unknown>> {
-    return new Promise((resolve, reject) => {
+  async getProjectCheckpoints(id: string): Promise<Checkpoint[]> {
+    return new Promise((resolve) => {
       const metricsPath = Path.posix.join("Projects", id, "mount", "metrics.json");
       const checkpoints = [];
       if (fs.existsSync(metricsPath)) {
