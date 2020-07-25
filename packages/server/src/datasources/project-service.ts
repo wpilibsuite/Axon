@@ -6,7 +6,7 @@ import Trainer from "../training";
 
 export class ProjectService extends DataSource {
   private store: Sequelize;
-  trainer: Trainer;
+  private trainer: Trainer;
 
   constructor(store: Sequelize, trainer: Trainer) {
     super();
