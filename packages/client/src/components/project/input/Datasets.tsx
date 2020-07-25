@@ -55,7 +55,7 @@ function DatasetSelectionGridList() {
   );
 }
 
-export default function Projects(): ReactElement {
+export default function Projects(props: { id: string }): ReactElement {
   return (
     <Section title="Projects">
       <DatasetSelectionGridList />
