@@ -12,15 +12,9 @@ export const Mutation: MutationResolvers = {
     return dataSources.projectService.updateProject(id, updates);
   },
   startTraining: (parent, { id }, { dataSources }) => {
-    const project = dataSources.projectService.getProject(id);
-    // trainer.start(id, project.hyperparameters);
-    console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
-    return project;
+    return dataSources.projectService.startTraining(id);
   },
   haltTraining: (parent, { id }, { dataSources }) => {
-    const project = dataSources.projectService.getProject(id);
-    // context.trainer.halt(id);
-    console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
-    return project;
+    return dataSources.projectService.haltTraining(id);
   }
 };

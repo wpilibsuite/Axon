@@ -18,11 +18,10 @@ const server = new ApolloServer({
   schema: schema,
   dataSources: () => ({
     datasetService: new DatasetService(sequelize, DATASET_DATA_DIR),
-    projectService: new ProjectService(sequelize)
+    projectService: new ProjectService(sequelize, trainer)
   }),
   context: {
-    pubsub,
-    trainer
+    pubsub
   } as Context,
   uploads: {
     // Limits here should be stricter than config for surrounding

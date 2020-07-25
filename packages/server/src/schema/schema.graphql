@@ -67,6 +67,8 @@ type Checkpoint {
 type Project {
   id: ID!
   name: String!
+  initialCheckpoint: String!
+  datasetPath: String!
 
   epochs: Int!
   batchSize: Int!
