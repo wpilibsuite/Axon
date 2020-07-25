@@ -20,7 +20,9 @@ export class ProjectService extends DataSource {
 
   async getProject(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    project.checkpoints = await this.trainer.getProjectCheckpoints(id);
+    if (project) {
+      project.checkpoints = await this.trainer.getProjectCheckpoints(id);
+    }
     return project;
   }
 

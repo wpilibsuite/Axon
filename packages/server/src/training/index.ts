@@ -83,7 +83,7 @@ export default class Trainer {
         console.log(message);
 
         //the line below is apparently "experimental" so lets hope that it doesnt delete your root directory
-        // fs.rmdirSync(Path.posix.join(".",MOUNT,"train"), { recursive: true });
+        fs.rmdirSync(Path.posix.join(".",MOUNT,"train"), { recursive: true });
 
         return this.docker.createContainer({
           Image: "gcperkins/wpilib-ml-metrics",
@@ -194,25 +194,28 @@ export default class Trainer {
 
   async getProjectCheckpoints(id: string): Promise<Array<unknown>> {
     return new Promise((resolve, reject) => {
+      const metricsPath = Path.posix.join("Projects", id, "mount", "metrics.json");
       const checkpoints = [];
-      try {
-        const data = fs.readFileSync(Path.posix.join("Projects", id, "mount", "metrics.json"), "utf8");
-        const metrics = JSON.parse(data);
-        for (const step in metrics.precision) {
-          checkpoints.push({
-            step: parseInt(step, 10),
-            metrics: {
-              precision: metrics.precision[step],
-              loss: null,
-              intersectionOverUnion: null
-            }
-          });
+      if (fs.existsSync(metricsPath)) {
+        try {
+          const data = fs.readFileSync(metricsPath, "utf8");
+          const metrics = JSON.parse(data);
+          for (const step in metrics.precision) {
+            checkpoints.push({
+              step: parseInt(step, 10),
+              metrics: {
+                precision: metrics.precision[step],
+                loss: null,
+                intersectionOverUnion: null
+              }
+            });
+          }
+          if (checkpoints.length > 0) {
+            console.log("current step: ", checkpoints[checkpoints.length - 1].step);
+          }
+        } catch (err) {
+          console.log("could not read metrics", err);
         }
-        if (checkpoints.length > 0) {
-          console.log("current step: ", checkpoints[checkpoints.length - 1].step);
-        }
-      } catch (err) {
-        console.log("could not read metrics", err);
       }
       resolve(checkpoints);
     });
