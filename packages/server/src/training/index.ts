@@ -2,11 +2,11 @@ import * as Dockerode from "dockerode";
 import * as fs from "fs";
 import * as Path from "path";
 import { Checkpoint } from "../schema/__generated__/graphql";
+import { Container } from "dockerode";
 
 export default class Trainer {
   running: boolean;
-  projects: unknown;
-  checkpoint: any;
+  projects: { [id: string]: { training_container: Container; metrics_container: Container; metrics: Container } };
 
   readonly docker = new Dockerode();
 
@@ -19,11 +19,10 @@ export default class Trainer {
         this.running = true;
         console.log("image pull complete");
       });
-
     this.projects = {};
   }
 
-  async pull(name: string): Promise<string> {
+  private async pull(name: string): Promise<string> {
     return new Promise((resolve, reject) => {
       this.docker.pull(name, (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
         stream.pipe(process.stdout);
@@ -119,7 +118,7 @@ export default class Trainer {
       .catch((err) => console.log(err));
   }
 
-  async runContainer(image: string, id: string, mount: string, message: string): Promise<string> {
+  private async runContainer(image: string, id: string, mount: string, message: string): Promise<string> {
     return new Promise((resolve, reject) => {
       this.docker
         .createContainer({
@@ -149,7 +148,7 @@ export default class Trainer {
     });
   }
 
-  async exportBuffer(running: boolean): Promise<string> {
+  private async exportBuffer(running: boolean): Promise<string> {
     return new Promise((resolve, reject) => {
       if (running) {
         resolve("automatic export enabled");
@@ -169,7 +168,7 @@ export default class Trainer {
       .catch((error) => console.log(error));
   }
 
-  async deleteContainer(id: string): Promise<string> {
+  private async deleteContainer(id: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const docker = this.docker;
       const opts = {
