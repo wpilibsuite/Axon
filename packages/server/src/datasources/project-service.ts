@@ -1,12 +1,12 @@
 import { DataSource } from "apollo-datasource";
-import { ProjectUpdateInput } from "../schema/__generated__/graphql";
+import { Checkpoint, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
 import Trainer from "../training";
 
 export class ProjectService extends DataSource {
   private store: Sequelize;
-  trainer: Trainer;
+  private trainer: Trainer;
 
   constructor(store: Sequelize, trainer: Trainer) {
     super();
@@ -24,6 +24,10 @@ export class ProjectService extends DataSource {
       project.checkpoints = await this.trainer.getProjectCheckpoints(id);
     }
     return project;
+  }
+
+  async getCheckpoints(id: string): Promise<Checkpoint[]> {
+    return this.trainer.getProjectCheckpoints(id);
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
