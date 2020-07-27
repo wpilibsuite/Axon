@@ -185,8 +185,8 @@ export default class Trainer {
             .then(() => container.remove())
             .then(() => resolve(`container ${id} killed`))
             .catch(() => {
-              container.remove()
-              resolve(`container ${id} killed`)
+              container.remove();
+              resolve(`container ${id} killed`);
             });
         }
       });
