@@ -71,7 +71,7 @@ export class ProjectService extends DataSource {
       datasetPath: project.datasetPath,
       checkpoint: project.initialCheckpoint
     };
-    this.trainer.start(id, hyperparameters);
+    this.trainer.start(id, hyperparameters).catch((err) => console.log(err));
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
@@ -80,6 +80,13 @@ export class ProjectService extends DataSource {
     this.trainer.halt(id);
     const project = await Project.findByPk(id);
     console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
+    return project;
+  }
+
+  async exportCheckpoint(id: string, checkpointNumber: number, name: string): Promise<Project> {
+    this.trainer.export(id, checkpointNumber, name).catch((err) => console.log(err));
+    const project = await Project.findByPk(id);
+    console.log(`Started export on project: ${JSON.stringify(project)}`);
     return project;
   }
 }

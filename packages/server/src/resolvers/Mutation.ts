@@ -16,5 +16,8 @@ export const Mutation: MutationResolvers = {
   },
   haltTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.haltTraining(id);
+  },
+  exportCheckpoint: (parent, { id, checkpointNumber, name }, { dataSources }) => {
+    return dataSources.projectService.exportCheckpoint(id, checkpointNumber, name);
   }
 };
