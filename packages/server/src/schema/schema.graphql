@@ -82,6 +82,9 @@ type Project {
 input ProjectUpdateInput {
   name: String
 
+  initialCheckpoint: String
+  datasetPath: String
+
   epochs: Int
   batchSize: Int
   evalFrequency: Int

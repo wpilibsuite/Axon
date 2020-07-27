@@ -47,6 +47,12 @@ export class ProjectService extends DataSource {
     if (updates.percentEval !== undefined) {
       project.percentEval = updates.percentEval;
     }
+    if (updates.initialCheckpoint !== undefined) {
+      project.initialCheckpoint = updates.initialCheckpoint;
+    }
+    if (updates.datasetPath !== undefined) {
+      project.datasetPath = updates.datasetPath;
+    }
     return await project.save();
   }
 
