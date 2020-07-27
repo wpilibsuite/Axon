@@ -47,15 +47,14 @@ export default class Trainer {
       metrics: null
     };
 
-    const MOUNT = Trainer.getMountPath(id);
+    const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
     const CONTAINERMOUNT = "/opt/ml/model";
     const DATASET = path.basename(hyperparameters["datasetPath"]);
 
     let mountcmd = process.cwd();
     if (mountcmd.includes(":\\")) {
       // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
-      mountcmd = mountcmd.replace("C:\\", "/c/");
-      mountcmd = mountcmd.replace(/\\/g, "/");
+      mountcmd = mountcmd.replace("C:\\", "/c/").replace(/\\/g, "/");
       console.log(mountcmd);
     }
     mountcmd = path.posix.join(mountcmd, MOUNT);
@@ -82,9 +81,6 @@ export default class Trainer {
       })
       .then((message) => {
         console.log(message);
-
-        //the line below is apparently "experimental" so lets hope that it doesnt delete your root directory
-        fs.rmdirSync(path.posix.join(".", MOUNT, "train"), { recursive: true });
 
         return this.docker.createContainer({
           Image: "gcperkins/wpilib-ml-metrics",
@@ -187,7 +183,11 @@ export default class Trainer {
           container
             .kill({ force: true })
             .then(() => container.remove())
-            .then(() => resolve(`container ${id} killed`));
+            .then(() => resolve(`container ${id} killed`))
+            .catch(() => {
+              container.remove()
+              resolve(`container ${id} killed`)
+            });
         }
       });
     });
