@@ -62,14 +62,13 @@ export default class Trainer {
   async start(project: Project): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
-        const DATASET = path.basename(project.datasetPath);
-        const MOUNT = Trainer.getMountPath(project.id).replace(/\\/g, "/");
-        const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
-        const CHECKPOINT = project.initialCheckpoint;
+        const dataset = path.basename(project.datasetPath);
+        const mount = Trainer.getMountPath(project.id).replace(/\\/g, "/");
+        const mountCmd = Trainer.getMountCmd(mount, Trainer.CONTAINERMOUNT);
 
         this.projects[project.id] = {
           name: project.name,
-          mount_path: MOUNT,
+          mount_path: mount,
           training_container: null,
           metrics_container: null
         };
@@ -88,30 +87,30 @@ export default class Trainer {
           containerParameters.checkpoint = path.posix.join("checkpoints", project.initialCheckpoint);
         }
 
-        fs.mkdirSync(path.posix.join(MOUNT, "dataset"), { recursive: true });
-        fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(containerParameters));
-        fs.writeFileSync(path.posix.join(MOUNT, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
+        fs.mkdirSync(path.posix.join(mount, "dataset"), { recursive: true });
+        fs.writeFileSync(path.posix.join(mount, "hyperparameters.json"), JSON.stringify(containerParameters));
+        fs.writeFileSync(path.posix.join(mount, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
 
         fs.promises
-          .copyFile(path.posix.join("data/datasets", DATASET), path.posix.join(MOUNT, "dataset", DATASET))
+          .copyFile(path.posix.join("data/datasets", dataset), path.posix.join(mount, "dataset", dataset))
           .then(() => {
-            console.log(`copied ${DATASET} to mount`);
-            if (CHECKPOINT != "default") {
-              if (!fs.existsSync(path.posix.join(MOUNT, "checkpoints"))) {
-                fs.mkdirSync(path.posix.join(MOUNT, "checkpoints"), { recursive: true });
+            console.log(`copied ${dataset} to mount`);
+            if (project.initialCheckpoint != "default") {
+              if (!fs.existsSync(path.posix.join(mount, "checkpoints"))) {
+                fs.mkdirSync(path.posix.join(mount, "checkpoints"), { recursive: true });
               }
 
               fs.copyFileSync(
-                path.posix.join("data", "checkpoints", CHECKPOINT.concat(".data-00000-of-00001")),
-                path.posix.join(MOUNT, "checkpoints", CHECKPOINT.concat(".data-00000-of-00001"))
+                path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".data-00000-of-00001")),
+                path.posix.join(mount, "checkpoints", project.initialCheckpoint.concat(".data-00000-of-00001"))
               );
               fs.copyFileSync(
-                path.posix.join("data", "checkpoints", CHECKPOINT.concat(".index")),
-                path.posix.join(MOUNT, "checkpoints", CHECKPOINT.concat(".index"))
+                path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".index")),
+                path.posix.join(mount, "checkpoints", project.initialCheckpoint.concat(".index"))
               );
               fs.copyFileSync(
-                path.posix.join("data", "checkpoints", CHECKPOINT.concat(".meta")),
-                path.posix.join(MOUNT, "checkpoints", CHECKPOINT.concat(".meta"))
+                path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".meta")),
+                path.posix.join(mount, "checkpoints", project.initialCheckpoint.concat(".meta"))
               );
 
               return this.deleteContainer(project.id);
@@ -129,7 +128,7 @@ export default class Trainer {
               Image: "gcperkins/wpilib-ml-metrics",
               name: "metrics",
               Volumes: { [Trainer.CONTAINERMOUNT]: {} },
-              HostConfig: { Binds: [MOUNTCMD] }
+              HostConfig: { Binds: [mountCmd] }
             });
           })
           .then((container) => {
@@ -137,12 +136,12 @@ export default class Trainer {
             return container.start();
           })
           .then(() =>
-            this.runContainer("gcperkins/wpilib-ml-dataset", project.id, MOUNTCMD, "dataset ready. Training...")
+            this.runContainer("gcperkins/wpilib-ml-dataset", project.id, mountCmd, "dataset ready. Training...")
           )
           .then((message) => {
             console.log(message);
 
-            return this.runContainer("gcperkins/wpilib-ml-train", project.id, MOUNTCMD, "training finished");
+            return this.runContainer("gcperkins/wpilib-ml-train", project.id, mountCmd, "training finished");
           })
           .then((message) => {
             console.log(message);
@@ -152,7 +151,7 @@ export default class Trainer {
           .then((message) => {
             console.log(message);
 
-            return this.runContainer("gcperkins/wpilib-ml-tflite", project.id, MOUNTCMD, "tflite conversion complete");
+            return this.runContainer("gcperkins/wpilib-ml-tflite", project.id, mountCmd, "tflite conversion complete");
           })
           .then((message) => {
             console.log(message);
