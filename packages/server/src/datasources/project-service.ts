@@ -58,16 +58,7 @@ export class ProjectService extends DataSource {
 
   async startTraining(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    const hyperparameters = {
-      name: project.name,
-      epochs: project.epochs,
-      batchSize: project.batchSize,
-      evalFrequency: project.evalFrequency,
-      percentEval: project.percentEval,
-      datasetPath: project.datasetPath,
-      checkpoint: project.initialCheckpoint
-    };
-    this.trainer.start(id, hyperparameters);
+    this.trainer.start(project);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }

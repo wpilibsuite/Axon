@@ -1,9 +1,20 @@
 import * as Dockerode from "dockerode";
 import * as fs from "fs";
 import * as path from "path";
-import { Checkpoint, ContainerParameters } from "../schema/__generated__/graphql";
+import { Checkpoint } from "../schema/__generated__/graphql";
 import { Container } from "dockerode";
 import { PROJECT_DATA_DIR } from "../constants";
+import { Project } from "../store";
+
+type ContainerParameters = {
+  name: string;
+  epochs: number;
+  "batch-size": number;
+  "eval-frequency": number;
+  "dataset-path": string;
+  "percent-eval": number;
+  checkpoint: string;
+};
 
 export default class Trainer {
   static readonly CONTAINERMOUNT = "/opt/ml/model";
@@ -48,31 +59,37 @@ export default class Trainer {
     });
   }
 
-  async start(id: string, ContainerParameters: ContainerParameters): Promise<string> {
+  async start(project: Project): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
-        const DATASET = path.basename(ContainerParameters.datasetPath);
-        const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
+        const DATASET = path.basename(project.datasetPath);
+        const MOUNT = Trainer.getMountPath(project.id).replace(/\\/g, "/");
         const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
-        const CHECKPOINT = ContainerParameters.checkpoint;
+        const CHECKPOINT = project.initialCheckpoint;
 
-        this.projects[id] = {
-          name: ContainerParameters.name,
+        this.projects[project.id] = {
+          name: project.name,
           mount_path: MOUNT,
           training_container: null,
           metrics_container: null
         };
 
-        ContainerParameters["batch-size"] = ContainerParameters.batchSize;
-        ContainerParameters["eval-frequency"] = ContainerParameters.evalFrequency;
-        ContainerParameters["dataset-path"] = ContainerParameters.datasetPath;
-        ContainerParameters["percent-eval"] = ContainerParameters.percentEval;
-        if (ContainerParameters["checkpoint"] != "default") {
-          ContainerParameters["checkpoint"] = path.posix.join("checkpoints", ContainerParameters.checkpoint);
+        const containerParameters: ContainerParameters = {
+          name: project.name,
+          epochs: project.epochs,
+          "batch-size": project.batchSize,
+          "dataset-path": project.datasetPath,
+          "eval-frequency": project.evalFrequency,
+          "percent-eval": project.percentEval,
+          checkpoint: "default"
+        };
+
+        if (project.initialCheckpoint != "default") {
+          containerParameters.checkpoint = path.posix.join("checkpoints", project.initialCheckpoint);
         }
 
         fs.mkdirSync(path.posix.join(MOUNT, "dataset"), { recursive: true });
-        fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(ContainerParameters));
+        fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(containerParameters));
         fs.writeFileSync(path.posix.join(MOUNT, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
 
         fs.promises
@@ -97,9 +114,9 @@ export default class Trainer {
                 path.posix.join(MOUNT, "checkpoints", CHECKPOINT.concat(".meta"))
               );
 
-              return this.deleteContainer(id);
+              return this.deleteContainer(project.id);
             }
-            return this.deleteContainer(id);
+            return this.deleteContainer(project.id);
           })
           .then((message) => {
             console.log(message);
@@ -116,14 +133,16 @@ export default class Trainer {
             });
           })
           .then((container) => {
-            this.projects[id].metrics_container = container;
+            this.projects[project.id].metrics_container = container;
             return container.start();
           })
-          .then(() => this.runContainer("gcperkins/wpilib-ml-dataset", id, MOUNTCMD, "dataset ready. Training..."))
+          .then(() =>
+            this.runContainer("gcperkins/wpilib-ml-dataset", project.id, MOUNTCMD, "dataset ready. Training...")
+          )
           .then((message) => {
             console.log(message);
 
-            return this.runContainer("gcperkins/wpilib-ml-train", id, MOUNTCMD, "training finished");
+            return this.runContainer("gcperkins/wpilib-ml-train", project.id, MOUNTCMD, "training finished");
           })
           .then((message) => {
             console.log(message);
@@ -133,7 +152,7 @@ export default class Trainer {
           .then((message) => {
             console.log(message);
 
-            return this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
+            return this.runContainer("gcperkins/wpilib-ml-tflite", project.id, MOUNTCMD, "tflite conversion complete");
           })
           .then((message) => {
             console.log(message);
