@@ -48,31 +48,31 @@ export default class Trainer {
     });
   }
 
-  async start(id: string, hyperparameters: ContainerParameters): Promise<string> {
+  async start(id: string, ContainerParameters: ContainerParameters): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
-        const DATASET = path.basename(hyperparameters.datasetPath);
+        const DATASET = path.basename(ContainerParameters.datasetPath);
         const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
         const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
-        const CHECKPOINT = hyperparameters.checkpoint;
+        const CHECKPOINT = ContainerParameters.checkpoint;
 
         this.projects[id] = {
-          name: hyperparameters.name,
+          name: ContainerParameters.name,
           mount_path: MOUNT,
           training_container: null,
           metrics_container: null
         };
 
-        hyperparameters["batch-size"] = hyperparameters.batchSize;
-        hyperparameters["eval-frequency"] = hyperparameters.evalFrequency;
-        hyperparameters["dataset-path"] = hyperparameters.datasetPath;
-        hyperparameters["percent-eval"] = hyperparameters.percentEval;
-        if (hyperparameters["checkpoint"] != "default") {
-          hyperparameters["checkpoint"] = path.posix.join("checkpoints", hyperparameters.checkpoint);
+        ContainerParameters["batch-size"] = ContainerParameters.batchSize;
+        ContainerParameters["eval-frequency"] = ContainerParameters.evalFrequency;
+        ContainerParameters["dataset-path"] = ContainerParameters.datasetPath;
+        ContainerParameters["percent-eval"] = ContainerParameters.percentEval;
+        if (ContainerParameters["checkpoint"] != "default") {
+          ContainerParameters["checkpoint"] = path.posix.join("checkpoints", ContainerParameters.checkpoint);
         }
 
         fs.mkdirSync(path.posix.join(MOUNT, "dataset"), { recursive: true });
-        fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(hyperparameters));
+        fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(ContainerParameters));
         fs.writeFileSync(path.posix.join(MOUNT, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
 
         fs.promises
@@ -193,30 +193,21 @@ export default class Trainer {
   }
 
   export(id: string, checkpointNumber: number, name: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      try {
-        const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
-        const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
-        const exportparameters = {
-          name: name,
-          epochs: checkpointNumber
-        };
+    const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
+    const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
+    const exportparameters = {
+      name: name,
+      epochs: checkpointNumber
+    };
 
-        if (!fs.existsSync(path.posix.join(MOUNT, "train", `model.ckpt-${checkpointNumber}.meta`))) {
-          reject("cannot find requested checkpoint");
-        }
+    if (!fs.existsSync(path.posix.join(MOUNT, "train", `model.ckpt-${checkpointNumber}.meta`))) {
+      Promise.reject("cannot find requested checkpoint");
+    }
 
-        fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(exportparameters));
-        this.deleteContainer(id)
-          .then((message) => {
-            console.log(message);
-            return this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
-          })
-          .then((message) => resolve(message))
-          .catch((message) => reject(message));
-      } catch (err) {
-        reject(`failed export: ${err}`);
-      }
+    fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(exportparameters));
+    return this.deleteContainer(id).then((message) => {
+      console.log(message);
+      return this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
     });
   }
 
