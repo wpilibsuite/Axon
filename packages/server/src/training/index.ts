@@ -6,6 +6,8 @@ import { Container } from "dockerode";
 import { PROJECT_DATA_DIR } from "../constants";
 import { Project } from "../store";
 
+const CONTAINER_MOUNT_PATH = "/opt/ml/model";
+
 type ContainerParameters = {
   name: string;
   epochs: number;
@@ -17,7 +19,6 @@ type ContainerParameters = {
 };
 
 export default class Trainer {
-  static readonly CONTAINERMOUNT = "/opt/ml/model";
   running: boolean;
   projects: {
     [id: string]: {
@@ -64,7 +65,7 @@ export default class Trainer {
       try {
         const dataset = path.basename(project.datasetPath);
         const mount = Trainer.getMountPath(project.id).replace(/\\/g, "/");
-        const mountCmd = Trainer.getMountCmd(mount, Trainer.CONTAINERMOUNT);
+        const mountCmd = Trainer.getMountCmd(mount, CONTAINER_MOUNT_PATH);
 
         this.projects[project.id] = {
           name: project.name,
@@ -127,7 +128,7 @@ export default class Trainer {
             return this.docker.createContainer({
               Image: "gcperkins/wpilib-ml-metrics",
               name: "metrics",
-              Volumes: { [Trainer.CONTAINERMOUNT]: {} },
+              Volumes: { [CONTAINER_MOUNT_PATH]: {} },
               HostConfig: { Binds: [mountCmd] }
             });
           })
@@ -171,7 +172,7 @@ export default class Trainer {
         .createContainer({
           Image: image,
           name: id,
-          Volumes: { [Trainer.CONTAINERMOUNT]: {} },
+          Volumes: { [CONTAINER_MOUNT_PATH]: {} },
           HostConfig: { Binds: [mount] },
           AttachStdin: false,
           AttachStdout: true,
@@ -212,7 +213,7 @@ export default class Trainer {
 
   export(id: string, checkpointNumber: number, name: string): Promise<string> {
     const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
-    const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
+    const MOUNTCMD = Trainer.getMountCmd(MOUNT, CONTAINER_MOUNT_PATH);
     const exportparameters = {
       name: name,
       epochs: checkpointNumber
