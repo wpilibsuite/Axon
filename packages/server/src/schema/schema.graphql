@@ -18,6 +18,7 @@ type Mutation {
 
   startTraining(id: ID!): Project
   haltTraining(id: ID!): Project
+  exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
 }
 
 type Size {
@@ -79,8 +80,21 @@ type Project {
   checkpoints: [Checkpoint]
 }
 
+type ContainerParameters {
+  name: String
+  epochs: Int
+  batchSize: Int
+  evalFrequency: Int
+  percentEval: Int
+  datasetPath: String
+  checkpoint: String
+}
+
 input ProjectUpdateInput {
   name: String
+
+  initialCheckpoint: String
+  datasetPath: String
 
   epochs: Int
   batchSize: Int

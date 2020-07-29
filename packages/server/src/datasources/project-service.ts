@@ -19,7 +19,7 @@ export class ProjectService extends DataSource {
   }
 
   async getProject(id: string): Promise<Project> {
-    return Project.findByPk(id);
+    return await Project.findByPk(id);
   }
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
@@ -42,6 +42,12 @@ export class ProjectService extends DataSource {
     }
     if (updates.percentEval !== undefined) {
       project.percentEval = updates.percentEval;
+    }
+    if (updates.initialCheckpoint !== undefined) {
+      project.initialCheckpoint = updates.initialCheckpoint;
+    }
+    if (updates.datasetPath !== undefined) {
+      project.datasetPath = updates.datasetPath;
     }
     return await project.save();
   }
@@ -70,6 +76,13 @@ export class ProjectService extends DataSource {
     this.trainer.halt(id);
     const project = await Project.findByPk(id);
     console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
+    return project;
+  }
+
+  async exportCheckpoint(id: string, checkpointNumber: number, name: string): Promise<Project> {
+    this.trainer.export(id, checkpointNumber, name).catch((err) => console.log(err));
+    const project = await Project.findByPk(id);
+    console.log(`Started export on project: ${JSON.stringify(project)}`);
     return project;
   }
 }

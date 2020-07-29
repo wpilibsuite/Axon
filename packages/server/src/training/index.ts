@@ -1,13 +1,21 @@
 import * as Dockerode from "dockerode";
 import * as fs from "fs";
 import * as path from "path";
-import { Checkpoint } from "../schema/__generated__/graphql";
+import { Checkpoint, ContainerParameters } from "../schema/__generated__/graphql";
 import { Container } from "dockerode";
 import { PROJECT_DATA_DIR } from "../constants";
 
 export default class Trainer {
+  static readonly CONTAINERMOUNT = "/opt/ml/model";
   running: boolean;
-  projects: { [id: string]: { training_container: Container; metrics_container: Container; metrics: Container } };
+  projects: {
+    [id: string]: {
+      name: string;
+      mount_path: string;
+      training_container: Container;
+      metrics_container: Container;
+    };
+  };
 
   readonly docker = new Dockerode();
 
@@ -40,92 +48,112 @@ export default class Trainer {
     });
   }
 
-  start(id: string, hyperparameters: unknown): void {
-    this.projects[id] = {
-      training_container: null,
-      metrics_container: null,
-      metrics: null
-    };
+  async start(id: string, ContainerParameters: ContainerParameters): Promise<string> {
+    return new Promise((resolve, reject) => {
+      try {
+        const DATASET = path.basename(ContainerParameters.datasetPath);
+        const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
+        const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
+        const CHECKPOINT = ContainerParameters.checkpoint;
 
-    const MOUNT = Trainer.getMountPath(id);
-    const CONTAINERMOUNT = "/opt/ml/model";
-    const DATASET = path.basename(hyperparameters["datasetPath"]);
+        this.projects[id] = {
+          name: ContainerParameters.name,
+          mount_path: MOUNT,
+          training_container: null,
+          metrics_container: null
+        };
 
-    let mountcmd = process.cwd();
-    if (mountcmd.includes(":\\")) {
-      // MOUNT PATH MODIFICATION IS FOR WINDOWS ONLY!
-      mountcmd = mountcmd.replace("C:\\", "/c/");
-      mountcmd = mountcmd.replace(/\\/g, "/");
-      console.log(mountcmd);
-    }
-    mountcmd = path.posix.join(mountcmd, MOUNT);
-    mountcmd = `${mountcmd}:${CONTAINERMOUNT}:rw`;
+        ContainerParameters["batch-size"] = ContainerParameters.batchSize;
+        ContainerParameters["eval-frequency"] = ContainerParameters.evalFrequency;
+        ContainerParameters["dataset-path"] = ContainerParameters.datasetPath;
+        ContainerParameters["percent-eval"] = ContainerParameters.percentEval;
+        if (ContainerParameters["checkpoint"] != "default") {
+          ContainerParameters["checkpoint"] = path.posix.join("checkpoints", ContainerParameters.checkpoint);
+        }
 
-    hyperparameters["batch-size"] = hyperparameters["batchSize"];
-    hyperparameters["eval-frequency"] = hyperparameters["evalFrequency"];
-    hyperparameters["dataset-path"] = hyperparameters["datasetPath"];
-    hyperparameters["percent-eval"] = hyperparameters["percentEval"];
+        fs.mkdirSync(path.posix.join(MOUNT, "dataset"), { recursive: true });
+        fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(ContainerParameters));
+        fs.writeFileSync(path.posix.join(MOUNT, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
 
-    fs.mkdirSync(path.posix.join(MOUNT, "dataset"), { recursive: true });
-    fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(hyperparameters));
-    fs.writeFileSync(path.posix.join(MOUNT, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
+        fs.promises
+          .copyFile(path.posix.join("data/datasets", DATASET), path.posix.join(MOUNT, "dataset", DATASET))
+          .then(() => {
+            console.log(`copied ${DATASET} to mount`);
+            if (CHECKPOINT != "default") {
+              if (!fs.existsSync(path.posix.join(MOUNT, "checkpoints"))) {
+                fs.mkdirSync(path.posix.join(MOUNT, "checkpoints"), { recursive: true });
+              }
 
-    fs.promises
-      .copyFile(path.posix.join("data/datasets", DATASET), path.posix.join(MOUNT, "dataset", DATASET))
-      .then(() => {
-        console.log(`copied ${DATASET} to mount`);
-        return this.deleteContainer(id);
-      })
-      .then((message) => {
-        console.log(message);
-        return this.deleteContainer("metrics");
-      })
-      .then((message) => {
-        console.log(message);
+              fs.copyFileSync(
+                path.posix.join("data", "checkpoints", CHECKPOINT.concat(".data-00000-of-00001")),
+                path.posix.join(MOUNT, "checkpoints", CHECKPOINT.concat(".data-00000-of-00001"))
+              );
+              fs.copyFileSync(
+                path.posix.join("data", "checkpoints", CHECKPOINT.concat(".index")),
+                path.posix.join(MOUNT, "checkpoints", CHECKPOINT.concat(".index"))
+              );
+              fs.copyFileSync(
+                path.posix.join("data", "checkpoints", CHECKPOINT.concat(".meta")),
+                path.posix.join(MOUNT, "checkpoints", CHECKPOINT.concat(".meta"))
+              );
 
-        //the line below is apparently "experimental" so lets hope that it doesnt delete your root directory
-        fs.rmdirSync(path.posix.join(".", MOUNT, "train"), { recursive: true });
+              return this.deleteContainer(id);
+            }
+            return this.deleteContainer(id);
+          })
+          .then((message) => {
+            console.log(message);
+            return this.deleteContainer("metrics");
+          })
+          .then((message) => {
+            console.log(message);
 
-        return this.docker.createContainer({
-          Image: "gcperkins/wpilib-ml-metrics",
-          name: "metrics",
-          Volumes: { CONTAINERMOUNT: {} },
-          HostConfig: { Binds: [mountcmd] }
-        });
-      })
-      .then((container) => {
-        this.projects[id].metrics_container = container;
-        return container.start();
-      })
-      .then(() => this.runContainer("gcperkins/wpilib-ml-dataset", id, mountcmd, "dataset ready. Training..."))
-      .then((message) => {
-        console.log(message);
+            return this.docker.createContainer({
+              Image: "gcperkins/wpilib-ml-metrics",
+              name: "metrics",
+              Volumes: { [Trainer.CONTAINERMOUNT]: {} },
+              HostConfig: { Binds: [MOUNTCMD] }
+            });
+          })
+          .then((container) => {
+            this.projects[id].metrics_container = container;
+            return container.start();
+          })
+          .then(() => this.runContainer("gcperkins/wpilib-ml-dataset", id, MOUNTCMD, "dataset ready. Training..."))
+          .then((message) => {
+            console.log(message);
 
-        return this.runContainer("gcperkins/wpilib-ml-train", id, mountcmd, "training finished");
-      })
-      .then((message) => {
-        console.log(message);
+            return this.runContainer("gcperkins/wpilib-ml-train", id, MOUNTCMD, "training finished");
+          })
+          .then((message) => {
+            console.log(message);
 
-        return this.exportBuffer(this.running);
-      })
-      .then((message) => {
-        console.log(message);
+            return this.exportBuffer(this.running);
+          })
+          .then((message) => {
+            console.log(message);
 
-        return this.runContainer("gcperkins/wpilib-ml-tflite", id, mountcmd, "tflite conversion complete");
-      })
-      .then((message) => {
-        console.log(message);
-      })
-      .catch((err) => console.log(err));
+            return this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
+          })
+          .then((message) => {
+            console.log(message);
+            resolve(message);
+          })
+          .catch((err) => reject(err));
+      } catch (err) {
+        reject(err);
+      }
+    });
   }
 
   private async runContainer(image: string, id: string, mount: string, message: string): Promise<string> {
     return new Promise((resolve, reject) => {
+      let training_container;
       this.docker
         .createContainer({
           Image: image,
           name: id,
-          Volumes: { CONTAINERMOUNT: {} },
+          Volumes: { [Trainer.CONTAINERMOUNT]: {} },
           HostConfig: { Binds: [mount] },
           AttachStdin: false,
           AttachStdout: true,
@@ -135,15 +163,20 @@ export default class Trainer {
           Tty: true
         })
         .then((container) => {
-          this.projects[id].training_container = container;
+          training_container = container;
           return container.attach({ stream: true, stdout: true, stderr: true });
         })
         .then((stream) => {
           stream.pipe(process.stdout);
-          return this.projects[id].training_container.start();
+          return training_container.start();
         })
-        .then(() => this.projects[id].training_container.wait())
-        .then(() => this.projects[id].training_container.remove())
+        .then(() => {
+          if (this.projects[id]) {
+            this.projects[id].training_container = training_container;
+          }
+          return training_container.wait();
+        })
+        .then(() => training_container.remove())
         .then(() => resolve(message))
         .catch((err) => reject(err));
     });
@@ -156,6 +189,25 @@ export default class Trainer {
       } else {
         reject("automatic export disabled");
       }
+    });
+  }
+
+  export(id: string, checkpointNumber: number, name: string): Promise<string> {
+    const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
+    const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
+    const exportparameters = {
+      name: name,
+      epochs: checkpointNumber
+    };
+
+    if (!fs.existsSync(path.posix.join(MOUNT, "train", `model.ckpt-${checkpointNumber}.meta`))) {
+      Promise.reject("cannot find requested checkpoint");
+    }
+
+    fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(exportparameters));
+    return this.deleteContainer(id).then((message) => {
+      console.log(message);
+      return this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
     });
   }
 
@@ -187,7 +239,10 @@ export default class Trainer {
           container
             .kill({ force: true })
             .then(() => container.remove())
-            .then(() => resolve(`container ${id} killed`));
+            .then(() => resolve(`container ${id} killed`))
+            .catch(() => {
+              container.remove().then(() => resolve(`container ${id} killed`));
+            });
         }
       });
     });
@@ -224,5 +279,15 @@ export default class Trainer {
 
   private static getMountPath(id: string): string {
     return `${PROJECT_DATA_DIR}/${id}/mount`;
+  }
+
+  private static getMountCmd(mount: string, containerMount: string): string {
+    let mountcmd = process.cwd();
+    if (mountcmd.includes(":\\")) {
+      mountcmd = mountcmd.replace("C:\\", "/c/").replace(/\\/g, "/");
+      console.log(mountcmd);
+    }
+    mountcmd = path.posix.join(mountcmd, mount);
+    return `${mountcmd}:${containerMount}:rw`;
   }
 }

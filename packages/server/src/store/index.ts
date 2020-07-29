@@ -1,4 +1,5 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
+import { Checkpoint } from "../schema/__generated__/graphql";
 import { DATA_DIR } from "../constants";
 
 export const sequelize = new Sequelize({
@@ -51,6 +52,7 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   percentEval: number;
 
   inProgress: boolean;
+  checkpoints: Array<Checkpoint>;
 
   public readonly id!: string;
   public readonly createdAt!: Date;
