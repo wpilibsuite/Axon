@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-function DatasetSelectionGridList() {
+function DatasetSelectionGridList(props: { id: string }) {
   const classes = useStyles();
   const { data, loading, error } = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);
 
@@ -47,7 +47,7 @@ function DatasetSelectionGridList() {
       <GridList className={classes.gridList} spacing={5} cols={0}>
         {data.datasets.map((dataset) => (
           <GridListTile key={dataset.id} cols={1} style={{ height: "auto" }}>
-            <DatasetCard dataset={dataset} />
+            <DatasetCard projectId={props.id} dataset={dataset} />
           </GridListTile>
         ))}
       </GridList>
@@ -58,7 +58,7 @@ function DatasetSelectionGridList() {
 export default function Projects(props: { id: string }): ReactElement {
   return (
     <Section title="Projects">
-      <DatasetSelectionGridList />
+      <DatasetSelectionGridList id={props.id} />
     </Section>
   );
 }

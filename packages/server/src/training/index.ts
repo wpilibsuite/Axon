@@ -63,7 +63,7 @@ export default class Trainer {
   async start(project: Project): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
-        const dataset = path.basename(project.datasetPath);
+        const dataset = path.basename(project.getDatasets()[0].path);
         const mount = Trainer.getMountPath(project.id).replace(/\\/g, "/");
         const mountCmd = Trainer.getMountCmd(mount, CONTAINER_MOUNT_PATH);
 
@@ -78,7 +78,7 @@ export default class Trainer {
           name: project.name,
           epochs: project.epochs,
           "batch-size": project.batchSize,
-          "dataset-path": project.datasetPath,
+          "dataset-path": project.getDatasets()[0].path,
           "eval-frequency": project.evalFrequency,
           "percent-eval": project.percentEval,
           checkpoint: "default"

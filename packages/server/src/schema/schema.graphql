@@ -14,7 +14,8 @@ type Mutation {
   createDataset(upload: Upload!): Dataset
 
   createProject(name: String!): Project
-  updateProject(id: ID!, updates: ProjectUpdateInput!): Project
+  updateProject(id: ID!, updates: ProjectUpdateInput!): Project!
+  setDatasetInProject(projectId: ID!, datasetId: ID!, isIncluded: Boolean): Project!
 
   startTraining(id: ID!): Project
   haltTraining(id: ID!): Project
@@ -69,7 +70,7 @@ type Project {
   id: ID!
   name: String!
   initialCheckpoint: String!
-  datasetPath: String!
+  datasets: [Dataset!]!
 
   epochs: Int!
   batchSize: Int!
@@ -83,8 +84,8 @@ type Project {
 input ProjectUpdateInput {
   name: String
 
+  datasets: [String!]
   initialCheckpoint: String
-  datasetPath: String
 
   epochs: Int
   batchSize: Int

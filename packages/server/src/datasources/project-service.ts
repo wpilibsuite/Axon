@@ -31,6 +31,9 @@ export class ProjectService extends DataSource {
     if (updates.name !== undefined) {
       project.name = updates.name;
     }
+    if (updates.datasets !== undefined) {
+      await project.setDatasets(updates.datasets);
+    }
     if (updates.epochs !== undefined) {
       project.epochs = updates.epochs;
     }
@@ -46,10 +49,17 @@ export class ProjectService extends DataSource {
     if (updates.initialCheckpoint !== undefined) {
       project.initialCheckpoint = updates.initialCheckpoint;
     }
-    if (updates.datasetPath !== undefined) {
-      project.datasetPath = updates.datasetPath;
-    }
     return await project.save();
+  }
+
+  async setDatasetInProject(projectId: string, datasetId: string, isIncluded: boolean): Promise<Project> {
+    const project = await Project.findByPk(projectId);
+    if (isIncluded) {
+      await project.addDataset(datasetId);
+    } else {
+      await project.removeDataset(datasetId);
+    }
+    return project;
   }
 
   async createProject(name: string): Promise<Project> {

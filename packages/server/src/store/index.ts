@@ -1,5 +1,14 @@
-import { DataTypes, Model, Optional, Sequelize } from "sequelize";
-import { Checkpoint } from "../schema/__generated__/graphql";
+import {
+  Association,
+  DataTypes,
+  HasManyAddAssociationMixin,
+  HasManyGetAssociationsMixin,
+  HasManyRemoveAssociationMixin,
+  HasManySetAssociationsMixin,
+  Model,
+  Optional,
+  Sequelize
+} from "sequelize";
 import { DATA_DIR } from "../constants";
 
 export const sequelize = new Sequelize({
@@ -29,7 +38,6 @@ interface ProjectAttributes {
   id: string;
   name: string;
   initialCheckpoint: string;
-  datasetPath: string;
 
   epochs: number;
   batchSize: number;
@@ -44,7 +52,6 @@ type ProjectCreationAttributes = Optional<ProjectAttributes, keyof ProjectAttrib
 export class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implements ProjectAttributes {
   name: string;
   initialCheckpoint: string;
-  datasetPath: string;
 
   epochs: number;
   batchSize: number;
@@ -52,11 +59,19 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   percentEval: number;
 
   inProgress: boolean;
-  checkpoints: Array<Checkpoint>;
+
+  public getDatasets!: HasManyGetAssociationsMixin<Dataset>;
+  public setDatasets!: HasManySetAssociationsMixin<Dataset, string>;
+  public addDataset!: HasManyAddAssociationMixin<Dataset, string>;
+  public removeDataset!: HasManyRemoveAssociationMixin<Dataset, string>;
 
   public readonly id!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  public static associations: {
+    datasets: Association<Project, Dataset>;
+  };
 }
 
 Dataset.init(
@@ -97,10 +112,6 @@ Project.init(
       type: new DataTypes.STRING(),
       defaultValue: "default"
     },
-    datasetPath: {
-      type: new DataTypes.STRING(),
-      defaultValue: "/opt/ml/model/dataset/full_data.tar"
-    },
     epochs: {
       type: DataTypes.INTEGER.UNSIGNED,
       defaultValue: 10
@@ -126,5 +137,8 @@ Project.init(
     sequelize
   }
 );
+
+Project.belongsToMany(Dataset, { through: "DatasetProject" });
+Dataset.belongsToMany(Project, { through: "DatasetProject" });
 
 sequelize.sync({ force: false });

@@ -11,6 +11,9 @@ export const Mutation: MutationResolvers = {
   updateProject: async (parent, { id, updates }, { dataSources }) => {
     return dataSources.projectService.updateProject(id, updates);
   },
+  setDatasetInProject: async (parent, { projectId, datasetId, isIncluded }, { dataSources }) => {
+    return dataSources.projectService.setDatasetInProject(projectId, datasetId, isIncluded);
+  },
   startTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.startTraining(id);
   },
