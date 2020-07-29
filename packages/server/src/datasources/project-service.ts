@@ -19,11 +19,7 @@ export class ProjectService extends DataSource {
   }
 
   async getProject(id: string): Promise<Project> {
-    const project = await Project.findByPk(id);
-    if (project) {
-      project.checkpoints = await this.trainer.getProjectCheckpoints(id);
-    }
-    return project;
+    return await Project.findByPk(id);
   }
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
@@ -71,7 +67,7 @@ export class ProjectService extends DataSource {
       datasetPath: project.datasetPath,
       checkpoint: project.initialCheckpoint
     };
-    this.trainer.start(id, hyperparameters).catch((err) => console.log(err));
+    this.trainer.start(id, hyperparameters);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
