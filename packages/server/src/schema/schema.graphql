@@ -80,6 +80,16 @@ type Project {
   checkpoints: [Checkpoint]
 }
 
+type ContainerParameters {
+  name: String
+  epochs: Int
+  batchSize: Int
+  evalFrequency: Int
+  percentEval: Int
+  datasetPath: String
+  checkpoint: String
+}
+
 input ProjectUpdateInput {
   name: String
 

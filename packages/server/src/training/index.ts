@@ -1,12 +1,12 @@
 import * as Dockerode from "dockerode";
 import * as fs from "fs";
 import * as path from "path";
-import { Checkpoint } from "../schema/__generated__/graphql";
+import { Checkpoint, ContainerParameters } from "../schema/__generated__/graphql";
 import { Container } from "dockerode";
 import { PROJECT_DATA_DIR } from "../constants";
 
 export default class Trainer {
-  CONTAINERMOUNT = "/opt/ml/model";
+  static readonly CONTAINERMOUNT = "/opt/ml/model";
   running: boolean;
   projects: {
     [id: string]: {
@@ -48,27 +48,27 @@ export default class Trainer {
     });
   }
 
-  async start(id: string, hyperparameters: unknown): Promise<string> {
+  async start(id: string, hyperparameters: ContainerParameters): Promise<string> {
     return new Promise((resolve, reject) => {
       try {
-        const DATASET = path.basename(hyperparameters["datasetPath"]);
+        const DATASET = path.basename(hyperparameters.datasetPath);
         const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
-        const MOUNTCMD = Trainer.getMountCmd(MOUNT, this.CONTAINERMOUNT);
-        const CHECKPOINT = hyperparameters["checkpoint"];
+        const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
+        const CHECKPOINT = hyperparameters.checkpoint;
 
         this.projects[id] = {
-          name: hyperparameters["name"],
+          name: hyperparameters.name,
           mount_path: MOUNT,
           training_container: null,
           metrics_container: null
         };
 
-        hyperparameters["batch-size"] = hyperparameters["batchSize"];
-        hyperparameters["eval-frequency"] = hyperparameters["evalFrequency"];
-        hyperparameters["dataset-path"] = hyperparameters["datasetPath"];
-        hyperparameters["percent-eval"] = hyperparameters["percentEval"];
+        hyperparameters["batch-size"] = hyperparameters.batchSize;
+        hyperparameters["eval-frequency"] = hyperparameters.evalFrequency;
+        hyperparameters["dataset-path"] = hyperparameters.datasetPath;
+        hyperparameters["percent-eval"] = hyperparameters.percentEval;
         if (hyperparameters["checkpoint"] != "default") {
-          hyperparameters["checkpoint"] = path.posix.join("checkpoints", hyperparameters["checkpoint"]);
+          hyperparameters["checkpoint"] = path.posix.join("checkpoints", hyperparameters.checkpoint);
         }
 
         fs.mkdirSync(path.posix.join(MOUNT, "dataset"), { recursive: true });
@@ -83,8 +83,8 @@ export default class Trainer {
               if (!fs.existsSync(path.posix.join(MOUNT, "checkpoints"))) {
                 fs.mkdirSync(path.posix.join(MOUNT, "checkpoints"), { recursive: true });
               }
+
               fs.copyFileSync(
-                //yes i know
                 path.posix.join("data", "checkpoints", CHECKPOINT.concat(".data-00000-of-00001")),
                 path.posix.join(MOUNT, "checkpoints", CHECKPOINT.concat(".data-00000-of-00001"))
               );
@@ -111,7 +111,7 @@ export default class Trainer {
             return this.docker.createContainer({
               Image: "gcperkins/wpilib-ml-metrics",
               name: "metrics",
-              Volumes: { [this.CONTAINERMOUNT]: {} },
+              Volumes: { [Trainer.CONTAINERMOUNT]: {} },
               HostConfig: { Binds: [MOUNTCMD] }
             });
           })
@@ -153,7 +153,7 @@ export default class Trainer {
         .createContainer({
           Image: image,
           name: id,
-          Volumes: { [this.CONTAINERMOUNT]: {} },
+          Volumes: { [Trainer.CONTAINERMOUNT]: {} },
           HostConfig: { Binds: [mount] },
           AttachStdin: false,
           AttachStdout: true,
@@ -196,7 +196,7 @@ export default class Trainer {
     return new Promise((resolve, reject) => {
       try {
         const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
-        const MOUNTCMD = Trainer.getMountCmd(MOUNT, this.CONTAINERMOUNT);
+        const MOUNTCMD = Trainer.getMountCmd(MOUNT, Trainer.CONTAINERMOUNT);
         const exportparameters = {
           name: name,
           epochs: checkpointNumber
