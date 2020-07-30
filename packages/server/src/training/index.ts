@@ -61,7 +61,7 @@ export default class Trainer {
   }
 
   async start(project: Project): Promise<string> {
-    const dataset = (await project.getDatasets())[0]
+    const dataset = (await project.getDatasets())[0];
     return new Promise((resolve, reject) => {
       try {
         const mount = Trainer.getMountPath(project.id).replace(/\\/g, "/");
@@ -93,7 +93,10 @@ export default class Trainer {
         fs.writeFileSync(path.posix.join(mount, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
 
         fs.promises
-          .copyFile(path.posix.join("data",dataset.path), path.posix.join(mount, "dataset", path.basename(dataset.path)))
+          .copyFile(
+            path.posix.join("data", dataset.path),
+            path.posix.join(mount, "dataset", path.basename(dataset.path))
+          )
           .then(() => {
             console.log(`copied ${dataset} to mount`);
             if (project.initialCheckpoint != "default") {
