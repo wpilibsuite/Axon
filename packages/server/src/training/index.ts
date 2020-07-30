@@ -61,9 +61,9 @@ export default class Trainer {
   }
 
   async start(project: Project): Promise<string> {
+    const dataset = (await project.getDatasets())[0]
     return new Promise((resolve, reject) => {
       try {
-        const dataset = path.basename(project.getDatasets()[0].path);
         const mount = Trainer.getMountPath(project.id).replace(/\\/g, "/");
         const mountCmd = Trainer.getMountCmd(mount, CONTAINER_MOUNT_PATH);
 
@@ -78,7 +78,7 @@ export default class Trainer {
           name: project.name,
           epochs: project.epochs,
           "batch-size": project.batchSize,
-          "dataset-path": project.getDatasets()[0].path,
+          "dataset-path": path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path)),
           "eval-frequency": project.evalFrequency,
           "percent-eval": project.percentEval,
           checkpoint: "default"
@@ -93,7 +93,7 @@ export default class Trainer {
         fs.writeFileSync(path.posix.join(mount, "metrics.json"), JSON.stringify({ precision: { "0": 0 } }));
 
         fs.promises
-          .copyFile(path.posix.join("data/datasets", dataset), path.posix.join(mount, "dataset", dataset))
+          .copyFile(path.posix.join("data",dataset.path), path.posix.join(mount, "dataset", path.basename(dataset.path)))
           .then(() => {
             console.log(`copied ${dataset} to mount`);
             if (project.initialCheckpoint != "default") {
