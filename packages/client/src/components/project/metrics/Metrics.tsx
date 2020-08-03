@@ -18,6 +18,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import React, { ReactElement } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { GetProject, GetProjectVariables } from "./__generated__/GetProject";
+import ExportButton from "./ExportButton"
 
 const GET_PROJECT = gql`
   query GetProject($id: ID!) {
@@ -67,6 +68,12 @@ export default function Metrics(props: { id: string }): ReactElement {
                 <TableRow key={checkpoint.step}>
                   <TableCell>{checkpoint.step}</TableCell>
                   <TableCell>{checkpoint.metrics.precision}</TableCell>
+                  <TableCell>
+                    <ExportButton 
+                      id={props.id}
+                      ckptNumber={checkpoint.step}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
       </TableBody>
