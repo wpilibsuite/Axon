@@ -4,7 +4,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import Metrics from "./metrics/Metrics";
 import Input from "./input/Input";
 
-
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;

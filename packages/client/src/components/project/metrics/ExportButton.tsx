@@ -10,8 +10,7 @@ import {
   Tooltip
 } from "@material-ui/core";
 import gql from "graphql-tag";
-import { useApolloClient, useMutation } from "@apollo/client";
-import AddIcon from "@material-ui/icons/Add";
+import { useMutation } from "@apollo/client";
 
 const EXPORT_CHECKPOINT_MUTATION = gql`
   mutation exportCheckpoint($id: ID!, $checkpointNumber: Int!, $name: String!) {
@@ -25,7 +24,6 @@ export default function ExportButton(props: { id: string; ckptNumber: number }):
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [exportCheckpoint] = useMutation(EXPORT_CHECKPOINT_MUTATION);
-  const apolloClient = useApolloClient();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -34,23 +32,21 @@ export default function ExportButton(props: { id: string; ckptNumber: number }):
     setOpen(false);
   };
   const handleExport = () => {
-    let id = props.id;
-    let checkpointNumber = props.ckptNumber;
-    console.log(id)
-    console.log(checkpointNumber)
-    console.log(name)
+    const id = props.id;
+    const checkpointNumber = props.ckptNumber;
+    console.log(id);
+    console.log(checkpointNumber);
+    console.log(name);
     exportCheckpoint({ variables: { id, checkpointNumber, name } }).catch((err) => {
-        console.log(err)
-      });
+      console.log(err);
+    });
     handleClose();
   };
 
   return (
     <>
       <Tooltip title="Export">
-        <IconButton onClick={handleClickOpen}>
-          <AddIcon />
-        </IconButton>
+        <IconButton onClick={handleClickOpen}>Export</IconButton>
       </Tooltip>
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Export Checkpoint</DialogTitle>
