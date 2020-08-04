@@ -3,6 +3,7 @@ import React, { ReactElement } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { GetProject, GetProjectVariables } from "./__generated__/GetProject";
 import ExportButton from "./ExportButton";
+import Graph from "./Graph";
 
 const GET_PROJECT = gql`
   query GetProject($id: ID!) {
@@ -29,6 +30,8 @@ export default function Metrics(props: { id: string }): ReactElement {
   console.log(data);
   return (
     <Container>
+      <Graph data={data.project?.checkpoints} />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
