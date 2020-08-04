@@ -98,7 +98,7 @@ export default class Trainer {
             path.posix.join(mount, "dataset", path.basename(dataset.path))
           )
           .then(() => {
-            console.log(`copied ${dataset} to mount`);
+            console.log(`copied ${dataset.path} to mount`);
             if (project.initialCheckpoint != "default") {
               if (!fs.existsSync(path.posix.join(mount, "checkpoints"))) {
                 fs.mkdirSync(path.posix.join(mount, "checkpoints"), { recursive: true });
@@ -149,16 +149,6 @@ export default class Trainer {
           })
           .then((message) => {
             console.log(message);
-
-            return this.exportBuffer(this.running);
-          })
-          .then((message) => {
-            console.log(message);
-
-            return this.runContainer("gcperkins/wpilib-ml-tflite", project.id, mountCmd, "tflite conversion complete");
-          })
-          .then((message) => {
-            console.log(message);
             resolve(message);
           })
           .catch((err) => reject(err));
@@ -204,29 +194,40 @@ export default class Trainer {
     });
   }
 
-  private async exportBuffer(running: boolean): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (running) {
-        resolve("automatic export enabled");
-      } else {
-        reject("automatic export disabled");
-      }
-    });
-  }
-
   export(id: string, checkpointNumber: number, name: string): Promise<string> {
     const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
     const MOUNTCMD = Trainer.getMountCmd(MOUNT, CONTAINER_MOUNT_PATH);
+    const CHECKPOINT_TAG = `model.ckpt-${checkpointNumber}`;
+    const EXPORT_PATH = path.posix.join(MOUNT, "exports", name);
+
     const exportparameters = {
       name: name,
-      epochs: checkpointNumber
+      epochs: checkpointNumber,
+      "export-dir": path.posix.join("exports", name)
     };
 
-    if (!fs.existsSync(path.posix.join(MOUNT, "train", `model.ckpt-${checkpointNumber}.meta`))) {
+    if (!fs.existsSync(path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`))) {
       Promise.reject("cannot find requested checkpoint");
     }
 
-    fs.writeFileSync(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(exportparameters));
+    if (!fs.existsSync(path.posix.join(EXPORT_PATH, "checkpoint"))) {
+      fs.mkdirSync(path.posix.join(EXPORT_PATH, "checkpoint"), { recursive: true });
+    }
+
+    fs.copyFileSync(
+      path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`),
+      path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.meta`)
+    );
+    fs.copyFileSync(
+      path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.index`),
+      path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.index`)
+    );
+    fs.copyFileSync(
+      path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.data-00000-of-00001`),
+      path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.data-00000-of-00001`)
+    );
+
+    fs.writeFileSync(path.posix.join(MOUNT, "exportparameters.json"), JSON.stringify(exportparameters));
     return this.deleteContainer(id).then((message) => {
       console.log(message);
       return this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");

@@ -78,7 +78,7 @@ type Project {
   percentEval: Float!
 
   inProgress: Boolean!
-  checkpoints: [Checkpoint]
+  checkpoints: [Checkpoint!]!
 }
 
 input ProjectUpdateInput {
