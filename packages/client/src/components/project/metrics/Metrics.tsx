@@ -1,11 +1,11 @@
 import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@material-ui/core";
 import React, { ReactElement } from "react";
 import { gql, useQuery } from "@apollo/client";
-import { GetProject, GetProjectVariables } from "./__generated__/GetProject";
 import ExportButton from "./ExportButton";
+import { GetProjectCheckpoints, GetProjectCheckpointsVariables } from "./__generated__/GetProjectCheckpoints";
 
-const GET_PROJECT = gql`
-  query GetProject($id: ID!) {
+const GET_PROJECT_CHECKPOINTS = gql`
+  query GetProjectCheckpoints($id: ID!) {
     project(id: $id) {
       checkpoints {
         step
@@ -18,15 +18,18 @@ const GET_PROJECT = gql`
 `;
 
 export default function Metrics(props: { id: string }): ReactElement {
-  const { data, loading, error } = useQuery<GetProject, GetProjectVariables>(GET_PROJECT, {
-    variables: {
-      id: props.id
+  const { data, loading, error } = useQuery<GetProjectCheckpoints, GetProjectCheckpointsVariables>(
+    GET_PROJECT_CHECKPOINTS,
+    {
+      variables: {
+        id: props.id
+      }
     }
-  });
+  );
 
   if (loading) return <p>LOADING</p>;
   if (error || !data) return <p>ERROR</p>;
-  console.log(data);
+
   return (
     <Container>
       <TableContainer component={Paper}>
