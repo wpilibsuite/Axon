@@ -3,7 +3,7 @@ import React, { ReactElement } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { GetProjectCheckpoints, GetProjectCheckpointsVariables } from "./__generated__/GetProjectCheckpoints";
 import ExportButton from "./ExportButton";
-import Graph from './Graph'
+import Graph from "./Graph";
 
 const GET_PROJECT_CHECKPOINTS = gql`
   query GetProjectCheckpoints($id: ID!) {
