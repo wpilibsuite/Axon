@@ -19,7 +19,7 @@ type Mutation {
 
   startTraining(id: ID!): Project
   haltTraining(id: ID!): Project
-  exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
+  exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!, test: Boolean!, video: Upload): Project
 }
 
 type Size {
