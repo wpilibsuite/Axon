@@ -202,7 +202,7 @@ export default class Trainer {
     const VIDEO_PATH = test ? path.posix.join(CONTAINER_MOUNT_PATH, "videos", videoName) : null
 
     if (test) {
-      console.log(`I will test {videoName}`)
+      console.log(`I will test ${videoName}`)
     }
     
     const exportparameters = {
