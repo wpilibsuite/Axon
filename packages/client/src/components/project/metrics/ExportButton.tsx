@@ -64,27 +64,26 @@ export default function ExportButton(props: { id: string; ckptNumber: number }):
             fullWidth
           />
           <FormControlLabel
-          control={
-            <Checkbox
-              checked={test}
-              onChange={(event) => setTest(event.target.checked)}
-              name="test"
-              color="primary"
-            />
+            control={
+              <Checkbox
+                checked={test}
+                onChange={(event) => setTest(event.target.checked)}
+                name="test"
+                color="primary"
+              />
             }
             label="Run inference after export?"
           />
-          {test &&
+          {test && (
             <DropzoneArea
               onChange={(files) => setVideo(files[0] || {})}
-              // acceptedFiles={['image/jpeg, image/png']}
+              acceptedFiles={["video/*"]}
               filesLimit={1}
               maxFileSize={Infinity}
               showFileNames={true}
               showPreviewsInDropzone={true}
             />
-          }
-
+          )}
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose}>

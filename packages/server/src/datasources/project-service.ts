@@ -8,7 +8,6 @@ import * as path from "path";
 import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
 
-
 export class ProjectService extends DataSource {
   private store: Sequelize;
   private trainer: Trainer;
@@ -87,23 +86,29 @@ export class ProjectService extends DataSource {
     return project;
   }
 
-  async exportCheckpoint(id: string, checkpointNumber: number, name: string, test: boolean, filename: string = null, stream: fs.ReadStream = null): Promise<Project> {
-
+  async exportCheckpoint(
+    id: string,
+    checkpointNumber: number,
+    name: string,
+    test: boolean,
+    filename: string = null,
+    stream: fs.ReadStream = null
+  ): Promise<Project> {
     if (test) {
       await this.upload(filename, id, stream);
     }
-    
+
     this.trainer.export(id, checkpointNumber, name, test, filename).catch((err) => console.log(err));
     const project = await Project.findByPk(id);
     console.log(`Started export on project: ${JSON.stringify(project)}`);
     return project;
   }
-  
+
   private async upload(name: string, id: string, stream: fs.ReadStream) {
     const extractPath = `${this.path}/${id}/mount/videos`;
     const savePath = path.join(extractPath, name);
     await mkdirp(extractPath);
-    
+
     await new Promise((resolve, reject) => {
       const writeStream = createWriteStream(savePath);
       writeStream.on("finish", resolve);
@@ -116,5 +121,4 @@ export class ProjectService extends DataSource {
       stream.pipe(writeStream);
     });
   }
-  
 }

@@ -199,17 +199,13 @@ export default class Trainer {
     const MOUNTCMD = Trainer.getMountCmd(MOUNT, CONTAINER_MOUNT_PATH);
     const CHECKPOINT_TAG = `model.ckpt-${checkpointNumber}`;
     const EXPORT_PATH = path.posix.join(MOUNT, "exports", name);
-    const VIDEO_PATH = test ? path.posix.join(CONTAINER_MOUNT_PATH, "videos", videoName) : null
+    const VIDEO_PATH = test ? path.posix.join(CONTAINER_MOUNT_PATH, "videos", videoName) : null;
 
-    if (test) {
-      console.log(`I will test ${videoName}`)
-    }
-    
     const exportparameters = {
       name: name,
       epochs: checkpointNumber,
       "export-dir": path.posix.join("exports", name),
-      "test": test,
+      test: test,
       "test-video": VIDEO_PATH
     };
 
@@ -239,7 +235,6 @@ export default class Trainer {
       console.log(message);
       return this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
     });
-
   }
 
   halt(id: string): void {
