@@ -25,10 +25,10 @@ export default class Trainer {
       mount_path: string;
       training_container: Container;
       metrics_container: Container;
-      inProgress: boolean,
+      inProgress: boolean;
       checkpoints: {
-        [step: number] : Checkpoint
-      }
+        [step: number]: Checkpoint;
+      };
     };
   };
 
@@ -67,10 +67,10 @@ export default class Trainer {
     const dataset = (await project.getDatasets())[0];
     return new Promise((resolve, reject) => {
       try {
-        const mount = Trainer.getMountPath(project.id)
+        const mount = Trainer.getMountPath(project.id);
         const mountCmd = Trainer.getMountCmd(mount, CONTAINER_MOUNT_PATH);
 
-        if (!(project.id in this.projects)){
+        if (!(project.id in this.projects)) {
           this.projects[project.id] = {
             mount_path: mount,
             training_container: null,
@@ -79,7 +79,7 @@ export default class Trainer {
             checkpoints: []
           };
         }
-        this.projects[project.id].inProgress = true
+        this.projects[project.id].inProgress = true;
 
         const containerParameters: ContainerParameters = {
           name: project.name,
@@ -202,7 +202,7 @@ export default class Trainer {
   }
 
   async export(id: string, checkpointNumber: number, name: string, test: boolean, videoName: string): Promise<string> {
-    const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
+    const MOUNT = Trainer.getMountPath(id);
     const MOUNTCMD = Trainer.getMountCmd(MOUNT, CONTAINER_MOUNT_PATH);
     const CHECKPOINT_TAG = `model.ckpt-${checkpointNumber}`;
     const EXPORT_PATH = path.posix.join(MOUNT, "exports", name);
@@ -240,10 +240,15 @@ export default class Trainer {
     fs.writeFileSync(path.posix.join(MOUNT, "exportparameters.json"), JSON.stringify(exportparameters));
 
     await this.getProjectCheckpoints(id);
+    this.projects[id].checkpoints[checkpointNumber].status.exporting = true;
+
     console.log(await this.deleteContainer(id));
     console.log(await this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete"));
 
-    return "exported"
+    this.projects[id].checkpoints[checkpointNumber].status.exporting = false;
+    this.projects[id].checkpoints[checkpointNumber].status.exportPaths.push(EXPORT_PATH);
+
+    return "exported";
   }
 
   halt(id: string): void {
@@ -287,7 +292,7 @@ export default class Trainer {
     return new Promise((resolve) => {
       const metricsPath = path.posix.join(Trainer.getMountPath(id), "metrics.json");
       if (fs.existsSync(metricsPath)) {
-        if (!(id in this.projects)){
+        if (!(id in this.projects)) {
           this.projects[id] = {
             mount_path: Trainer.getMountPath(id),
             training_container: null,
@@ -300,9 +305,9 @@ export default class Trainer {
         try {
           const data = fs.readFileSync(metricsPath, "utf8");
           const metrics = JSON.parse(data);
-          while (Object.keys(metrics.precision).length > Object.keys(this.projects[id].checkpoints).length){
-            const step = Object.keys(metrics.precision)[Object.keys(this.projects[id].checkpoints).length]
-            this.projects[id].checkpoints[step] = ({
+          while (Object.keys(metrics.precision).length > Object.keys(this.projects[id].checkpoints).length) {
+            const step = Object.keys(metrics.precision)[Object.keys(this.projects[id].checkpoints).length];
+            this.projects[id].checkpoints[step] = {
               step: parseInt(step, 10),
               metrics: {
                 precision: metrics.precision[step],
@@ -313,7 +318,7 @@ export default class Trainer {
                 exporting: false,
                 exportPaths: []
               }
-            });
+            };
           }
         } catch (err) {
           console.log("could not read metrics", err);

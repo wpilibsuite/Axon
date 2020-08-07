@@ -13,6 +13,10 @@ const GET_PROJECT_CHECKPOINTS = gql`
         metrics {
           precision
         }
+        status {
+          exporting
+          exportPaths
+        }
       }
     }
   }
@@ -24,7 +28,8 @@ export default function Metrics(props: { id: string }): ReactElement {
     {
       variables: {
         id: props.id
-      }
+      },
+      pollInterval: 3000
     }
   );
 
@@ -48,7 +53,7 @@ export default function Metrics(props: { id: string }): ReactElement {
                 <TableCell>{checkpoint.step}</TableCell>
                 <TableCell>{checkpoint.metrics.precision}</TableCell>
                 <TableCell>
-                  <ExportButton id={props.id} ckptNumber={checkpoint.step} />
+                  <ExportButton id={props.id} ckptNumber={checkpoint.step} status={checkpoint.status} />
                 </TableCell>
               </TableRow>
             ))}
