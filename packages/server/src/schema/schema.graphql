@@ -61,8 +61,14 @@ type TrainingMetrics {
   intersectionOverUnion: Float!
 }
 
+type CheckpointStatus {
+  exporting: Boolean!
+  exportPaths: [String!]!
+}
+
 type Checkpoint {
   step: Int!
+  status: CheckpointStatus!
   metrics: TrainingMetrics!
 }
 

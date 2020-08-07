@@ -22,10 +22,13 @@ export default class Trainer {
   running: boolean;
   projects: {
     [id: string]: {
-      name: string;
       mount_path: string;
       training_container: Container;
       metrics_container: Container;
+      inProgress: boolean,
+      checkpoints: {
+        [step: number] : Checkpoint
+      }
     };
   };
 
@@ -64,15 +67,19 @@ export default class Trainer {
     const dataset = (await project.getDatasets())[0];
     return new Promise((resolve, reject) => {
       try {
-        const mount = Trainer.getMountPath(project.id).replace(/\\/g, "/");
+        const mount = Trainer.getMountPath(project.id)
         const mountCmd = Trainer.getMountCmd(mount, CONTAINER_MOUNT_PATH);
 
-        this.projects[project.id] = {
-          name: project.name,
-          mount_path: mount,
-          training_container: null,
-          metrics_container: null
-        };
+        if (!(project.id in this.projects)){
+          this.projects[project.id] = {
+            mount_path: mount,
+            training_container: null,
+            metrics_container: null,
+            inProgress: null,
+            checkpoints: []
+          };
+        }
+        this.projects[project.id].inProgress = true
 
         const containerParameters: ContainerParameters = {
           name: project.name,
@@ -194,7 +201,7 @@ export default class Trainer {
     });
   }
 
-  export(id: string, checkpointNumber: number, name: string, test: boolean, videoName: string): Promise<string> {
+  async export(id: string, checkpointNumber: number, name: string, test: boolean, videoName: string): Promise<string> {
     const MOUNT = Trainer.getMountPath(id).replace(/\\/g, "/");
     const MOUNTCMD = Trainer.getMountCmd(MOUNT, CONTAINER_MOUNT_PATH);
     const CHECKPOINT_TAG = `model.ckpt-${checkpointNumber}`;
@@ -231,10 +238,12 @@ export default class Trainer {
     );
 
     fs.writeFileSync(path.posix.join(MOUNT, "exportparameters.json"), JSON.stringify(exportparameters));
-    return this.deleteContainer(id).then((message) => {
-      console.log(message);
-      return this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
-    });
+
+    await this.getProjectCheckpoints(id);
+    console.log(await this.deleteContainer(id));
+    console.log(await this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete"));
+
+    return "exported"
   }
 
   halt(id: string): void {
@@ -277,34 +286,45 @@ export default class Trainer {
   async getProjectCheckpoints(id: string): Promise<Checkpoint[]> {
     return new Promise((resolve) => {
       const metricsPath = path.posix.join(Trainer.getMountPath(id), "metrics.json");
-      const checkpoints = [];
       if (fs.existsSync(metricsPath)) {
+        if (!(id in this.projects)){
+          this.projects[id] = {
+            mount_path: Trainer.getMountPath(id),
+            training_container: null,
+            metrics_container: null,
+            inProgress: null,
+            checkpoints: []
+          };
+        }
+
         try {
           const data = fs.readFileSync(metricsPath, "utf8");
           const metrics = JSON.parse(data);
-          for (const step in metrics.precision) {
-            checkpoints.push({
+          while (Object.keys(metrics.precision).length > Object.keys(this.projects[id].checkpoints).length){
+            const step = Object.keys(metrics.precision)[Object.keys(this.projects[id].checkpoints).length]
+            this.projects[id].checkpoints[step] = ({
               step: parseInt(step, 10),
               metrics: {
                 precision: metrics.precision[step],
                 loss: null,
                 intersectionOverUnion: null
+              },
+              status: {
+                exporting: false,
+                exportPaths: []
               }
             });
-          }
-          if (checkpoints.length > 0) {
-            console.log("current step: ", checkpoints[checkpoints.length - 1].step);
           }
         } catch (err) {
           console.log("could not read metrics", err);
         }
       }
-      resolve(checkpoints);
+      resolve(Object.values(this.projects[id].checkpoints));
     });
   }
 
   private static getMountPath(id: string): string {
-    return `${PROJECT_DATA_DIR}/${id}/mount`;
+    return `${PROJECT_DATA_DIR}/${id}/mount`.replace(/\\/g, "/");
   }
 
   private static getMountCmd(mount: string, containerMount: string): string {
