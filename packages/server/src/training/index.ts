@@ -39,6 +39,7 @@ export default class Trainer {
       .then(() => this.pull("gcperkins/wpilib-ml-train"))
       .then(() => this.pull("gcperkins/wpilib-ml-tflite"))
       .then(() => this.pull("gcperkins/wpilib-ml-metrics"))
+      .then(() => this.pull("gcperkins/wpilib-ml-test"))
       .then(() => {
         this.running = true;
         console.log("image pull complete");
@@ -172,14 +173,18 @@ export default class Trainer {
         .createContainer({
           Image: image,
           name: id,
-          Volumes: { [CONTAINER_MOUNT_PATH]: {} },
-          HostConfig: { Binds: [mount] },
           AttachStdin: false,
           AttachStdout: true,
           AttachStderr: true,
           OpenStdin: false,
           StdinOnce: false,
-          Tty: true
+          Tty: true,
+          Volumes: { [CONTAINER_MOUNT_PATH]: {} },
+          ExposedPorts: { "5000/tcp": {} },
+          HostConfig: {
+            Binds: [mount],
+            PortBindings: { "5000/tcp": [{ HostPort: "5000" }] }
+          }
         })
         .then((container) => {
           training_container = container;
@@ -196,7 +201,10 @@ export default class Trainer {
           return training_container.wait();
         })
         .then(() => training_container.remove())
-        .then(() => resolve(message))
+        .then(() => {
+          console.log(message);
+          resolve(message);
+        })
         .catch((err) => reject(err));
     });
   }
@@ -211,9 +219,7 @@ export default class Trainer {
     const exportparameters = {
       name: name,
       epochs: checkpointNumber,
-      "export-dir": path.posix.join("exports", name),
-      test: test,
-      "test-video": VIDEO_PATH
+      "export-dir": path.posix.join("exports", name)
     };
 
     if (!fs.existsSync(path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`))) {
@@ -224,26 +230,37 @@ export default class Trainer {
       fs.mkdirSync(path.posix.join(EXPORT_PATH, "checkpoint"), { recursive: true });
     }
 
-    fs.copyFileSync(
-      path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`),
-      path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.meta`)
-    );
-    fs.copyFileSync(
-      path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.index`),
-      path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.index`)
-    );
-    fs.copyFileSync(
-      path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.data-00000-of-00001`),
-      path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.data-00000-of-00001`)
-    );
-
-    fs.writeFileSync(path.posix.join(MOUNT, "exportparameters.json"), JSON.stringify(exportparameters));
+    await Promise.all([
+      fs.promises.copyFile(
+        path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`),
+        path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.meta`)
+      ),
+      fs.promises.copyFile(
+        path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.index`),
+        path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.index`)
+      ),
+      fs.promises.copyFile(
+        path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.data-00000-of-00001`),
+        path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.data-00000-of-00001`)
+      )
+    ]);
 
     await this.getProjectCheckpoints(id);
     this.projects[id].checkpoints[checkpointNumber].status.exporting = true;
 
     console.log(await this.deleteContainer(id));
-    console.log(await this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete"));
+
+    fs.writeFileSync(path.posix.join(MOUNT, "exportparameters.json"), JSON.stringify(exportparameters));
+    await this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
+
+    if (test) {
+      const testparameters = {
+        "test-video": VIDEO_PATH,
+        "model-tar": path.posix.join(CONTAINER_MOUNT_PATH, "exports", name, `${name}.tar.gz`)
+      };
+      fs.writeFileSync(path.posix.join(MOUNT, "testparameters.json"), JSON.stringify(testparameters));
+      await this.runContainer("gcperkins/wpilib-ml-test", id, MOUNTCMD, "tflite conversion complete");
+    }
 
     this.projects[id].checkpoints[checkpointNumber].status.exporting = false;
     this.projects[id].checkpoints[checkpointNumber].status.exportPaths.push(EXPORT_PATH);
