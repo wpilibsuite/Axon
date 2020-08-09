@@ -1,8 +1,9 @@
 import React, { ReactElement } from "react";
 import { AppBar, Box, Tab, Tabs } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import Metrics from "./metrics/Metrics";
 import Input from "./input/Input";
+import Metrics from "./metrics/Metrics";
+import Results from "./results/Results";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -48,6 +49,9 @@ export default function Project(props: { id: string }): ReactElement {
       </TabPanel>
       <TabPanel value={value} index={1}>
         <Metrics id={props.id} />
+      </TabPanel>
+      <TabPanel value={value} index={2}>
+        <Results id={props.id} />
       </TabPanel>
     </div>
   );

@@ -19,7 +19,15 @@ type Mutation {
 
   startTraining(id: ID!): Project
   haltTraining(id: ID!): Project
-  exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!, test: Boolean!, video: Upload): Project
+  exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
+  testModel(
+    id: ID!
+    modelName: String!
+    directory: String!
+    tarPath: String!
+    videoName: String!
+    video: Upload!
+  ): Project
 }
 
 type Size {
@@ -72,6 +80,13 @@ type Checkpoint {
   metrics: TrainingMetrics!
 }
 
+type Export {
+  projectId: ID!
+  name: String!
+  directory: String!
+  tarPath: String!
+}
+
 type Project {
   id: ID!
   name: String!
@@ -85,6 +100,7 @@ type Project {
 
   inProgress: Boolean!
   checkpoints: [Checkpoint!]!
+  exports: [Export!]!
 }
 
 input ProjectUpdateInput {
