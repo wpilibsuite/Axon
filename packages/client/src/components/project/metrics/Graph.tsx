@@ -10,7 +10,7 @@ const colorMap: { [key: string]: string } = {
 const options = {
   fill: 0,
   tooltips: { enabled: false },
-  responsive: "true",
+  responsive: true,
   animation: {
     duration: 0
   },
@@ -93,6 +93,8 @@ export default function Graph(props: { data: GetProjectCheckpoints_project_check
       };
     });
   }
+
+  chartInstance?.update();
 
   return (
     <div>
