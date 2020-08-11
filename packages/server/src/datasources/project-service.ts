@@ -89,12 +89,7 @@ export class ProjectService extends DataSource {
     return project;
   }
 
-  async exportCheckpoint(
-    id: string,
-    checkpointNumber: number,
-    name: string,
-  ): Promise<Project> {
-
+  async exportCheckpoint(id: string, checkpointNumber: number, name: string): Promise<Project> {
     this.trainer.export(id, checkpointNumber, name).catch((err) => console.log(err));
     const project = await Project.findByPk(id);
     console.log(`Started export on project: ${JSON.stringify(project)}`);
