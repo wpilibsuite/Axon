@@ -64,10 +64,10 @@ interface chartDataset {
 export default function Graph(props: { data: GetProjectCheckpoints_project_checkpoints[] | undefined }): ReactElement {
   const [chartInstance, setChartInstance] = useState<Chart | null>(null);
   const chartRef = useRef(null);
-  const [chartData, setChartData] = useState<{ labels: number[]; datasets: chartDataset[] }>({
+  const chartData: { labels: number[]; datasets: chartDataset[] } = {
     labels: [],
     datasets: []
-  });
+  };
 
   useEffect(() => {
     if (chartRef && chartRef.current) {
@@ -78,11 +78,12 @@ export default function Graph(props: { data: GetProjectCheckpoints_project_check
       });
       setChartInstance(newChartInstance);
     }
-  }, [chartRef]);
+  }, [chartRef]); //freezes on dialog, page changes if you add the dependency it asks for...
 
   if (props.data && props.data.length !== 0) {
     chartData.labels = props.data.map((checkpoint) => checkpoint.step);
-    chartData.datasets = Object.keys(props.data[0].metrics).map((key) => {
+    const metricTypes = Object.keys(props.data[0].metrics).filter((e) => e !== "__typename"); // <--- need help with this
+    chartData.datasets = metricTypes.map((key) => {
       return {
         label: key,
         fill: false,
@@ -94,7 +95,7 @@ export default function Graph(props: { data: GetProjectCheckpoints_project_check
     });
   }
 
-  chartInstance?.update();
+  chartInstance?.update(); //needed if we cant add the dependency
 
   return (
     <div>

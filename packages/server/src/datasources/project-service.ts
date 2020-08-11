@@ -1,5 +1,5 @@
 import { DataSource } from "apollo-datasource";
-import { Checkpoint, ProjectUpdateInput } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
 import Trainer from "../training";
@@ -30,6 +30,9 @@ export class ProjectService extends DataSource {
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
     return this.trainer.getProjectCheckpoints(id);
+  }
+  async getExports(id: string): Promise<Export[]> {
+    return this.trainer.getProjectExports(id);
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -90,21 +93,33 @@ export class ProjectService extends DataSource {
     id: string,
     checkpointNumber: number,
     name: string,
-    test: boolean,
-    filename: string = null,
-    stream: fs.ReadStream = null
   ): Promise<Project> {
-    if (test) {
-      await this.upload(filename, id, stream);
-    }
 
-    this.trainer.export(id, checkpointNumber, name, test, filename).catch((err) => console.log(err));
+    this.trainer.export(id, checkpointNumber, name).catch((err) => console.log(err));
     const project = await Project.findByPk(id);
     console.log(`Started export on project: ${JSON.stringify(project)}`);
     return project;
   }
 
-  private async upload(name: string, id: string, stream: fs.ReadStream) {
+  async testModel(
+    id: string,
+    modelName: string,
+    directory: string,
+    tarPath: string,
+    videoCustomName: string,
+    filename: string,
+    stream: fs.ReadStream
+  ): Promise<Project> {
+    const videoPath = await this.upload(filename, id, stream);
+    this.trainer
+      .test(id, modelName, directory, tarPath, videoPath, filename, videoCustomName)
+      .catch((err) => console.log(err));
+    const project = await Project.findByPk(id);
+    console.log(`Started test: \nModel: ${modelName} \nVideo: ${filename}`);
+    return project;
+  }
+
+  private async upload(name: string, id: string, stream: fs.ReadStream): Promise<string> {
     const extractPath = `${this.path}/${id}/mount/videos`;
     const savePath = path.join(extractPath, name);
     await mkdirp(extractPath);
@@ -120,5 +135,24 @@ export class ProjectService extends DataSource {
       stream.on("error", (error) => writeStream.destroy(error));
       stream.pipe(writeStream);
     });
+    return savePath;
   }
+
+  // private async newUpload(modelPath: string, videoName: string, stream: fs.ReadStream) {
+  //   const extractPath = path.posix.join(modelPath, "videos");
+  //   const savePath = path.join(modelPath, "videos", videoName);
+  //   await mkdirp(extractPath);
+
+  //   await new Promise((resolve, reject) => {
+  //     const writeStream = createWriteStream(savePath);
+  //     writeStream.on("finish", resolve);
+  //     writeStream.on("error", (error) => {
+  //       unlink(extractPath, () => {
+  //         reject(error);
+  //       });
+  //     });
+  //     stream.on("error", (error) => writeStream.destroy(error));
+  //     stream.pipe(writeStream);
+  //   });
+  // }
 }

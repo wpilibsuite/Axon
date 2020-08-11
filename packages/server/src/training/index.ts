@@ -1,7 +1,7 @@
 import * as Dockerode from "dockerode";
 import * as fs from "fs";
 import * as path from "path";
-import { Checkpoint } from "../schema/__generated__/graphql";
+import { Checkpoint, Export } from "../schema/__generated__/graphql";
 import { Container } from "dockerode";
 import { PROJECT_DATA_DIR } from "../constants";
 import { Project } from "../store";
@@ -163,6 +163,15 @@ export default class Trainer {
       }
     };
 
+    if (!(id in this.projects)) {
+      this.projects[id] = {
+        mount_path: mount,
+        training_container: null,
+        metrics_container: null,
+        inProgress: null,
+        checkpoints: []
+      };
+    }
     this.projects[id].training_container = await this.docker.createContainer(options);
 
     (await this.projects[id].training_container.attach({ stream: true, stdout: true, stderr: true })).pipe(
@@ -179,12 +188,11 @@ export default class Trainer {
     return message;
   }
 
-  async export(id: string, checkpointNumber: number, name: string, test: boolean, videoName: string): Promise<string> {
+  async export(id: string, checkpointNumber: number, name: string): Promise<string> {
     const MOUNT = Trainer.getMountPath(id);
     const MOUNTCMD = Trainer.getMountCmd(MOUNT, CONTAINER_MOUNT_PATH);
     const CHECKPOINT_TAG = `model.ckpt-${checkpointNumber}`;
     const EXPORT_PATH = path.posix.join(MOUNT, "exports", name);
-    const VIDEO_PATH = test ? path.posix.join(CONTAINER_MOUNT_PATH, "videos", videoName) : null;
 
     if (!fs.existsSync(path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`))) {
       Promise.reject("cannot find requested checkpoint");
@@ -222,19 +230,49 @@ export default class Trainer {
     fs.writeFileSync(path.posix.join(MOUNT, "exportparameters.json"), JSON.stringify(exportparameters));
     await this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
 
-    if (test) {
-      const testparameters = {
-        "test-video": VIDEO_PATH,
-        "model-tar": path.posix.join(CONTAINER_MOUNT_PATH, "exports", name, `${name}.tar.gz`)
-      };
-      fs.writeFileSync(path.posix.join(MOUNT, "testparameters.json"), JSON.stringify(testparameters));
-      await this.runContainer("gcperkins/wpilib-ml-test", id, MOUNTCMD, "tflite conversion complete");
-    }
-
     this.projects[id].checkpoints[checkpointNumber].status.exportPaths.push(EXPORT_PATH);
     this.projects[id].checkpoints[checkpointNumber].status.exporting = false;
 
     return "exported";
+  }
+
+  async test(
+    id: string,
+    modelName: string,
+    directory: string,
+    tarPath: string,
+    videoPath: string,
+    videoFilename: string,
+    videoCustomName: string
+  ): Promise<string> {
+    const MOUNT = Trainer.getMountPath(id);
+    const MOUNTCMD = Trainer.getMountCmd(MOUNT, CONTAINER_MOUNT_PATH);
+
+    const MOUNTED_MODEL_PATH = path.posix.join(MOUNT, "exports", modelName, `${modelName}.tar.gz`);
+    const CONTAINER_MODEL_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "exports", modelName, `${modelName}.tar.gz`);
+
+    const MOUNTED_VIDEO_PATH = path.posix.join(MOUNT, "videos", videoFilename);
+    const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", videoFilename);
+
+    if (!fs.existsSync(tarPath)) {
+      Promise.reject("model not found");
+    }
+    if (!fs.existsSync(videoPath)) {
+      Promise.reject("video not found");
+    }
+    if (!fs.existsSync(MOUNTED_MODEL_PATH)) {
+      await fs.promises.copyFile(tarPath, MOUNTED_MODEL_PATH);
+    }
+    if (!fs.existsSync(MOUNTED_VIDEO_PATH)) {
+      await fs.promises.copyFile(videoPath, MOUNTED_VIDEO_PATH);
+    }
+    const testparameters = {
+      "test-video": CONTAINER_VIDEO_PATH,
+      "model-tar": CONTAINER_MODEL_PATH
+    };
+    fs.writeFileSync(path.posix.join(MOUNT, "testparameters.json"), JSON.stringify(testparameters));
+    await this.deleteContainer(id);
+    return this.runContainer("gcperkins/wpilib-ml-test", id, MOUNTCMD, "test complete");
   }
 
   halt(id: string): void {
@@ -316,6 +354,27 @@ export default class Trainer {
       }
       resolve(Object.values(this.projects[id].checkpoints));
     });
+  }
+
+  async getProjectExports(id: string): Promise<Export[]> {
+    const exportsPath = path.posix.join(Trainer.getMountPath(id), "exports");
+    let exports: Export[] | never[] = [];
+    if (fs.existsSync(exportsPath)) {
+      const exportNames = (await fs.promises.readdir(exportsPath)).filter((name) =>
+        fs.existsSync(path.posix.join(exportsPath, name, `${name}.tar.gz`))
+      );
+      exports = exportNames.map((exportName) => {
+        const exportDir = path.posix.join(exportsPath, exportName);
+        const tarPath = path.posix.join(exportDir, `${exportName}.tar.gz`);
+        return {
+          projectId: id,
+          name: exportName,
+          directory: path.posix.join(exportsPath, exportName),
+          tarPath: tarPath
+        };
+      });
+    }
+    return exports;
   }
 
   private static getMountPath(id: string): string {
