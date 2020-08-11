@@ -163,6 +163,15 @@ export default class Trainer {
       }
     };
 
+    if (!(id in this.projects)) {
+      this.projects[id] = {
+        mount_path: mount,
+        training_container: null,
+        metrics_container: null,
+        inProgress: null,
+        checkpoints: []
+      };
+    }
     this.projects[id].training_container = await this.docker.createContainer(options);
 
     (await this.projects[id].training_container.attach({ stream: true, stdout: true, stderr: true })).pipe(
@@ -262,6 +271,7 @@ export default class Trainer {
       "model-tar": CONTAINER_MODEL_PATH
     };
     fs.writeFileSync(path.posix.join(MOUNT, "testparameters.json"), JSON.stringify(testparameters));
+    await this.deleteContainer(id);
     return this.runContainer("gcperkins/wpilib-ml-test", id, MOUNTCMD, "test complete");
   }
 
