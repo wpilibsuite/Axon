@@ -19,7 +19,7 @@ type Mutation {
 
   startTraining(id: ID!): Project
   haltTraining(id: ID!): Project
-  exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
+  exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!, test: Boolean!, video: Upload): Project
 }
 
 type Size {
@@ -61,8 +61,14 @@ type TrainingMetrics {
   intersectionOverUnion: Float!
 }
 
+type CheckpointStatus {
+  exporting: Boolean!
+  exportPaths: [String!]!
+}
+
 type Checkpoint {
   step: Int!
+  status: CheckpointStatus!
   metrics: TrainingMetrics!
 }
 

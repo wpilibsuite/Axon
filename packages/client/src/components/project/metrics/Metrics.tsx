@@ -1,8 +1,9 @@
 import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@material-ui/core";
 import React, { ReactElement } from "react";
 import { gql, useQuery } from "@apollo/client";
-import ExportButton from "./ExportButton";
 import { GetProjectCheckpoints, GetProjectCheckpointsVariables } from "./__generated__/GetProjectCheckpoints";
+import ExportButton from "./ExportButton";
+import Graph from "./Graph";
 
 const GET_PROJECT_CHECKPOINTS = gql`
   query GetProjectCheckpoints($id: ID!) {
@@ -11,6 +12,10 @@ const GET_PROJECT_CHECKPOINTS = gql`
         step
         metrics {
           precision
+        }
+        status {
+          exporting
+          exportPaths
         }
       }
     }
@@ -23,7 +28,8 @@ export default function Metrics(props: { id: string }): ReactElement {
     {
       variables: {
         id: props.id
-      }
+      },
+      pollInterval: 3000
     }
   );
 
@@ -32,6 +38,7 @@ export default function Metrics(props: { id: string }): ReactElement {
 
   return (
     <Container>
+      <Graph data={data.project?.checkpoints} />
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -46,7 +53,7 @@ export default function Metrics(props: { id: string }): ReactElement {
                 <TableCell>{checkpoint.step}</TableCell>
                 <TableCell>{checkpoint.metrics.precision}</TableCell>
                 <TableCell>
-                  <ExportButton id={props.id} ckptNumber={checkpoint.step} />
+                  <ExportButton id={props.id} ckptNumber={checkpoint.step} status={checkpoint.status} />
                 </TableCell>
               </TableRow>
             ))}

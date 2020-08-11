@@ -20,7 +20,19 @@ export const Mutation: MutationResolvers = {
   haltTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.haltTraining(id);
   },
-  exportCheckpoint: (parent, { id, checkpointNumber, name }, { dataSources }) => {
-    return dataSources.projectService.exportCheckpoint(id, checkpointNumber, name);
+  exportCheckpoint: async (parent, { id, checkpointNumber, name, test, video }, { dataSources }) => {
+    if (test) {
+      const { createReadStream, filename } = await video;
+      return dataSources.projectService.exportCheckpoint(
+        id,
+        checkpointNumber,
+        name,
+        test,
+        filename,
+        createReadStream()
+      );
+    } else {
+      return dataSources.projectService.exportCheckpoint(id, checkpointNumber, name, test);
+    }
   }
 };
