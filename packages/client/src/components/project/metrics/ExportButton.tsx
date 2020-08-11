@@ -7,17 +7,15 @@ import {
   DialogTitle,
   IconButton,
   TextField,
-  Tooltip,
-  FormControlLabel,
-  Checkbox
+  Tooltip
 } from "@material-ui/core";
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/client";
 import { GetProjectCheckpoints_project_checkpoints_status } from "./__generated__/GetProjectCheckpoints";
 
 const EXPORT_CHECKPOINT_MUTATION = gql`
-  mutation exportCheckpoint($id: ID!, $checkpointNumber: Int!, $name: String!, $test: Boolean!, $video: Upload) {
-    exportCheckpoint(id: $id, checkpointNumber: $checkpointNumber, name: $name, test: $test, video: $video) {
+  mutation exportCheckpoint($id: ID!, $checkpointNumber: Int!, $name: String!) {
+    exportCheckpoint(id: $id, checkpointNumber: $checkpointNumber, name: $name) {
       id
     }
   }
