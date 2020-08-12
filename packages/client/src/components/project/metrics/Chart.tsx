@@ -46,6 +46,7 @@ export default function Chart(props: {
           dataKey="precision"
           stroke="#8884d8"
           activeDot={{ r: 8, onClick: (event: any) => handleClick(event.payload.name) }}
+          //must find an event type that lets me access its payload
         />
       </LineChart>
     </ResponsiveContainer>

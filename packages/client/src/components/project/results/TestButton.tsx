@@ -63,7 +63,9 @@ export default function TestButton(props: {
       console.log(err);
     });
     handleClosePrepare();
-    handleOpenView();
+    setTimeout(() => {
+      handleOpenView();
+    }, 5000); //this is bad, but its being worked on right now
   };
   const handleOpenView = () => {
     setViewing(true);

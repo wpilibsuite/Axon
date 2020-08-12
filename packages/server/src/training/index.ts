@@ -296,7 +296,7 @@ export default class Trainer {
         if (err) {
           reject(err);
         }
-        if (containers.length == 0) {
+        if (!containers || containers.length == 0) {
           resolve(`no ${id} container yet`);
         } else {
           const container = docker.getContainer(containers[0].Id);

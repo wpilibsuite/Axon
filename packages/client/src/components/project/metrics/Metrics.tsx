@@ -94,7 +94,7 @@ export default function Metrics(props: { id: string }): ReactElement {
       </TableContainer>
     </Container> */}
       <Dialog onClose={handleClose} open={open}>
-        <DialogTitle>{selectedEpoch}</DialogTitle>
+        <DialogTitle>{`Epoch ${selectedEpoch}`}</DialogTitle>
         <DialogContent dividers>
           <TextField
             onChange={(event) => setName(event.target.value)}
