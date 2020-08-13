@@ -44,9 +44,14 @@ export default function TestButton(props: {
 }): ReactElement {
   const [testModel] = useMutation(TEST_MODEL_MUTATION);
   const [preparing, setPreparing] = React.useState(false);
-  const [viewing, setViewing] = React.useState(false);
   const [videoName, setVideoName] = React.useState("");
   const [video, setVideo] = React.useState<File>();
+
+  const [viewing, setViewing] = React.useState(false);
+  const [streamLoading, setStreamLoading] = React.useState(false);
+  const [streamError, setStreamError] = React.useState(false);
+  const [streamTimeout, setStreamTimeout] = React.useState(0);
+  const [testError, setTestError] = React.useState(false);
 
   const handleClickPrepare = () => {
     setPreparing(true);
@@ -62,12 +67,15 @@ export default function TestButton(props: {
     testModel({ variables: { id, modelName, directory, tarPath, videoName, video } }).catch((err) => {
       console.log(err);
     });
+
     handleClosePrepare();
-    setTimeout(() => {
-      handleOpenView();
-    }, 5000); //this is bad, but its being worked on right now
+    handleOpenView();
   };
   const handleOpenView = () => {
+    setStreamLoading(true);
+    setStreamError(false);
+    setTestError(false);
+    setStreamTimeout(0);
     setViewing(true);
   };
   const handleCloseView = () => {
@@ -75,6 +83,20 @@ export default function TestButton(props: {
   };
   const handleEnd = () => {
     console.log("end");
+  };
+  const handleStreamError = () => {
+    setStreamError(true);
+    setTimeout(() => {
+      setStreamError(false);
+    }, 1000);
+    setStreamTimeout(streamTimeout + 1);
+    if (streamTimeout > 20) {
+      setTestError(true);
+      setStreamLoading(false);
+    }
+  };
+  const handleStreamLoaded = () => {
+    setStreamLoading(false);
   };
 
   return (
@@ -115,7 +137,23 @@ export default function TestButton(props: {
       <Dialog fullWidth={true} maxWidth="lg" onClose={handleCloseView} open={viewing}>
         <DialogContent dividers>
           <Container>
-            <img src="http://localhost:5000/stream.mjpg" />
+            {streamLoading && (
+              <>
+                <p>{`Loading ${streamTimeout}`}</p>
+              </>
+            )}
+            {!streamError && !testError && (
+              <img
+                src="http://localhost:5000/stream.mjpg"
+                onError={() => handleStreamError()}
+                onLoad={() => handleStreamLoaded()}
+              />
+            )}
+            {testError && (
+              <>
+                <p>There has been an error.</p>
+              </>
+            )}
           </Container>
         </DialogContent>
         <DialogActions>
