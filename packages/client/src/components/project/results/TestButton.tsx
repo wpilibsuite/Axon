@@ -82,7 +82,7 @@ export default function TestButton(props: {
     setViewing(false);
   };
   const handleEnd = () => {
-    console.log("end");
+    console.log("end"); //remaking the halt container behavior so waiting on this
   };
   const handleStreamError = () => {
     setStreamError(true);
