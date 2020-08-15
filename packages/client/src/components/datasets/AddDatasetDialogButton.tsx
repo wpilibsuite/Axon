@@ -1,9 +1,8 @@
 import React, { ReactElement } from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip } from "@material-ui/core";
+import { IconButton, Tooltip } from "@material-ui/core";
 import gql from "graphql-tag";
 import { useApolloClient, useMutation } from "@apollo/client";
 import AddIcon from "@material-ui/icons/Add";
-import { DropzoneArea } from "material-ui-dropzone";
 
 const CREATE_DATASET_MUTATION = gql`
   mutation CreateDataset($file: Upload!) {
@@ -14,52 +13,23 @@ const CREATE_DATASET_MUTATION = gql`
 `;
 
 export default function AddDatasetDialogButton(): ReactElement {
-  const [open, setOpen] = React.useState(false);
-  const [file, setFile] = React.useState<File>();
   const [uploadDataset] = useMutation(CREATE_DATASET_MUTATION);
   const apolloClient = useApolloClient();
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
-  const handleAdd = () => {
-    uploadDataset({ variables: { file } }).then(() => {
-      apolloClient.resetStore();
-    });
-    handleClose();
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.validity.valid && e.target.files?.[0]) {
+      uploadDataset({ variables: { file: e.target.files[0] } }).then(() => {
+        apolloClient.resetStore();
+      });
+    }
   };
 
   return (
-    <>
-      <Tooltip title="Add dataset">
-        <IconButton onClick={handleClickOpen}>
-          <AddIcon />
-        </IconButton>
-      </Tooltip>
-      <Dialog onClose={handleClose} open={open}>
-        <DialogTitle>Add dataset</DialogTitle>
-        <DialogContent dividers>
-          <DropzoneArea
-            onChange={(files) => setFile(files[0] || {})}
-            acceptedFiles={["application/x-tar"]}
-            filesLimit={1}
-            maxFileSize={Infinity}
-            showFileNames={true}
-            showPreviewsInDropzone={true}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button autoFocus onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button autoFocus onClick={handleAdd} color="primary">
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+    <Tooltip title="Add dataset">
+      <IconButton component="label">
+        <AddIcon />
+        <input type="file" style={{ display: "none" }} required onChange={onChange} key={Date.now()} />
+      </IconButton>
+    </Tooltip>
   );
 }
