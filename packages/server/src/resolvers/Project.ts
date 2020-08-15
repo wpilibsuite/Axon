@@ -7,5 +7,8 @@ export const Project: ProjectResolvers = {
   },
   checkpoints(parent, _, { dataSources }: Context) {
     return dataSources.projectService.getCheckpoints(parent.id);
+  },
+  exports(parent, _, { dataSources }: Context) {
+    return dataSources.projectService.getExports(parent.id);
   }
 };
