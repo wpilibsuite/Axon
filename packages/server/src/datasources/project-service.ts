@@ -72,7 +72,9 @@ export class ProjectService extends DataSource {
   }
 
   async createProject(name: string): Promise<Project> {
-    return await Project.create({ name });
+    const project = await Project.create({ name });
+    this.trainer.addProjectData(project);
+    return project;
   }
 
   async startTraining(id: string): Promise<Project> {
