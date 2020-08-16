@@ -41,12 +41,7 @@ export default function Results(props: { id: string }): ReactElement {
               <TableRow>
                 <TableCell>{exportInfo.name}</TableCell>
                 <TableCell>
-                  <TestButton
-                    id={exportInfo.projectId}
-                    modelName={exportInfo.name}
-                    directory={exportInfo.directory}
-                    tarPath={exportInfo.tarPath}
-                  />
+                  <TestButton modelExport={exportInfo} />
                 </TableCell>
               </TableRow>
             ))}

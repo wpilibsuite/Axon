@@ -13,35 +13,17 @@ import {
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/client";
 import { DropzoneArea } from "material-ui-dropzone";
+import { GetProjectExports_project_exports } from "./__generated__/GetProjectExports";
 
 const TEST_MODEL_MUTATION = gql`
-  mutation testModel(
-    $id: ID!
-    $modelName: String!
-    $directory: String!
-    $tarPath: String!
-    $videoName: String!
-    $video: Upload!
-  ) {
-    testModel(
-      id: $id
-      modelName: $modelName
-      directory: $directory
-      tarPath: $tarPath
-      videoName: $videoName
-      video: $video
-    ) {
+  mutation testModel($modelExport: ExportInput!, $videoName: String!, $video: Upload!) {
+    testModel(modelExport: $modelExport, videoName: $videoName, video: $video) {
       id
     }
   }
 `;
 
-export default function TestButton(props: {
-  id: string;
-  modelName: string;
-  directory: string;
-  tarPath: string;
-}): ReactElement {
+export default function TestButton(props: { modelExport: GetProjectExports_project_exports }): ReactElement {
   const [testModel] = useMutation(TEST_MODEL_MUTATION);
   const [preparing, setPreparing] = React.useState(false);
   const [videoName, setVideoName] = React.useState("");
@@ -60,11 +42,14 @@ export default function TestButton(props: {
     setPreparing(false);
   };
   const handleTest = () => {
-    const id = props.id;
-    const modelName = props.modelName;
-    const directory = props.directory;
-    const tarPath = props.tarPath;
-    testModel({ variables: { id, modelName, directory, tarPath, videoName, video } }).catch((err) => {
+    const modelExport = {
+      projectId: props.modelExport.projectId,
+      name: props.modelExport.name,
+      directory: props.modelExport.directory,
+      tarPath: props.modelExport.tarPath
+    }; //bad request if not this because the queried export is different than the export type
+    console.log(modelExport);
+    testModel({ variables: { modelExport, videoName, video } }).catch((err) => {
       console.log(err);
     });
 

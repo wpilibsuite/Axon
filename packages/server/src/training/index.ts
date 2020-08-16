@@ -38,17 +38,16 @@ export default class Trainer {
   trainReady: boolean;
   exportReady: boolean;
   testReady: boolean;
-  projectData: ProjectData;
   projects: ProjectData;
 
   readonly docker = new Dockerode();
 
   constructor() {
     this.projects = this.scanProjects();
+
     this.trainReady = false;
     this.exportReady = false;
     this.testReady = false;
-
     this.pullImages();
 
     console.log(this.projects);
@@ -267,6 +266,7 @@ export default class Trainer {
     const MOUNTCMD = Trainer.getMountCmd(MOUNT, CONTAINER_MOUNT_PATH);
     const CHECKPOINT_TAG = `model.ckpt-${checkpointNumber}`;
     const EXPORT_PATH = path.posix.join(MOUNT, "exports", name);
+    const TAR_PATH = path.posix.join(EXPORT_PATH, `${name}.tar.gz`);
 
     if (!fs.existsSync(path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`))) {
       Promise.reject("cannot find requested checkpoint");
@@ -302,38 +302,41 @@ export default class Trainer {
     await this.deleteContainer(id);
     await this.runContainer("gcperkins/wpilib-ml-tflite", id, MOUNTCMD, "tflite conversion complete");
 
+    this.projects[id].exports[name] = {
+      projectId: id,
+      name: name,
+      directory: EXPORT_PATH,
+      tarPath: TAR_PATH
+    };
     this.projects[id].checkpoints[checkpointNumber].status.exportPaths.push(EXPORT_PATH);
     this.projects[id].checkpoints[checkpointNumber].status.exporting = false;
 
     return "exported";
   }
 
-  async test(
-    id: string,
-    modelName: string,
-    directory: string,
-    tarPath: string,
-    videoPath: string,
-    videoFilename: string,
-    videoCustomName: string
-  ): Promise<string> {
-    const MOUNT = this.projects[id].directory;
+  async test(modelExport: Export, videoPath: string, videoFilename: string, videoCustomName: string): Promise<string> {
+    const MOUNT = this.projects[modelExport.projectId].directory;
     const MOUNTCMD = Trainer.getMountCmd(MOUNT, CONTAINER_MOUNT_PATH);
 
-    const MOUNTED_MODEL_PATH = path.posix.join(MOUNT, "exports", modelName, `${modelName}.tar.gz`);
-    const CONTAINER_MODEL_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "exports", modelName, `${modelName}.tar.gz`);
+    const MOUNTED_MODEL_PATH = path.posix.join(MOUNT, "exports", modelExport.name, `${modelExport.name}.tar.gz`);
+    const CONTAINER_MODEL_PATH = path.posix.join(
+      CONTAINER_MOUNT_PATH,
+      "exports",
+      modelExport.name,
+      `${modelExport.name}.tar.gz`
+    );
 
     const MOUNTED_VIDEO_PATH = path.posix.join(MOUNT, "videos", videoFilename);
     const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", videoFilename);
 
-    if (!fs.existsSync(tarPath)) {
+    if (!fs.existsSync(modelExport.tarPath)) {
       Promise.reject("model not found");
     }
     if (!fs.existsSync(videoPath)) {
       Promise.reject("video not found");
     }
     if (!fs.existsSync(MOUNTED_MODEL_PATH)) {
-      await fs.promises.copyFile(tarPath, MOUNTED_MODEL_PATH);
+      await fs.promises.copyFile(modelExport.tarPath, MOUNTED_MODEL_PATH);
     }
     if (!fs.existsSync(MOUNTED_VIDEO_PATH)) {
       await fs.promises.copyFile(videoPath, MOUNTED_VIDEO_PATH);
@@ -343,8 +346,8 @@ export default class Trainer {
       "model-tar": CONTAINER_MODEL_PATH
     };
     fs.writeFileSync(path.posix.join(MOUNT, "testparameters.json"), JSON.stringify(testparameters));
-    await this.deleteContainer(id);
-    return this.runContainer("gcperkins/wpilib-ml-test", id, MOUNTCMD, "test complete");
+    await this.deleteContainer(modelExport.projectId);
+    return this.runContainer("gcperkins/wpilib-ml-test", modelExport.projectId, MOUNTCMD, "test complete");
   }
 
   halt(id: string): void {
@@ -419,23 +422,7 @@ export default class Trainer {
   }
 
   async getProjectExports(id: string): Promise<Export[]> {
-    const exportsPath = path.posix.join(Trainer.getMountPath(id), "exports");
-    let exports: Export[] | never[] = [];
-    if (fs.existsSync(exportsPath)) {
-      const exportNames = (await fs.promises.readdir(exportsPath)).filter((name) =>
-        fs.existsSync(path.posix.join(exportsPath, name, `${name}.tar.gz`))
-      );
-      exports = exportNames.map((exportName) => {
-        const exportDir = path.posix.join(exportsPath, exportName);
-        const tarPath = path.posix.join(exportDir, `${exportName}.tar.gz`);
-        return {
-          projectId: id,
-          name: exportName,
-          directory: path.posix.join(exportsPath, exportName),
-          tarPath: tarPath
-        };
-      });
-    }
+    exports = Object.values(this.projects[id].exports);
     return exports;
   }
 

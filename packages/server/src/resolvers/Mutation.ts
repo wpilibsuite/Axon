@@ -23,17 +23,9 @@ export const Mutation: MutationResolvers = {
   exportCheckpoint: async (parent, { id, checkpointNumber, name }, { dataSources }) => {
     return dataSources.projectService.exportCheckpoint(id, checkpointNumber, name);
   },
-  testModel: async (parent, { id, modelName, directory, tarPath, videoName, video }, { dataSources }) => {
+  testModel: async (parent, { modelExport, videoName, video }, { dataSources }) => {
     const { createReadStream, filename } = await video;
     console.log(filename);
-    return dataSources.projectService.testModel(
-      id,
-      modelName,
-      directory,
-      tarPath,
-      videoName,
-      filename,
-      createReadStream()
-    );
+    return dataSources.projectService.testModel(modelExport, videoName, filename, createReadStream());
   }
 };

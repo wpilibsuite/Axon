@@ -99,20 +99,15 @@ export class ProjectService extends DataSource {
   }
 
   async testModel(
-    id: string,
-    modelName: string,
-    directory: string,
-    tarPath: string,
+    modelExport: Export,
     videoCustomName: string,
     filename: string,
     stream: fs.ReadStream
   ): Promise<Project> {
-    const videoPath = await this.upload(filename, id, stream);
-    this.trainer
-      .test(id, modelName, directory, tarPath, videoPath, filename, videoCustomName)
-      .catch((err) => console.log(err));
-    const project = await Project.findByPk(id);
-    console.log(`Started test: \nModel: ${modelName} \nVideo: ${filename}`);
+    const videoPath = await this.upload(filename, modelExport.projectId, stream);
+    this.trainer.test(modelExport, videoPath, filename, videoCustomName).catch((err) => console.log(err));
+    const project = await Project.findByPk(modelExport.projectId);
+    console.log(`Started test: \nModel: ${modelExport} \nVideo: ${filename}`);
     return project;
   }
 
