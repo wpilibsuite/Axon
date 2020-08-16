@@ -317,18 +317,18 @@ export default class Trainer {
 
   async getProjectCheckpoints(id: string): Promise<Checkpoint[]> {
     return new Promise((resolve, reject) => {
+      if (!(id in this.projects)) {
+        this.projects[id] = {
+          mount_path: Trainer.getMountPath(id),
+          training_container: null,
+          metrics_container: null,
+          inProgress: null,
+          checkpoints: []
+        };
+      }
+
       const metricsPath = path.posix.join(Trainer.getMountPath(id), "metrics.json");
       if (fs.existsSync(metricsPath)) {
-        if (!(id in this.projects)) {
-          this.projects[id] = {
-            mount_path: Trainer.getMountPath(id),
-            training_container: null,
-            metrics_container: null,
-            inProgress: null,
-            checkpoints: []
-          };
-        }
-
         try {
           const data = fs.readFileSync(metricsPath, "utf8");
           const metrics = JSON.parse(data);
