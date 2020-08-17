@@ -207,8 +207,6 @@ export default class Trainer {
         ]);
       }
 
-      await this.deleteContainer(ID);
-      await this.deleteContainer("metrics"); //remove
       if (fs.existsSync(path.posix.join(MOUNT, "metrics.json"))) {
         await fs.promises.unlink(path.posix.join(MOUNT, "metrics.json"));
       }
@@ -265,6 +263,7 @@ export default class Trainer {
       options.HostConfig["PortBindings"] = { [PORTCMD]: [{ HostPort: port }] };
     }
 
+    await this.deleteContainer(NAME);
     const container = await this.docker.createContainer(options);
     (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(process.stdout);
 
@@ -307,8 +306,6 @@ export default class Trainer {
       "export-dir": `exports/${name}`
     };
     fs.writeFileSync(path.posix.join(MOUNT, "exportparameters.json"), JSON.stringify(exportparameters));
-
-    await this.deleteContainer(id);
 
     this.projects[id].containers.export = await this.createContainer(EXPORT_IMAGE, "EXPORT-", id, MOUNT);
     await this.projects[id].containers.export.start();
@@ -362,7 +359,6 @@ export default class Trainer {
     };
     fs.writeFileSync(path.posix.join(MOUNT, "testparameters.json"), JSON.stringify(testparameters));
 
-    await this.deleteContainer(ID);
     this.projects[ID].containers.test = await this.createContainer(TEST_IMAGE, "TEST-", ID, MOUNT, "5000");
     await this.projects[ID].containers.test.start();
     await this.projects[ID].containers.test.wait();
@@ -373,43 +369,27 @@ export default class Trainer {
   }
 
   halt(id: string): void {
-    this.deleteContainer(id)
-      .then((message) => {
-        console.log(message);
-        return this.deleteContainer("metrics");
-      })
-      .then((message) => console.log(message))
-      .catch((error) => console.log(error));
+    console.log("halt");
   }
 
-  private async deleteContainer(id: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const docker = this.docker;
+  private async deleteContainer(name: string): Promise<void> {
+    const container: Container = await new Promise((resolve) => {
       const opts = {
         limit: 1,
-        filters: `{"name": ["${id}"]}`
+        filters: `{"name": ["${name}"]}`
       };
-      this.docker.listContainers(opts, function (err, containers) {
-        if (err) {
-          reject(err);
-        }
-        if (!containers || containers.length == 0) {
-          resolve(`no ${id} container yet`);
-        } else {
-          const container = docker.getContainer(containers[0].Id);
-          container
-            .kill({ force: true })
-            .then(() => container.remove())
-            .then(() => {
-              console.log(`container ${id} killed`);
-              resolve(`container ${id} killed`);
-            })
-            .catch(() => {
-              container.remove().then(() => resolve(`container ${id} killed`));
-            });
-        }
+      this.docker.listContainers(opts, (err, containers) => {
+        resolve(containers.length > 0 ? this.docker.getContainer(containers[0].Id) : null);
       });
     });
+
+    if (container) {
+      if ((await container.inspect()).State.Running) {
+        await container.kill({ force: true });
+      }
+      await container.remove();
+    }
+    Promise.resolve();
   }
 
   async getProjectCheckpoints(id: string): Promise<Checkpoint[]> {
