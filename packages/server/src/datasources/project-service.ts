@@ -112,7 +112,7 @@ export class ProjectService extends DataSource {
   }
 
   private async upload(name: string, id: string, stream: fs.ReadStream): Promise<string> {
-    const extractPath = `${this.path}/${id}/mount/videos`;
+    const extractPath = `${this.path}/${id}/videos`; // <-- make this better
     const savePath = path.join(extractPath, name);
     await mkdirp(extractPath);
 

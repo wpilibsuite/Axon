@@ -96,7 +96,7 @@ export default class Trainer {
 
     fs.readdirSync(PROJECT_DATA_DIR).forEach(pushProject);
     function pushProject(projectID) {
-      const PROJECTDIR = `${PROJECT_DATA_DIR}/${projectID}/mount`.replace(/\\/g, "/");
+      const PROJECTDIR = `${PROJECT_DATA_DIR}/${projectID}`.replace(/\\/g, "/");
       const EXPORTSDIR = path.posix.join(PROJECTDIR, "exports");
 
       projects[projectID] = {
@@ -136,7 +136,7 @@ export default class Trainer {
 
   addProjectData(project: Project): void {
     if (!(project.id in this.projects)) {
-      const MOUNT = Trainer.getMountPath(project.id);
+      const MOUNT = `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
       mkdirp(MOUNT)
         .then(() => fs.mkdirSync(path.posix.join(MOUNT, "dataset")))
         .then(() => fs.mkdirSync(path.posix.join(MOUNT, "exports")));
@@ -414,7 +414,7 @@ export default class Trainer {
 
   async getProjectCheckpoints(id: string): Promise<Checkpoint[]> {
     return new Promise((resolve, reject) => {
-      const METRICSPATH = path.posix.join(Trainer.getMountPath(id), "metrics.json");
+      const METRICSPATH = path.posix.join(this.projects[id].directory, "metrics.json");
       if (fs.existsSync(METRICSPATH)) {
         try {
           const data = fs.readFileSync(METRICSPATH, "utf8");
@@ -446,9 +446,5 @@ export default class Trainer {
   async getProjectExports(id: string): Promise<Export[]> {
     exports = Object.values(this.projects[id].exports);
     return exports;
-  }
-
-  private static getMountPath(id: string): string {
-    return `${PROJECT_DATA_DIR}/${id}/mount`.replace(/\\/g, "/");
   }
 }
