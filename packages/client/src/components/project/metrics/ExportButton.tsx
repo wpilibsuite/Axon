@@ -11,7 +11,6 @@ import {
 } from "@material-ui/core";
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/client";
-
 const EXPORT_CHECKPOINT_BUTTON_MUTATION = gql`
   mutation exportCheckpointButton($id: ID!, $checkpointNumber: Int!, $name: String!) {
     exportCheckpoint(id: $id, checkpointNumber: $checkpointNumber, name: $name) {

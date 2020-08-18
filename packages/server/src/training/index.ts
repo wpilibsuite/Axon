@@ -315,7 +315,6 @@ export default class Trainer {
     if (!fs.existsSync(MOUNTED_VIDEO_PATH)) {
       await fs.promises.copyFile(videoPath, MOUNTED_VIDEO_PATH);
     }
-
     const testparameters = {
       "test-video": CONTAINER_VIDEO_PATH,
       "model-tar": CONTAINER_MODEL_PATH

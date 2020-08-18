@@ -47,7 +47,7 @@ export default function TestButton(props: { modelExport: GetProjectExports_proje
       name: props.modelExport.name,
       directory: props.modelExport.directory,
       tarPath: props.modelExport.tarPath
-    }; //bad request if not this because the queried export is different than the export type
+    }; //bad request if not this because the queried export has extra typing values
     console.log(modelExport);
     testModel({ variables: { modelExport, videoName, video } }).catch((err) => {
       console.log(err);

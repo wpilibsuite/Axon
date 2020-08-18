@@ -4,8 +4,7 @@ import { gql, useQuery } from "@apollo/client";
 import {
   GetProjectCheckpoints,
   GetProjectCheckpointsVariables,
-  GetProjectCheckpoints_project_checkpoints,
-  GetProjectCheckpoints_project_checkpoints_status
+  GetProjectCheckpoints_project_checkpoints
 } from "./__generated__/GetProjectCheckpoints";
 import Chart from "./Chart";
 import ExportButton from "./ExportButton";
@@ -73,31 +72,6 @@ export default function Metrics(props: { id: string }): ReactElement {
   return (
     <>
       <Chart checkpoints={data.project?.checkpoints} onClick={onClick} />
-      {/* 
-      //keeping this for now because we may still want a list of some sort
-      <Container>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Epoch</TableCell>
-              <TableCell>Precision</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.project?.checkpoints.map((checkpoint) => (
-              <TableRow key={checkpoint.step}>
-                <TableCell>{checkpoint.step}</TableCell>
-                <TableCell>{checkpoint.metrics.precision}</TableCell>
-                <TableCell>
-                  <ExportButton id={props.id} ckptNumber={checkpoint.step} status={checkpoint.status} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Container> */}
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>{`Epoch ${selectedEpoch}`}</DialogTitle>
         <DialogContent dividers>

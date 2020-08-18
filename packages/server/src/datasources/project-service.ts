@@ -130,22 +130,4 @@ export class ProjectService extends DataSource {
     });
     return savePath;
   }
-
-  // private async newUpload(modelPath: string, videoName: string, stream: fs.ReadStream) {
-  //   const extractPath = path.posix.join(modelPath, "videos");
-  //   const savePath = path.join(modelPath, "videos", videoName);
-  //   await mkdirp(extractPath);
-
-  //   await new Promise((resolve, reject) => {
-  //     const writeStream = createWriteStream(savePath);
-  //     writeStream.on("finish", resolve);
-  //     writeStream.on("error", (error) => {
-  //       unlink(extractPath, () => {
-  //         reject(error);
-  //       });
-  //     });
-  //     stream.on("error", (error) => writeStream.destroy(error));
-  //     stream.pipe(writeStream);
-  //   });
-  // }
 }
