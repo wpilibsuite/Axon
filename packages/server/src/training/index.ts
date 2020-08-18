@@ -1,34 +1,34 @@
-import * as Dockerode from "dockerode";
 import * as fs from "fs";
 import * as path from "path";
 import * as mkdirp from "mkdirp";
-import { Checkpoint, Export } from "../schema/__generated__/graphql";
-import { Container } from "dockerode";
-import { PROJECT_DATA_DIR } from "../constants";
 import { Project } from "../store";
+import { Container } from "dockerode";
+import * as Dockerode from "dockerode";
+import { PROJECT_DATA_DIR } from "../constants";
+import { Checkpoint, Export } from "../schema/__generated__/graphql";
 
-const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 const DATASET_IMAGE = "gcperkins/wpilib-ml-dataset:latest";
-const TRAIN_IMAGE = "gcperkins/wpilib-ml-train:latest";
 const METRICS_IMAGE = "gcperkins/wpilib-ml-metrics:latest";
 const EXPORT_IMAGE = "gcperkins/wpilib-ml-tflite:latest";
+const TRAIN_IMAGE = "gcperkins/wpilib-ml-train:latest";
 const TEST_IMAGE = "gcperkins/wpilib-ml-test:latest";
+const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 
 type TrainParameters = {
-  name: string;
-  epochs: number;
-  "batch-size": number;
   "eval-frequency": number;
-  "dataset-path": string;
+  "dataset-path": string[];
   "percent-eval": number;
+  "batch-size": number;
   checkpoint: string;
+  epochs: number;
+  name: string;
 };
 
 type ProjectData = {
   [id: string]: {
-    directory: string;
     checkpoints: { [step: string]: Checkpoint };
     exports: { [id: string]: Export };
+    directory: string;
     containers: {
       tflite: Container;
       train: Container;
@@ -40,18 +40,18 @@ type ProjectData = {
 };
 
 export default class Trainer {
-  trainReady: boolean;
-  exportReady: boolean;
-  testReady: boolean;
   projects: ProjectData;
+  exportReady: boolean;
+  trainReady: boolean;
+  testReady: boolean;
 
   readonly docker = new Dockerode();
 
   constructor() {
     this.projects = this.scanProjects();
 
-    this.trainReady = false;
     this.exportReady = false;
+    this.trainReady = false;
     this.testReady = false;
     this.pullImages();
 
@@ -60,8 +60,8 @@ export default class Trainer {
 
   private async pullImages(): Promise<void> {
     await this.pull(DATASET_IMAGE);
-    await this.pull(TRAIN_IMAGE);
     await this.pull(METRICS_IMAGE);
+    await this.pull(TRAIN_IMAGE);
     this.trainReady = true;
 
     await this.pull(EXPORT_IMAGE);
@@ -122,10 +122,10 @@ export default class Trainer {
           const NAME = TARFILENAME.replace(".tar.gz", "");
 
           projects[projectID].exports[exportID] = {
-            projectId: projectID,
-            name: NAME,
             directory: EXPORT_DIR,
-            tarPath: TARFILEPATH
+            tarPath: TARFILEPATH,
+            projectId: projectID,
+            name: NAME
           };
         }
       }
@@ -156,118 +156,81 @@ export default class Trainer {
   }
 
   async start(project: Project): Promise<string> {
-    const dataset = (await project.getDatasets())[0];
-    if (!dataset) {
-      Promise.reject("there is no dataset. How am I supposed to train with no dataset?");
+    const datasets = await project.getDatasets();
+    if (!datasets) {
+      Promise.reject("there are no datasets. How am I supposed to train with no datasets?");
     }
-    try {
-      const ID = project.id;
-      const MOUNT = this.projects[ID].directory;
-      const DATASETPATH = path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path));
-      const INITCKPT =
-        project.initialCheckpoint !== "default"
-          ? path.posix.join("checkpoints", project.initialCheckpoint)
-          : project.initialCheckpoint;
 
-      const trainParameters: TrainParameters = {
-        name: project.name,
-        epochs: project.epochs,
-        checkpoint: INITCKPT,
-        "batch-size": project.batchSize,
-        "dataset-path": DATASETPATH,
-        "eval-frequency": project.evalFrequency,
-        "percent-eval": project.percentEval
-      };
-      await fs.promises.writeFile(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(trainParameters));
+    const ID = project.id;
+    const MOUNT = this.projects[ID].directory;
+    const DATASETPATHS = datasets.map((dataset) =>
+      path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
+    );
+    const INITCKPT =
+      project.initialCheckpoint !== "default"
+        ? path.posix.join("checkpoints", project.initialCheckpoint)
+        : project.initialCheckpoint;
 
-      await fs.promises.copyFile(
+    const trainParameters: TrainParameters = {
+      "eval-frequency": project.evalFrequency,
+      "percent-eval": project.percentEval,
+      "batch-size": project.batchSize,
+      "dataset-path": DATASETPATHS,
+      epochs: project.epochs,
+      checkpoint: INITCKPT,
+      name: project.name
+    };
+    await fs.promises.writeFile(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(trainParameters));
+
+    datasets.forEach((dataset) => {
+      fs.copyFileSync(
         path.posix.join("data", dataset.path),
         path.posix.join(MOUNT, "dataset", path.basename(dataset.path))
       );
-      console.log(`copied dataset to mount`);
+    });
+    console.log(`copied datasets to mount`);
 
-      //custom checkpoints not yet supported by gui
-      if (project.initialCheckpoint != "default") {
-        if (!fs.existsSync(path.posix.join(MOUNT, "checkpoints"))) {
-          await mkdirp(path.posix.join(MOUNT, "checkpoints"));
-        }
-        await Promise.all([
-          fs.promises.copyFile(
-            path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".data-00000-of-00001")),
-            path.posix.join(MOUNT, "checkpoints", project.initialCheckpoint.concat(".data-00000-of-00001"))
-          ),
-          fs.promises.copyFile(
-            path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".index")),
-            path.posix.join(MOUNT, "checkpoints", project.initialCheckpoint.concat(".index"))
-          ),
-          fs.promises.copyFile(
-            path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".meta")),
-            path.posix.join(MOUNT, "checkpoints", project.initialCheckpoint.concat(".meta"))
-          )
-        ]);
+    //custom checkpoints not yet supported by gui
+    if (project.initialCheckpoint != "default") {
+      if (!fs.existsSync(path.posix.join(MOUNT, "checkpoints"))) {
+        await mkdirp(path.posix.join(MOUNT, "checkpoints"));
       }
-
-      if (fs.existsSync(path.posix.join(MOUNT, "metrics.json"))) {
-        await fs.promises.unlink(path.posix.join(MOUNT, "metrics.json"));
-      }
-      this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
-
-      this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-      await this.projects[ID].containers.metrics.start();
-
-      this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
-      await this.projects[ID].containers.train.start();
-      await this.projects[ID].containers.train.wait();
-      await this.projects[ID].containers.train.remove();
-
-      this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
-      await this.projects[ID].containers.train.start();
-      await this.projects[ID].containers.train.wait();
-      await this.projects[ID].containers.train.remove();
-
-      this.projects[ID].containers.train = null;
-      return "training complete";
-    } catch (err) {
-      Promise.reject(err);
-    }
-  }
-
-  private async createContainer(
-    image: string,
-    tag: string,
-    id: string,
-    mount: string,
-    port: string = null
-  ): Promise<Container> {
-    const NAME = tag + id;
-
-    let MOUNTCMD = process.cwd().replace("C:\\", "/c/").replace(/\\/g, "/");
-    MOUNTCMD = path.posix.join(MOUNTCMD, mount);
-    MOUNTCMD = `${MOUNTCMD}:${CONTAINER_MOUNT_PATH}:rw`;
-
-    const options = {
-      Image: image,
-      name: NAME,
-      AttachStdin: false,
-      AttachStdout: true,
-      AttachStderr: true,
-      OpenStdin: false,
-      StdinOnce: false,
-      Tty: true,
-      Volumes: { [CONTAINER_MOUNT_PATH]: {} },
-      HostConfig: { Binds: [MOUNTCMD] }
-    };
-    if (port) {
-      const PORTCMD = `${port}/tcp`;
-      options["ExposedPorts"] = { [PORTCMD]: {} };
-      options.HostConfig["PortBindings"] = { [PORTCMD]: [{ HostPort: port }] };
+      await Promise.all([
+        fs.promises.copyFile(
+          path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".data-00000-of-00001")),
+          path.posix.join(MOUNT, "checkpoints", project.initialCheckpoint.concat(".data-00000-of-00001"))
+        ),
+        fs.promises.copyFile(
+          path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".index")),
+          path.posix.join(MOUNT, "checkpoints", project.initialCheckpoint.concat(".index"))
+        ),
+        fs.promises.copyFile(
+          path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".meta")),
+          path.posix.join(MOUNT, "checkpoints", project.initialCheckpoint.concat(".meta"))
+        )
+      ]);
     }
 
-    await this.deleteContainer(NAME);
-    const container = await this.docker.createContainer(options);
-    (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(process.stdout);
+    if (fs.existsSync(path.posix.join(MOUNT, "metrics.json"))) {
+      await fs.promises.unlink(path.posix.join(MOUNT, "metrics.json"));
+    } //must clear old checkpoints in order for new ones to be saved by trainer
+    this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
 
-    return container;
+    this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+    await this.projects[ID].containers.metrics.start();
+
+    this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
+    await this.projects[ID].containers.train.start();
+    await this.projects[ID].containers.train.wait();
+    await this.projects[ID].containers.train.remove();
+
+    this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
+    await this.projects[ID].containers.train.start();
+    await this.projects[ID].containers.train.wait();
+    await this.projects[ID].containers.train.remove();
+
+    this.projects[ID].containers.train = null;
+    return "training complete";
   }
 
   async export(id: string, checkpointNumber: number, name: string): Promise<string> {
@@ -297,7 +260,7 @@ export default class Trainer {
       )
     ]);
 
-    await this.getProjectCheckpoints(id); // <-- get rid of soon
+    await this.UpdateCheckpoints(id); // <-- get rid of soon
     this.projects[id].checkpoints[checkpointNumber].status.exporting = true;
 
     const exportparameters = {
@@ -368,8 +331,70 @@ export default class Trainer {
     return "testing complete";
   }
 
+  async UpdateCheckpoints(id: string): Promise<void> {
+    const METRICSPATH = path.posix.join(this.projects[id].directory, "metrics.json");
+    if (fs.existsSync(METRICSPATH)) {
+      const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
+      while (Object.keys(metrics.precision).length > Object.keys(this.projects[id].checkpoints).length) {
+        const CURRENT_CKPT = Object.keys(this.projects[id].checkpoints).length;
+        const step = Object.keys(metrics.precision)[CURRENT_CKPT];
+        this.projects[id].checkpoints[step] = {
+          step: parseInt(step, 10),
+          metrics: {
+            precision: metrics.precision[step],
+            loss: null,
+            intersectionOverUnion: null //i will probably push an edit to the metrics container soon to make this easier
+          },
+          status: {
+            exporting: false,
+            exportPaths: []
+          }
+        };
+      }
+    }
+    Promise.resolve();
+  }
+
   halt(id: string): void {
     console.log("halt");
+  }
+
+  private async createContainer(
+    image: string,
+    tag: string,
+    id: string,
+    mount: string,
+    port: string = null
+  ): Promise<Container> {
+    const NAME = tag + id;
+
+    let MOUNTCMD = process.cwd().replace("C:\\", "/c/").replace(/\\/g, "/");
+    MOUNTCMD = path.posix.join(MOUNTCMD, mount);
+    MOUNTCMD = `${MOUNTCMD}:${CONTAINER_MOUNT_PATH}:rw`;
+
+    const options = {
+      Image: image,
+      name: NAME,
+      AttachStdin: false,
+      AttachStdout: true,
+      AttachStderr: true,
+      OpenStdin: false,
+      StdinOnce: false,
+      Tty: true,
+      Volumes: { [CONTAINER_MOUNT_PATH]: {} },
+      HostConfig: { Binds: [MOUNTCMD] }
+    };
+    if (port) {
+      const PORTCMD = `${port}/tcp`;
+      options["ExposedPorts"] = { [PORTCMD]: {} };
+      options.HostConfig["PortBindings"] = { [PORTCMD]: [{ HostPort: port }] };
+    }
+
+    await this.deleteContainer(NAME);
+    const container = await this.docker.createContainer(options);
+    (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(process.stdout);
+
+    return container;
   }
 
   private async deleteContainer(name: string): Promise<void> {
@@ -390,41 +415,5 @@ export default class Trainer {
       await container.remove();
     }
     Promise.resolve();
-  }
-
-  async getProjectCheckpoints(id: string): Promise<Checkpoint[]> {
-    return new Promise((resolve, reject) => {
-      const METRICSPATH = path.posix.join(this.projects[id].directory, "metrics.json");
-      if (fs.existsSync(METRICSPATH)) {
-        try {
-          const data = fs.readFileSync(METRICSPATH, "utf8");
-          const metrics = JSON.parse(data);
-          while (Object.keys(metrics.precision).length > Object.keys(this.projects[id].checkpoints).length) {
-            const step = Object.keys(metrics.precision)[Object.keys(this.projects[id].checkpoints).length];
-            this.projects[id].checkpoints[step] = {
-              step: parseInt(step, 10),
-              metrics: {
-                precision: metrics.precision[step],
-                loss: null,
-                intersectionOverUnion: null
-              },
-              status: {
-                exporting: false,
-                exportPaths: []
-              }
-            };
-          }
-        } catch (err) {
-          reject(err);
-          console.log("could not read metrics", err);
-        }
-      }
-      resolve(Object.values(this.projects[id].checkpoints));
-    });
-  }
-
-  async getProjectExports(id: string): Promise<Export[]> {
-    exports = Object.values(this.projects[id].exports);
-    return exports;
   }
 }

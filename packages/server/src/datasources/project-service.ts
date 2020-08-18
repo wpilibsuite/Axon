@@ -29,10 +29,11 @@ export class ProjectService extends DataSource {
   }
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
-    return this.trainer.getProjectCheckpoints(id);
+    await this.trainer.UpdateCheckpoints(id);
+    return Object.values(this.trainer.projects[id].checkpoints);
   }
   async getExports(id: string): Promise<Export[]> {
-    return this.trainer.getProjectExports(id);
+    return Object.values(this.trainer.projects[id].exports);
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
