@@ -4,6 +4,8 @@ import { makeStyles } from "@material-ui/core/styles";
 import Input from "./input/Input";
 import Metrics from "./metrics/Metrics";
 import Results from "./results/Results";
+import { gql, useQuery } from "@apollo/client";
+import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -27,13 +29,48 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const GET_PROJECT_DATA = gql`
+  query GetProjectData($id: ID!) {
+    project(id: $id) {
+      checkpoints {
+        step
+        metrics {
+          precision
+        }
+        status {
+          exporting
+          exportPaths
+        }
+      }
+      status {
+        trainingInProgress
+        currentEpoch
+        lastEpoch
+      }
+    }
+  }
+`;
+
 export default function Project(props: { id: string }): ReactElement {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
 
+  const { data, loading, error } = useQuery<GetProjectData, GetProjectDataVariables>(GET_PROJECT_DATA, {
+    variables: {
+      id: props.id
+    },
+    pollInterval: 3000
+  });
+
   const handleChange = (event: React.ChangeEvent<unknown>, newValue: number) => {
     setValue(newValue);
   };
+
+  if (loading) return <p>LOADING</p>;
+  if (error) return <p>ERROR</p>;
+
+  const checkpoints = data?.project?.checkpoints ? data?.project?.checkpoints : [];
+  const status = data?.project?.status ? data?.project?.status : null;
 
   return (
     <div className={classes.root}>
@@ -45,10 +82,10 @@ export default function Project(props: { id: string }): ReactElement {
         </Tabs>
       </AppBar>
       <TabPanel value={value} index={0}>
-        <Input id={props.id} />
+        <Input id={props.id} status={status} />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <Metrics id={props.id} />
+        <Metrics id={props.id} checkpoints={checkpoints} />
       </TabPanel>
       <TabPanel value={value} index={2}>
         <Results id={props.id} />

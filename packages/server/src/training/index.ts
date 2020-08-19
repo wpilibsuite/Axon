@@ -5,7 +5,7 @@ import { Project } from "../store";
 import { Container } from "dockerode";
 import * as Dockerode from "dockerode";
 import { PROJECT_DATA_DIR } from "../constants";
-import { Checkpoint, Export } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
 
 const DATASET_IMAGE = "gcperkins/wpilib-ml-dataset:latest";
 const METRICS_IMAGE = "gcperkins/wpilib-ml-metrics:latest";
@@ -36,6 +36,7 @@ type ProjectData = {
       export: Container;
       test: Container;
     };
+    status: ProjectStatus;
   };
 };
 
@@ -99,6 +100,13 @@ export default class Trainer {
       const PROJECTDIR = `${PROJECT_DATA_DIR}/${projectID}`.replace(/\\/g, "/");
       const EXPORTSDIR = path.posix.join(PROJECTDIR, "exports");
 
+      let EPOCHS = null;
+      const HYPERPATH = path.posix.join(PROJECTDIR, "hyperparameters.json");
+      if (fs.existsSync(HYPERPATH)) {
+        const HYPERPARAMETERS = JSON.parse(fs.readFileSync(HYPERPATH, "utf8"));
+        EPOCHS = HYPERPARAMETERS.epochs;
+      }
+
       projects[projectID] = {
         directory: PROJECTDIR,
         checkpoints: {},
@@ -109,6 +117,11 @@ export default class Trainer {
           metrics: null,
           export: null,
           test: null
+        },
+        status: {
+          trainingInProgress: false,
+          currentEpoch: 0,
+          lastEpoch: EPOCHS
         }
       };
 
@@ -150,6 +163,11 @@ export default class Trainer {
           metrics: null,
           export: null,
           test: null
+        },
+        status: {
+          trainingInProgress: false,
+          currentEpoch: 0,
+          lastEpoch: project.epochs
         }
       };
     }
@@ -182,13 +200,22 @@ export default class Trainer {
     };
     await fs.promises.writeFile(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(trainParameters));
 
+    this.projects[ID].status.currentEpoch = 0;
+    this.projects[ID].status.trainingInProgress = true;
+
+    this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+    if (fs.existsSync(path.posix.join(MOUNT, "metrics.json"))) {
+      fs.unlinkSync(path.posix.join(MOUNT, "metrics.json"));
+    } //must clear old checkpoints in order for new ones to be saved by trainer
+    this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
+    //this ^ doesnt actually clear all the checkpoints until the eval file is deleted.
+
     datasets.forEach((dataset) => {
       fs.copyFileSync(
         path.posix.join("data", dataset.path),
         path.posix.join(MOUNT, "dataset", path.basename(dataset.path))
       );
     });
-    console.log(`copied datasets to mount`);
 
     //custom checkpoints not yet supported by gui
     if (project.initialCheckpoint != "default") {
@@ -211,24 +238,20 @@ export default class Trainer {
       ]);
     }
 
-    if (fs.existsSync(path.posix.join(MOUNT, "metrics.json"))) {
-      await fs.promises.unlink(path.posix.join(MOUNT, "metrics.json"));
-    } //must clear old checkpoints in order for new ones to be saved by trainer
-    this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
-
-    this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-    await this.projects[ID].containers.metrics.start();
-
+    if (!this.projects[ID].status.trainingInProgress) return "training stopped";
     this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
     await this.projects[ID].containers.train.start();
     await this.projects[ID].containers.train.wait();
     await this.projects[ID].containers.train.remove();
 
+    if (!this.projects[ID].status.trainingInProgress) return "training stopped";
     this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
+    await this.projects[ID].containers.metrics.start();
     await this.projects[ID].containers.train.start();
     await this.projects[ID].containers.train.wait();
     await this.projects[ID].containers.train.remove();
 
+    this.projects[ID].status.trainingInProgress = false;
     this.projects[ID].containers.train = null;
     return "training complete";
   }
@@ -349,13 +372,21 @@ export default class Trainer {
             exportPaths: []
           }
         };
+        this.projects[id].status.currentEpoch = parseInt(step, 10);
       }
-    }
+    } else this.projects[id].status.currentEpoch = 0;
+
     Promise.resolve();
   }
 
-  halt(id: string): void {
-    console.log("halt");
+  async halt(id: string): Promise<void> {
+    this.projects[id].status.trainingInProgress = false;
+    if (this.projects[id].containers.train) {
+      if ((await this.projects[id].containers.train.inspect()).State.Running) {
+        await this.projects[id].containers.train.kill({ force: true });
+      }
+    }
+    Promise.resolve();
   }
 
   private async createContainer(

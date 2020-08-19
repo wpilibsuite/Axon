@@ -1,5 +1,5 @@
 import { DataSource } from "apollo-datasource";
-import { Checkpoint, Export, ProjectUpdateInput } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
 import Trainer from "../training";
@@ -34,6 +34,9 @@ export class ProjectService extends DataSource {
   }
   async getExports(id: string): Promise<Export[]> {
     return Object.values(this.trainer.projects[id].exports);
+  }
+  async getStatus(id: string): Promise<ProjectStatus> {
+    return this.trainer.projects[id].status;
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
