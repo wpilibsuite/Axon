@@ -1,12 +1,13 @@
-import { Dialog, DialogActions, DialogContent, TextField, Button, DialogTitle } from "@material-ui/core";
+import { Dialog, DialogActions, DialogContent, DialogTitle, Container } from "@material-ui/core";
 import React, { ReactElement } from "react";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import {
   GetProjectCheckpoints,
   GetProjectCheckpointsVariables,
-  GetProjectCheckpoints_project_checkpoints_status
+  GetProjectCheckpoints_project_checkpoints
 } from "./__generated__/GetProjectCheckpoints";
 import Chart from "./Chart";
+import ExportButton from "./ExportButton";
 
 const GET_PROJECT_CHECKPOINTS = gql`
   query GetProjectCheckpoints($id: ID!) {
@@ -24,18 +25,9 @@ const GET_PROJECT_CHECKPOINTS = gql`
     }
   }
 `;
-const EXPORT_CHECKPOINT_MUTATION = gql`
-  mutation exportCheckpoint($id: ID!, $checkpointNumber: Int!, $name: String!) {
-    exportCheckpoint(id: $id, checkpointNumber: $checkpointNumber, name: $name) {
-      id
-    }
-  }
-`;
 
 export default function Metrics(props: { id: string }): ReactElement {
-  const [exportCheckpoint] = useMutation(EXPORT_CHECKPOINT_MUTATION);
   const [open, setOpen] = React.useState(false);
-  const [name, setName] = React.useState("");
   const [selectedEpoch, setSelectedEpoch] = React.useState(0);
 
   const { data, loading, error } = useQuery<GetProjectCheckpoints, GetProjectCheckpointsVariables>(
@@ -52,17 +44,27 @@ export default function Metrics(props: { id: string }): ReactElement {
     setSelectedEpoch(stepNumber);
     setOpen(true);
   }
-  const handleExport = () => {
-    const id = props.id;
-    const checkpointNumber = selectedEpoch;
-    exportCheckpoint({ variables: { id, checkpointNumber, name } }).catch((err) => {
-      console.log(err);
-    });
-    handleClose();
-  };
   const handleClose = () => {
     setOpen(false);
   };
+
+  //if this function still exists by next week scold me
+  function getCheckpointFromStep(
+    checkpoints: GetProjectCheckpoints_project_checkpoints[] | undefined,
+    stepNumber: number
+  ): GetProjectCheckpoints_project_checkpoints | null {
+    let index = 0;
+    if (checkpoints) {
+      while (index < checkpoints.length) {
+        console.log(checkpoints[index].step);
+        if (checkpoints[index].step === stepNumber) {
+          return checkpoints[index];
+        }
+        index = index + 1;
+      }
+    }
+    return null;
+  }
 
   if (loading) return <p>LOADING</p>;
   if (error || !data) return <p>ERROR</p>;
@@ -70,49 +72,52 @@ export default function Metrics(props: { id: string }): ReactElement {
   return (
     <>
       <Chart checkpoints={data.project?.checkpoints} onClick={onClick} />
-      {/* <Container>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Epoch</TableCell>
-              <TableCell>Precision</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.project?.checkpoints.map((checkpoint) => (
-              <TableRow key={checkpoint.step}>
-                <TableCell>{checkpoint.step}</TableCell>
-                <TableCell>{checkpoint.metrics.precision}</TableCell>
-                <TableCell>
-                  <ExportButton id={props.id} ckptNumber={checkpoint.step} status={checkpoint.status} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Container> */}
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>{`Epoch ${selectedEpoch}`}</DialogTitle>
         <DialogContent dividers>
-          <TextField
-            onChange={(event) => setName(event.target.value)}
-            autoFocus
-            margin="dense"
-            label="Model Name"
-            fullWidth
-          />
+          <CheckpointInfo checkpoint={getCheckpointFromStep(data.project?.checkpoints, selectedEpoch)} />
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button autoFocus onClick={handleExport} color="primary">
-            Export
-          </Button>
+          <ExportButton id={props.id} ckptNumber={selectedEpoch} />
         </DialogActions>
       </Dialog>
     </>
   );
+}
+
+function CheckpointInfo(props: { checkpoint: GetProjectCheckpoints_project_checkpoints | null }): JSX.Element {
+  if (props.checkpoint) {
+    const metrics = props.checkpoint.metrics;
+    return (
+      <>
+        <Container>
+          {Object.keys(metrics).map((key: string) =>
+            key !== "__typename" ? <p>{`${key}:  ${props.checkpoint?.metrics.precision}`}</p> : null
+          )}
+        </Container>
+        <Container>
+          {props.checkpoint.status.exporting ? (
+            <p>Checkpoint is being exported</p>
+          ) : (
+            <p>Checkpoint available for export</p>
+          )}
+        </Container>
+        <Container>
+          {props.checkpoint.status.exportPaths.length > 0 ? (
+            <>
+              <p>Exports available at:</p>
+              <ul>
+                {props.checkpoint.status.exportPaths.map((exportPath) => (
+                  <li key={exportPath}>{exportPath}</li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <></>
+          )}
+        </Container>
+      </>
+    );
+  }
+  return <></>;
 }

@@ -29,10 +29,11 @@ export class ProjectService extends DataSource {
   }
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
-    return this.trainer.getProjectCheckpoints(id);
+    await this.trainer.UpdateCheckpoints(id);
+    return Object.values(this.trainer.projects[id].checkpoints);
   }
   async getExports(id: string): Promise<Export[]> {
-    return this.trainer.getProjectExports(id);
+    return Object.values(this.trainer.projects[id].exports);
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -72,7 +73,9 @@ export class ProjectService extends DataSource {
   }
 
   async createProject(name: string): Promise<Project> {
-    return await Project.create({ name });
+    const project = await Project.create({ name });
+    this.trainer.addProjectData(project);
+    return project;
   }
 
   async startTraining(id: string): Promise<Project> {
@@ -97,25 +100,20 @@ export class ProjectService extends DataSource {
   }
 
   async testModel(
-    id: string,
-    modelName: string,
-    directory: string,
-    tarPath: string,
+    modelExport: Export,
     videoCustomName: string,
     filename: string,
     stream: fs.ReadStream
   ): Promise<Project> {
-    const videoPath = await this.upload(filename, id, stream);
-    this.trainer
-      .test(id, modelName, directory, tarPath, videoPath, filename, videoCustomName)
-      .catch((err) => console.log(err));
-    const project = await Project.findByPk(id);
-    console.log(`Started test: \nModel: ${modelName} \nVideo: ${filename}`);
+    const videoPath = await this.upload(filename, modelExport.projectId, stream);
+    this.trainer.test(modelExport, videoPath, filename, videoCustomName).catch((err) => console.log(err));
+    const project = await Project.findByPk(modelExport.projectId);
+    console.log(`Started test: \nModel: ${modelExport} \nVideo: ${filename}`);
     return project;
   }
 
   private async upload(name: string, id: string, stream: fs.ReadStream): Promise<string> {
-    const extractPath = `${this.path}/${id}/mount/videos`;
+    const extractPath = `${this.path}/${id}/videos`; // <-- make this better
     const savePath = path.join(extractPath, name);
     await mkdirp(extractPath);
 
@@ -132,22 +130,4 @@ export class ProjectService extends DataSource {
     });
     return savePath;
   }
-
-  // private async newUpload(modelPath: string, videoName: string, stream: fs.ReadStream) {
-  //   const extractPath = path.posix.join(modelPath, "videos");
-  //   const savePath = path.join(modelPath, "videos", videoName);
-  //   await mkdirp(extractPath);
-
-  //   await new Promise((resolve, reject) => {
-  //     const writeStream = createWriteStream(savePath);
-  //     writeStream.on("finish", resolve);
-  //     writeStream.on("error", (error) => {
-  //       unlink(extractPath, () => {
-  //         reject(error);
-  //       });
-  //     });
-  //     stream.on("error", (error) => writeStream.destroy(error));
-  //     stream.pipe(writeStream);
-  //   });
-  // }
 }
