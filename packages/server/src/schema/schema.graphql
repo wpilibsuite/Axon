@@ -19,6 +19,8 @@ type Mutation {
 
   startTraining(id: ID!): Project
   haltTraining(id: ID!): Project
+  pauseTraining(id: ID!): Project
+  resumeTraining(id: ID!): Project
   exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
   testModel(modelExport: ExportInput!, videoName: String!, video: Upload!): Project
 }
@@ -104,7 +106,7 @@ type Project {
 }
 
 type ProjectStatus {
-  trainingInProgress: Boolean!
+  trainingState: Int!
   currentEpoch: Int
   lastEpoch: Int
 }

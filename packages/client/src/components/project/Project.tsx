@@ -43,7 +43,7 @@ const GET_PROJECT_DATA = gql`
         }
       }
       status {
-        trainingInProgress
+        trainingState
         currentEpoch
         lastEpoch
       }
@@ -69,27 +69,28 @@ export default function Project(props: { id: string }): ReactElement {
   if (loading) return <p>LOADING</p>;
   if (error) return <p>ERROR</p>;
 
-  const checkpoints = data?.project?.checkpoints ? data?.project?.checkpoints : [];
-  const status = data?.project?.status ? data?.project?.status : null;
-
-  return (
-    <div className={classes.root}>
-      <AppBar position="static" color="default">
-        <Tabs value={value} onChange={handleChange} indicatorColor="primary" textColor="primary" centered>
-          <Tab color="inherit" label="Input" />
-          <Tab label="Metrics" />
-          <Tab label="Output" />
-        </Tabs>
-      </AppBar>
-      <TabPanel value={value} index={0}>
-        <Input id={props.id} status={status} />
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        <Metrics id={props.id} checkpoints={checkpoints} />
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-        <Results id={props.id} />
-      </TabPanel>
-    </div>
-  );
+  if (data?.project) {
+    return (
+      <div className={classes.root}>
+        <AppBar position="static" color="default">
+          <Tabs value={value} onChange={handleChange} indicatorColor="primary" textColor="primary" centered>
+            <Tab color="inherit" label="Input" />
+            <Tab label="Metrics" />
+            <Tab label="Output" />
+          </Tabs>
+        </AppBar>
+        <TabPanel value={value} index={0}>
+          <Input id={props.id} status={data.project.status} />
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          <Metrics id={props.id} checkpoints={data.project.checkpoints} />
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          <Results id={props.id} />
+        </TabPanel>
+      </div>
+    );
+  } else {
+    return <p> Error: cannot retrieve project data from server </p>;
+  }
 }

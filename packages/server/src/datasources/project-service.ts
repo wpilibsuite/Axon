@@ -95,6 +95,20 @@ export class ProjectService extends DataSource {
     return project;
   }
 
+  async pauseTraining(id: string): Promise<Project> {
+    this.trainer.toggleContainer(id, true);
+    const project = await Project.findByPk(id);
+    console.log(`PAUSED Training on project: ${JSON.stringify(project)}`);
+    return project;
+  }
+
+  async resumeTraining(id: string): Promise<Project> {
+    this.trainer.toggleContainer(id, false);
+    const project = await Project.findByPk(id);
+    console.log(`RESUMED Training on project: ${JSON.stringify(project)}`);
+    return project;
+  }
+
   async exportCheckpoint(id: string, checkpointNumber: number, name: string): Promise<Project> {
     this.trainer.export(id, checkpointNumber, name).catch((err) => console.log(err));
     const project = await Project.findByPk(id);

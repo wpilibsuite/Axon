@@ -20,6 +20,12 @@ export const Mutation: MutationResolvers = {
   haltTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.haltTraining(id);
   },
+  pauseTraining: (parent, { id }, { dataSources }) => {
+    return dataSources.projectService.pauseTraining(id);
+  },
+  resumeTraining: (parent, { id }, { dataSources }) => {
+    return dataSources.projectService.resumeTraining(id);
+  },
   exportCheckpoint: async (parent, { id, checkpointNumber, name }, { dataSources }) => {
     return dataSources.projectService.exportCheckpoint(id, checkpointNumber, name);
   },
