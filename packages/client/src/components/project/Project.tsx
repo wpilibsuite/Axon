@@ -32,6 +32,7 @@ const useStyles = makeStyles((theme) => ({
 const GET_PROJECT_DATA = gql`
   query GetProjectData($id: ID!) {
     project(id: $id) {
+      id
       checkpoints {
         step
         metrics {
@@ -41,6 +42,12 @@ const GET_PROJECT_DATA = gql`
           exporting
           exportPaths
         }
+      }
+      exports {
+        projectId
+        name
+        directory
+        tarPath
       }
       status {
         trainingState
@@ -86,7 +93,7 @@ export default function Project(props: { id: string }): ReactElement {
           <Metrics id={props.id} checkpoints={data.project.checkpoints} />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          <Results id={props.id} />
+          <Results id={props.id} exports={data.project.exports} />
         </TabPanel>
       </div>
     );

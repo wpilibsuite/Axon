@@ -27,7 +27,6 @@ export default function Metrics(props: {
     let index = 0;
     if (checkpoints) {
       while (index < checkpoints.length) {
-        console.log(checkpoints[index].step);
         if (checkpoints[index].step === stepNumber) {
           return checkpoints[index];
         }
