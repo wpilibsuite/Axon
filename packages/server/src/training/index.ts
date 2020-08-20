@@ -315,7 +315,8 @@ export default class Trainer {
     const ID = modelExport.projectId;
     const MOUNT = this.projects[ID].directory;
 
-    const MOUNTED_MODEL_PATH = path.posix.join(MOUNT, "exports", modelExport.name, `${modelExport.name}.tar.gz`);
+    const MOUNTED_MODEL_DIR = path.posix.join(MOUNT, "exports", modelExport.name);
+    const MOUNTED_MODEL_PATH = path.posix.join(MOUNTED_MODEL_DIR, `${modelExport.name}.tar.gz`);
     const CONTAINER_MODEL_PATH = path.posix.join(
       CONTAINER_MOUNT_PATH,
       "exports",
@@ -348,6 +349,14 @@ export default class Trainer {
     await this.projects[ID].containers.test.start();
     await this.projects[ID].containers.test.wait();
     await this.projects[ID].containers.test.remove();
+
+    const OUTPUT_VID_PATH = path.posix.join(MOUNT, "inference.mp4");
+    if (!fs.existsSync(OUTPUT_VID_PATH)) return "cant find output video";
+
+    const CUSTOM_VID_DIR = path.posix.join(MOUNTED_MODEL_DIR, "tests", videoCustomName);
+    const CUSTOM_VID_PATH = path.posix.join(CUSTOM_VID_DIR, `${videoCustomName}.mp4`);
+    await mkdirp(CUSTOM_VID_DIR);
+    await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
 
     this.projects[ID].containers.test = null;
     return "testing complete";
