@@ -1,44 +1,15 @@
 import { Dialog, DialogActions, DialogContent, DialogTitle, Container } from "@material-ui/core";
 import React, { ReactElement } from "react";
-import { gql, useQuery } from "@apollo/client";
-import {
-  GetProjectCheckpoints,
-  GetProjectCheckpointsVariables,
-  GetProjectCheckpoints_project_checkpoints
-} from "./__generated__/GetProjectCheckpoints";
+import { GetProjectCheckpoints_project_checkpoints } from "../__generated__/GetProjectCheckpoints";
 import Chart from "./Chart";
 import ExportButton from "./ExportButton";
 
-const GET_PROJECT_CHECKPOINTS = gql`
-  query GetProjectCheckpoints($id: ID!) {
-    project(id: $id) {
-      checkpoints {
-        step
-        metrics {
-          precision
-        }
-        status {
-          exporting
-          exportPaths
-        }
-      }
-    }
-  }
-`;
-
-export default function Metrics(props: { id: string }): ReactElement {
+export default function Metrics(props: {
+  id: string;
+  checkpoints: GetProjectCheckpoints_project_checkpoints[];
+}): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [selectedEpoch, setSelectedEpoch] = React.useState(0);
-
-  const { data, loading, error } = useQuery<GetProjectCheckpoints, GetProjectCheckpointsVariables>(
-    GET_PROJECT_CHECKPOINTS,
-    {
-      variables: {
-        id: props.id
-      },
-      pollInterval: 3000
-    }
-  );
 
   function onClick(stepNumber: number): void {
     setSelectedEpoch(stepNumber);
@@ -56,7 +27,6 @@ export default function Metrics(props: { id: string }): ReactElement {
     let index = 0;
     if (checkpoints) {
       while (index < checkpoints.length) {
-        console.log(checkpoints[index].step);
         if (checkpoints[index].step === stepNumber) {
           return checkpoints[index];
         }
@@ -66,16 +36,13 @@ export default function Metrics(props: { id: string }): ReactElement {
     return null;
   }
 
-  if (loading) return <p>LOADING</p>;
-  if (error || !data) return <p>ERROR</p>;
-
   return (
     <>
-      <Chart checkpoints={data.project?.checkpoints} onClick={onClick} />
+      <Chart checkpoints={props.checkpoints} onClick={onClick} />
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>{`Epoch ${selectedEpoch}`}</DialogTitle>
         <DialogContent dividers>
-          <CheckpointInfo checkpoint={getCheckpointFromStep(data.project?.checkpoints, selectedEpoch)} />
+          <CheckpointInfo checkpoint={getCheckpointFromStep(props.checkpoints, selectedEpoch)} />
         </DialogContent>
         <DialogActions>
           <ExportButton id={props.id} ckptNumber={selectedEpoch} />
@@ -92,7 +59,7 @@ function CheckpointInfo(props: { checkpoint: GetProjectCheckpoints_project_check
       <>
         <Container>
           {Object.keys(metrics).map((key: string) =>
-            key !== "__typename" ? <p>{`${key}:  ${props.checkpoint?.metrics.precision}`}</p> : null
+            key !== "__typename" ? <p key={key}>{`${key}:  ${props.checkpoint?.metrics.precision}`}</p> : null
           )}
         </Container>
         <Container>

@@ -5,7 +5,7 @@ import { Project } from "../store";
 import { Container } from "dockerode";
 import * as Dockerode from "dockerode";
 import { PROJECT_DATA_DIR } from "../constants";
-import { Checkpoint, Export } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
 
 const DATASET_IMAGE = "gcperkins/wpilib-ml-dataset:latest";
 const METRICS_IMAGE = "gcperkins/wpilib-ml-metrics:latest";
@@ -13,6 +13,12 @@ const EXPORT_IMAGE = "gcperkins/wpilib-ml-tflite:latest";
 const TRAIN_IMAGE = "gcperkins/wpilib-ml-train:latest";
 const TEST_IMAGE = "gcperkins/wpilib-ml-test:latest";
 const CONTAINER_MOUNT_PATH = "/opt/ml/model";
+
+//training state enumeration
+const NOT_TRAINING = 0;
+const PREPARING = 1;
+const TRAINING = 2;
+const PAUSED = 3;
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -36,6 +42,7 @@ type ProjectData = {
       export: Container;
       test: Container;
     };
+    status: ProjectStatus;
   };
 };
 
@@ -99,6 +106,13 @@ export default class Trainer {
       const PROJECTDIR = `${PROJECT_DATA_DIR}/${projectID}`.replace(/\\/g, "/");
       const EXPORTSDIR = path.posix.join(PROJECTDIR, "exports");
 
+      let EPOCHS = null;
+      const HYPERPATH = path.posix.join(PROJECTDIR, "hyperparameters.json");
+      if (fs.existsSync(HYPERPATH)) {
+        const HYPERPARAMETERS = JSON.parse(fs.readFileSync(HYPERPATH, "utf8"));
+        EPOCHS = HYPERPARAMETERS.epochs;
+      }
+
       projects[projectID] = {
         directory: PROJECTDIR,
         checkpoints: {},
@@ -109,6 +123,11 @@ export default class Trainer {
           metrics: null,
           export: null,
           test: null
+        },
+        status: {
+          trainingState: NOT_TRAINING,
+          currentEpoch: 0,
+          lastEpoch: EPOCHS
         }
       };
 
@@ -150,6 +169,11 @@ export default class Trainer {
           metrics: null,
           export: null,
           test: null
+        },
+        status: {
+          trainingState: NOT_TRAINING,
+          currentEpoch: 0,
+          lastEpoch: project.epochs
         }
       };
     }
@@ -159,9 +183,12 @@ export default class Trainer {
     const datasets = await project.getDatasets();
     if (!datasets) {
       Promise.reject("there are no datasets. How am I supposed to train with no datasets?");
+      return;
     }
 
     const ID = project.id;
+    this.projects[ID].status.trainingState = PREPARING;
+
     const MOUNT = this.projects[ID].directory;
     const DATASETPATHS = datasets.map((dataset) =>
       path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
@@ -182,15 +209,30 @@ export default class Trainer {
     };
     await fs.promises.writeFile(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(trainParameters));
 
+    if (!this.projects[ID].status.trainingState) return "training stopped";
+    this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+    const OLD_TRAIN_DIR = path.posix.join(MOUNT, "train");
+    if (fs.existsSync(OLD_TRAIN_DIR)) {
+      fs.rmdirSync(OLD_TRAIN_DIR, { recursive: true });
+      console.log("old train dir removed");
+    } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
+    const OLD_METRICS_DIR = path.posix.join(MOUNT, "metrics.json");
+    if (fs.existsSync(OLD_METRICS_DIR)) {
+      fs.unlinkSync(OLD_METRICS_DIR);
+    } //must clear old checkpoints in order for new ones to be saved by trainer
+    this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
+
+    if (!this.projects[ID].status.trainingState) return "training stopped";
     datasets.forEach((dataset) => {
       fs.copyFileSync(
         path.posix.join("data", dataset.path),
         path.posix.join(MOUNT, "dataset", path.basename(dataset.path))
       );
     });
-    console.log(`copied datasets to mount`);
+    console.log("datasets copied");
 
     //custom checkpoints not yet supported by gui
+    if (!this.projects[ID].status.trainingState) return "training stopped";
     if (project.initialCheckpoint != "default") {
       if (!fs.existsSync(path.posix.join(MOUNT, "checkpoints"))) {
         await mkdirp(path.posix.join(MOUNT, "checkpoints"));
@@ -211,24 +253,24 @@ export default class Trainer {
       ]);
     }
 
-    if (fs.existsSync(path.posix.join(MOUNT, "metrics.json"))) {
-      await fs.promises.unlink(path.posix.join(MOUNT, "metrics.json"));
-    } //must clear old checkpoints in order for new ones to be saved by trainer
-    this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
-
-    this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-    await this.projects[ID].containers.metrics.start();
-
+    if (!this.projects[ID].status.trainingState) return "training stopped";
+    console.log("extracting the dataset");
     this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
     await this.projects[ID].containers.train.start();
     await this.projects[ID].containers.train.wait();
     await this.projects[ID].containers.train.remove();
+    console.log("datasets extracted");
 
+    if (!this.projects[ID].status.trainingState) return "training stopped";
+    this.projects[ID].status.trainingState = TRAINING;
+    this.projects[ID].status.currentEpoch = 0;
     this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
+    await this.projects[ID].containers.metrics.start();
     await this.projects[ID].containers.train.start();
     await this.projects[ID].containers.train.wait();
     await this.projects[ID].containers.train.remove();
 
+    this.projects[ID].status.trainingState = NOT_TRAINING;
     this.projects[ID].containers.train = null;
     return "training complete";
   }
@@ -241,6 +283,7 @@ export default class Trainer {
 
     if (!fs.existsSync(path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`))) {
       Promise.reject("cannot find requested checkpoint");
+      return;
     }
 
     await mkdirp(path.posix.join(EXPORT_PATH, "checkpoint"));
@@ -292,7 +335,8 @@ export default class Trainer {
     const ID = modelExport.projectId;
     const MOUNT = this.projects[ID].directory;
 
-    const MOUNTED_MODEL_PATH = path.posix.join(MOUNT, "exports", modelExport.name, `${modelExport.name}.tar.gz`);
+    const MOUNTED_MODEL_DIR = path.posix.join(MOUNT, "exports", modelExport.name);
+    const MOUNTED_MODEL_PATH = path.posix.join(MOUNTED_MODEL_DIR, `${modelExport.name}.tar.gz`);
     const CONTAINER_MODEL_PATH = path.posix.join(
       CONTAINER_MOUNT_PATH,
       "exports",
@@ -305,9 +349,11 @@ export default class Trainer {
 
     if (!fs.existsSync(modelExport.tarPath)) {
       Promise.reject("model not found");
+      return;
     }
     if (!fs.existsSync(videoPath)) {
       Promise.reject("video not found");
+      return;
     }
     if (!fs.existsSync(MOUNTED_MODEL_PATH)) {
       await fs.promises.copyFile(modelExport.tarPath, MOUNTED_MODEL_PATH);
@@ -325,6 +371,14 @@ export default class Trainer {
     await this.projects[ID].containers.test.start();
     await this.projects[ID].containers.test.wait();
     await this.projects[ID].containers.test.remove();
+
+    const OUTPUT_VID_PATH = path.posix.join(MOUNT, "inference.mp4");
+    if (!fs.existsSync(OUTPUT_VID_PATH)) return "cant find output video";
+
+    const CUSTOM_VID_DIR = path.posix.join(MOUNTED_MODEL_DIR, "tests", videoCustomName);
+    const CUSTOM_VID_PATH = path.posix.join(CUSTOM_VID_DIR, `${videoCustomName}.mp4`);
+    await mkdirp(CUSTOM_VID_DIR);
+    await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
 
     this.projects[ID].containers.test = null;
     return "testing complete";
@@ -349,13 +403,51 @@ export default class Trainer {
             exportPaths: []
           }
         };
+        this.projects[id].status.currentEpoch = parseInt(step, 10);
       }
-    }
+    } else this.projects[id].status.currentEpoch = 0;
+
     Promise.resolve();
   }
 
-  halt(id: string): void {
-    console.log("halt");
+  async halt(id: string): Promise<void> {
+    if (this.projects[id].containers.train) {
+      if ((await this.projects[id].containers.train.inspect()).State.Running) {
+        await this.projects[id].containers.train.kill({ force: true });
+      }
+    }
+    this.projects[id].status.trainingState = NOT_TRAINING;
+    Promise.resolve();
+  }
+
+  async toggleContainer(id: string, pause: boolean): Promise<void> {
+    if (!this.projects[id].status.trainingState) {
+      console.log("not training");
+      Promise.resolve();
+      return;
+    }
+    if (!this.projects[id].containers.train) {
+      console.log("no container to pause");
+      Promise.resolve();
+      return;
+    }
+    const CONTAINER = this.projects[id].containers.train;
+
+    switch (pause) {
+      case true:
+        if (!(await CONTAINER.inspect()).State.Paused) {
+          await CONTAINER.pause();
+          this.projects[id].status.trainingState = PAUSED;
+        }
+        break;
+      case false:
+        if ((await CONTAINER.inspect()).State.Paused) {
+          CONTAINER.unpause();
+          this.projects[id].status.trainingState = TRAINING;
+        }
+        break;
+    }
+    Promise.resolve();
   }
 
   private async createContainer(
