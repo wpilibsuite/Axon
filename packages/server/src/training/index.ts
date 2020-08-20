@@ -200,15 +200,20 @@ export default class Trainer {
     };
     await fs.promises.writeFile(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(trainParameters));
 
-    this.projects[ID].status.currentEpoch = 0;
-    this.projects[ID].status.trainingInProgress = true;
 
     this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-    if (fs.existsSync(path.posix.join(MOUNT, "metrics.json"))) {
-      fs.unlinkSync(path.posix.join(MOUNT, "metrics.json"));
+    const OLD_TRAIN_DIR = path.posix.join(MOUNT,"train")
+    if (fs.existsSync(OLD_TRAIN_DIR)){
+      fs.rmdirSync(OLD_TRAIN_DIR, { recursive: true });
+    } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
+    const OLD_METRICS_DIR = path.posix.join(MOUNT,"metrics.json")
+    if (fs.existsSync(OLD_METRICS_DIR)) {
+      fs.unlinkSync(OLD_METRICS_DIR);
     } //must clear old checkpoints in order for new ones to be saved by trainer
     this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
-    //this ^ doesnt actually clear all the checkpoints until the eval file is deleted.
+    
+    this.projects[ID].status.currentEpoch = 0;
+    this.projects[ID].status.trainingInProgress = true;
 
     datasets.forEach((dataset) => {
       fs.copyFileSync(
