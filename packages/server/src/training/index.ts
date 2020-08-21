@@ -146,6 +146,7 @@ export default class Trainer {
           const NAME = TARFILENAME.replace(".tar.gz", "");
 
           projects[projectID].exports[exportID] = {
+            testingInProgress: false,
             directory: EXPORT_DIR,
             tarPath: TARFILEPATH,
             projectId: projectID,
@@ -360,6 +361,9 @@ export default class Trainer {
       Promise.reject("video not found");
       return;
     }
+
+    this.projects[ID].exports[modelExport.name].testingInProgress = true;
+
     if (!fs.existsSync(MOUNTED_MODEL_PATH)) {
       await fs.promises.copyFile(modelExport.tarPath, MOUNTED_MODEL_PATH);
     }
@@ -386,6 +390,7 @@ export default class Trainer {
     await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
 
     this.projects[ID].containers.test = null;
+    this.projects[ID].exports[modelExport.name].testingInProgress = false;
     return "testing complete";
   }
 
@@ -438,19 +443,16 @@ export default class Trainer {
     }
     const CONTAINER = this.projects[id].containers.train;
 
-    switch (pause) {
-      case true:
-        if (!(await CONTAINER.inspect()).State.Paused) {
-          await CONTAINER.pause();
-          this.projects[id].status.trainingState = PAUSED;
-        }
-        break;
-      case false:
-        if ((await CONTAINER.inspect()).State.Paused) {
-          CONTAINER.unpause();
-          this.projects[id].status.trainingState = TRAINING;
-        }
-        break;
+    if (pause) {
+      if (!(await CONTAINER.inspect()).State.Paused) {
+        await CONTAINER.pause();
+        this.projects[id].status.trainingState = PAUSED;
+      }
+    } else {
+      if ((await CONTAINER.inspect()).State.Paused) {
+        CONTAINER.unpause();
+        this.projects[id].status.trainingState = TRAINING;
+      }
     }
     Promise.resolve();
   }

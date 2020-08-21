@@ -87,6 +87,7 @@ type Export {
   name: String!
   directory: String!
   tarPath: String!
+  testingInProgress: Boolean
 }
 
 type Project {

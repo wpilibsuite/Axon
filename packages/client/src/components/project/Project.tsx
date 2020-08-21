@@ -48,6 +48,7 @@ const GET_PROJECT_DATA = gql`
         name
         directory
         tarPath
+        testingInProgress
       }
       status {
         trainingState

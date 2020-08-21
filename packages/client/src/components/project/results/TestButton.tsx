@@ -13,7 +13,7 @@ import {
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/client";
 import { DropzoneArea } from "material-ui-dropzone";
-import { GetProjectExports_project_exports } from "./__generated__/GetProjectExports";
+import { GetProjectData_project_exports } from "../__generated__/GetProjectData";
 
 const TEST_MODEL_MUTATION = gql`
   mutation testModel($modelExport: ExportInput!, $videoName: String!, $video: Upload!) {
@@ -23,7 +23,7 @@ const TEST_MODEL_MUTATION = gql`
   }
 `;
 
-export default function TestButton(props: { modelExport: GetProjectExports_project_exports }): ReactElement {
+export default function TestButton(props: { modelExport: GetProjectData_project_exports }): ReactElement {
   const [testModel] = useMutation(TEST_MODEL_MUTATION);
   const [preparing, setPreparing] = React.useState(false);
   const [videoName, setVideoName] = React.useState("");
@@ -54,10 +54,10 @@ export default function TestButton(props: { modelExport: GetProjectExports_proje
     });
 
     handleClosePrepare();
+    setStreamLoading(true);
     handleOpenView();
   };
   const handleOpenView = () => {
-    setStreamLoading(true);
     setStreamError(false);
     setTestError(false);
     setStreamTimeout(0);
@@ -67,6 +67,7 @@ export default function TestButton(props: { modelExport: GetProjectExports_proje
     setViewing(false);
   };
   const handleEnd = () => {
+    handleCloseView();
     console.log("end"); //remaking the halt container behavior so waiting on this
   };
   const handleStreamError = () => {
@@ -79,6 +80,9 @@ export default function TestButton(props: { modelExport: GetProjectExports_proje
       setTestError(true);
       setStreamLoading(false);
     }
+    if (!streamLoading && !props.modelExport.testingInProgress) {
+      handleEnd();
+    }
   };
   const handleStreamLoaded = () => {
     setStreamLoading(false);
@@ -87,7 +91,11 @@ export default function TestButton(props: { modelExport: GetProjectExports_proje
   return (
     <>
       <Tooltip title="Test">
-        <IconButton onClick={handleClickPrepare}>Test</IconButton>
+        {props.modelExport.testingInProgress ? (
+          <IconButton onClick={handleOpenView}>View</IconButton>
+        ) : (
+          <IconButton onClick={handleClickPrepare}>Test</IconButton>
+        )}
       </Tooltip>
       <Dialog onClose={handleClosePrepare} open={preparing}>
         <DialogContent dividers>
@@ -127,9 +135,10 @@ export default function TestButton(props: { modelExport: GetProjectExports_proje
                 <p>{`Loading ${streamTimeout}`}</p>
               </>
             )}
-            {!streamError && !testError && (
+            {!streamError && !testError && viewing && (
               <img
-                src="http://localhost:5000/stream.mjpg"
+                src={`http://localhost:5000/stream.mjpg?dummy=${Math.round(new Date().getTime() / 1000)}`} //<-- so the last image doesnt catch. But I am worried it will catch a million images eventually. The 1000 makes it cache less i think, but slower detection of an ended stream
+                alt="no stream"
                 onError={() => handleStreamError()}
                 onLoad={() => handleStreamLoaded()}
               />
