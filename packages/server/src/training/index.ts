@@ -76,16 +76,21 @@ export default class Trainer {
 
     await this.pull(TEST_IMAGE);
     this.testReady = true;
-
     console.log("image pull complete");
+
     Promise.resolve();
   }
 
   private async pull(name: string): Promise<string> {
     return new Promise((resolve, reject) => {
       this.docker.pull(name, (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
-        stream.pipe(process.stdout);
-        this.docker.modem.followProgress(stream, onFinished);
+        try {
+          stream.pipe(process.stdout);
+          this.docker.modem.followProgress(stream, onFinished);
+        } catch {
+          console.log("cant pull image");
+          resolve();
+        }
         function onFinished(err: string, output: string) {
           if (!err) {
             resolve(output);
