@@ -331,7 +331,7 @@ export default class Trainer {
       directory: EXPORT_PATH,
       tarPath: TAR_PATH
     };
-    this.projects[id].checkpoints[checkpointNumber].status.exportPaths.push(EXPORT_PATH);
+    this.projects[id].checkpoints[checkpointNumber].status.exportPaths.push(TAR_PATH);
     this.projects[id].checkpoints[checkpointNumber].status.exporting = false;
 
     return "exported";

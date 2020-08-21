@@ -1,8 +1,9 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle, Container } from "@material-ui/core";
+import { IconButton, Dialog, DialogActions, DialogContent, DialogTitle, Container } from "@material-ui/core";
 import React, { ReactElement } from "react";
 import { GetProjectCheckpoints_project_checkpoints } from "../__generated__/GetProjectCheckpoints";
 import Chart from "./Chart";
 import ExportButton from "./ExportButton";
+import * as path from "path";
 
 export default function Metrics(props: {
   id: string;
@@ -75,7 +76,11 @@ function CheckpointInfo(props: { checkpoint: GetProjectCheckpoints_project_check
               <p>Exports available at:</p>
               <ul>
                 {props.checkpoint.status.exportPaths.map((exportPath) => (
-                  <li key={exportPath}>{exportPath}</li>
+                  <li key={exportPath}>
+                    <a download href={`http://localhost:4000/${exportPath.replace("data/projects", "projects")}`}>
+                      <IconButton>{path.basename(exportPath)}</IconButton>
+                    </a>
+                  </li>
                 ))}
               </ul>
             </>
