@@ -114,7 +114,7 @@ Project.init(
     },
     epochs: {
       type: DataTypes.INTEGER.UNSIGNED,
-      defaultValue: 10
+      defaultValue: 200
     },
     batchSize: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -122,11 +122,11 @@ Project.init(
     },
     evalFrequency: {
       type: DataTypes.INTEGER.UNSIGNED,
-      defaultValue: 1
+      defaultValue: 50
     },
     percentEval: {
       type: DataTypes.FLOAT,
-      defaultValue: 0.9
+      defaultValue: 30
     },
     inProgress: {
       type: DataTypes.BOOLEAN,
