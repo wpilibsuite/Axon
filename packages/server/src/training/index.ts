@@ -136,6 +136,10 @@ export default class Trainer {
         }
       };
 
+      if (!fs.existsSync(EXPORTSDIR)){
+        mkdirp(EXPORTSDIR)
+      }
+
       fs.readdirSync(EXPORTSDIR).forEach(pushExport);
       function pushExport(exportID) {
         const EXPORT_DIR = path.posix.join(EXPORTSDIR, exportID);
