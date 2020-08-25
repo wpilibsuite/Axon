@@ -136,8 +136,8 @@ export default class Trainer {
         }
       };
 
-      if (!fs.existsSync(EXPORTSDIR)){
-        mkdirp(EXPORTSDIR)
+      if (!fs.existsSync(EXPORTSDIR)) {
+        fs.mkdirSync(EXPORTSDIR);
       }
 
       fs.readdirSync(EXPORTSDIR).forEach(pushExport);
