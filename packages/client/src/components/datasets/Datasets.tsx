@@ -1,5 +1,6 @@
 import React, { ReactElement } from "react";
 import {
+  Button,
   Container,
   createStyles,
   Paper,
@@ -19,6 +20,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 import AddDatasetDialogButton from "./AddDatasetDialogButton";
 import { useQuery } from "@apollo/client";
+import TextField from "@material-ui/core/TextField";
 
 const GET_DATASETS = gql`
   query GetDatasetList {
@@ -73,6 +75,9 @@ export default function Datasets(): ReactElement {
                     <Link to={`datasets/${dataset.id}`}>{dataset.id}</Link>
                   </TableCell>
                   <TableCell>{dataset.name}</TableCell>
+                  <form className={"test"} noValidate autoComplete="off">
+                    <TextField id="set-dataset-name" label={dataset.name} variant="outlined" />
+                  </form>
                   <TableCell align="right">{dataset.images.length}</TableCell>
                 </TableRow>
               ))}

@@ -5,6 +5,9 @@ export const Mutation: MutationResolvers = {
     const { createReadStream, filename } = await upload;
     return dataSources.datasetService.createDataset(filename, createReadStream());
   },
+  setDatasetName: async (parent, { id, name }, { dataSources}) => {
+    return dataSources.datasetService.setDatasetName(id, name);
+  },
   createProject: async (parent, { name }, { dataSources }) => {
     return dataSources.projectService.createProject(name);
   },

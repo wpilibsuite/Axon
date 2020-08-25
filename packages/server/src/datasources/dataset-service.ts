@@ -80,6 +80,12 @@ export class DatasetService extends DataSource {
     return dataset;
   }
 
+  async setDatasetName(id: string, name: string): Promise<Dataset> {
+    const dataset = await this.getDataset(id);
+    dataset.name = name;
+    return this.getDataset(id);
+  }
+
   private readMetaData(id: string): SuperviselyMeta {
     const META_FILE = path.join(`${this.path}/${id}`, "meta.json");
     return JSON.parse(fs.readFileSync(META_FILE).toString());
