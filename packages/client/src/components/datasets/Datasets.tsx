@@ -19,6 +19,7 @@ import { GetDatasetList } from "./__generated__/GetDatasetList";
 import { makeStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 import AddDatasetDialogButton from "./AddDatasetDialogButton";
+import DatasetNameForm from "./DatasetNameForm";
 import { useQuery } from "@apollo/client";
 import TextField from "@material-ui/core/TextField";
 
@@ -57,7 +58,7 @@ export default function Datasets(): ReactElement {
           <Typography variant="h6" className={classes.title}>
             Datasets
           </Typography>
-          <AddDatasetDialogButton />
+          <AddDatasetDialogButton/>
         </Toolbar>
         <TableContainer component={Paper}>
           <Table>
@@ -74,10 +75,9 @@ export default function Datasets(): ReactElement {
                   <TableCell>
                     <Link to={`datasets/${dataset.id}`}>{dataset.id}</Link>
                   </TableCell>
-                  <TableCell>{dataset.name}</TableCell>
-                  <form className={"test"} noValidate autoComplete="off">
-                    <TextField id="set-dataset-name" label={dataset.name} variant="outlined" />
-                  </form>
+                  <TableCell>
+                    <DatasetNameForm id={dataset.id} name={dataset.name}/>
+                  </TableCell>
                   <TableCell align="right">{dataset.images.length}</TableCell>
                 </TableRow>
               ))}
