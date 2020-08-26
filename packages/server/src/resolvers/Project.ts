@@ -10,5 +10,8 @@ export const Project: ProjectResolvers = {
   },
   exports(parent, _, { dataSources }: Context) {
     return dataSources.projectService.getExports(parent.id);
+  },
+  status(parent, _, { dataSources }: Context) {
+    return dataSources.projectService.getStatus(parent.id);
   }
 };

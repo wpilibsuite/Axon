@@ -4,6 +4,8 @@ import { makeStyles } from "@material-ui/core/styles";
 import Input from "./input/Input";
 import Metrics from "./metrics/Metrics";
 import Results from "./results/Results";
+import { gql, useQuery } from "@apollo/client";
+import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -27,32 +29,76 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const GET_PROJECT_DATA = gql`
+  query GetProjectData($id: ID!) {
+    project(id: $id) {
+      id
+      checkpoints {
+        step
+        metrics {
+          precision
+        }
+        status {
+          exporting
+          exportPaths
+        }
+      }
+      exports {
+        projectId
+        name
+        directory
+        tarPath
+        testingInProgress
+      }
+      status {
+        trainingState
+        currentEpoch
+        lastEpoch
+      }
+    }
+  }
+`;
+
 export default function Project(props: { id: string }): ReactElement {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
+
+  const { data, loading, error } = useQuery<GetProjectData, GetProjectDataVariables>(GET_PROJECT_DATA, {
+    variables: {
+      id: props.id
+    },
+    pollInterval: 3000
+  });
 
   const handleChange = (event: React.ChangeEvent<unknown>, newValue: number) => {
     setValue(newValue);
   };
 
-  return (
-    <div className={classes.root}>
-      <AppBar position="static" color="default">
-        <Tabs value={value} onChange={handleChange} indicatorColor="primary" textColor="primary" centered>
-          <Tab color="inherit" label="Input" />
-          <Tab label="Metrics" />
-          <Tab label="Output" />
-        </Tabs>
-      </AppBar>
-      <TabPanel value={value} index={0}>
-        <Input id={props.id} />
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        <Metrics id={props.id} />
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-        <Results id={props.id} />
-      </TabPanel>
-    </div>
-  );
+  if (loading) return <p>LOADING</p>;
+  if (error) return <p>ERROR</p>;
+
+  if (data?.project) {
+    return (
+      <div className={classes.root}>
+        <AppBar position="static" color="default">
+          <Tabs value={value} onChange={handleChange} indicatorColor="primary" textColor="primary" centered>
+            <Tab color="inherit" label="Input" />
+            <Tab label="Metrics" />
+            <Tab label="Output" />
+          </Tabs>
+        </AppBar>
+        <TabPanel value={value} index={0}>
+          <Input id={props.id} status={data.project.status} />
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          <Metrics id={props.id} checkpoints={data.project.checkpoints} />
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          <Results id={props.id} exports={data.project.exports} />
+        </TabPanel>
+      </div>
+    );
+  } else {
+    return <p> Error: cannot retrieve project data from server </p>;
+  }
 }

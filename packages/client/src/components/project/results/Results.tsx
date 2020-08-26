@@ -1,32 +1,19 @@
-import { Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@material-ui/core";
+import {
+  Container,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton
+} from "@material-ui/core";
 import React, { ReactElement } from "react";
-import { gql, useQuery } from "@apollo/client";
-import { GetProjectExports, GetProjectExportsVariables } from "./__generated__/GetProjectExports";
+import { GetProjectData_project_exports } from "../__generated__/GetProjectData";
 import TestButton from "./TestButton";
 
-const GET_PROJECT_EXPORTS = gql`
-  query GetProjectExports($id: ID!) {
-    project(id: $id) {
-      exports {
-        projectId
-        name
-        directory
-        tarPath
-      }
-    }
-  }
-`;
-
-export default function Results(props: { id: string }): ReactElement {
-  const { data, loading, error } = useQuery<GetProjectExports, GetProjectExportsVariables>(GET_PROJECT_EXPORTS, {
-    variables: {
-      id: props.id
-    }
-  });
-
-  if (loading) return <p>LOADING</p>;
-  if (error || !data) return <p>ERROR</p>;
-
+export default function Results(props: { id: string; exports: GetProjectData_project_exports[] }): ReactElement {
   return (
     <Container>
       <TableContainer component={Paper}>
@@ -37,11 +24,14 @@ export default function Results(props: { id: string }): ReactElement {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.project?.exports.map((exportInfo) => (
-              <TableRow>
+            {props.exports.map((exportInfo) => (
+              <TableRow key={exportInfo.name}>
                 <TableCell>{exportInfo.name}</TableCell>
                 <TableCell>
                   <TestButton modelExport={exportInfo} />
+                  <a download href={`http://localhost:4000/${exportInfo.tarPath.replace("data/projects", "projects")}`}>
+                    <IconButton>Download</IconButton>
+                  </a>
                 </TableCell>
               </TableRow>
             ))}

@@ -1,5 +1,5 @@
 import { DataSource } from "apollo-datasource";
-import { Checkpoint, Export, ProjectUpdateInput } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
 import Trainer from "../training";
@@ -34,6 +34,9 @@ export class ProjectService extends DataSource {
   }
   async getExports(id: string): Promise<Export[]> {
     return Object.values(this.trainer.projects[id].exports);
+  }
+  async getStatus(id: string): Promise<ProjectStatus> {
+    return this.trainer.projects[id].status;
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -89,6 +92,20 @@ export class ProjectService extends DataSource {
     this.trainer.halt(id);
     const project = await Project.findByPk(id);
     console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
+    return project;
+  }
+
+  async pauseTraining(id: string): Promise<Project> {
+    this.trainer.toggleContainer(id, true);
+    const project = await Project.findByPk(id);
+    console.log(`PAUSED Training on project: ${JSON.stringify(project)}`);
+    return project;
+  }
+
+  async resumeTraining(id: string): Promise<Project> {
+    this.trainer.toggleContainer(id, false);
+    const project = await Project.findByPk(id);
+    console.log(`RESUMED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 

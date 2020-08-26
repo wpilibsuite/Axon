@@ -35,6 +35,7 @@ const server = new ApolloServer({
 });
 
 app.use(mount("/datasets", serve(DATASET_DATA_DIR)));
+app.use(mount("/projects", serve(PROJECT_DATA_DIR)));
 server.applyMiddleware({ app });
 
 const port = process.env.PORT || 4000;
