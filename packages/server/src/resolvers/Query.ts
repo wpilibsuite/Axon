@@ -15,5 +15,8 @@ export const Query: QueryResolvers = {
   },
   projects: (_, args, { dataSources }) => {
     return dataSources.projectService.getProjects();
+  },
+  trainerState: (_, args, { dataSources }) => {
+    return dataSources.projectService.getTrainerState();
   }
 };

@@ -14,6 +14,17 @@ const TRAIN_IMAGE = "gcperkins/wpilib-ml-train:latest";
 const TEST_IMAGE = "gcperkins/wpilib-ml-test:latest";
 const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 
+//trainer state enumeration
+const NO_DOCKER_INSTALLED = 0;
+const SCANNING_FOR_DOCKER = 1;
+const SCANNING_PROJECTS = 2;
+const DATASET_PULL = 3;
+const METRICS_PULL = 4;
+const TRAINER_PULL = 5;
+const EXPORT_PULL = 6;
+const TEST_PULL = 7;
+const READY = 8;
+
 //training state enumeration
 const NOT_TRAINING = 0;
 const PREPARING = 1;
@@ -48,59 +59,47 @@ type ProjectData = {
 
 export default class Trainer {
   projects: ProjectData;
-  exportReady: boolean;
-  trainReady: boolean;
-  testReady: boolean;
+  trainer_state: number;
 
   readonly docker = new Dockerode();
 
   constructor() {
+    this.trainer_state = SCANNING_FOR_DOCKER;
+    this.prepare();
+  }
+
+  private async prepare(): Promise<void> {
+    try {
+      await this.docker.info();
+    } catch {
+      this.trainer_state = NO_DOCKER_INSTALLED;
+      console.log("docker is not responding");
+      Promise.resolve();
+      return;
+    }
+
+    this.trainer_state = SCANNING_PROJECTS;
     this.projects = this.scanProjects();
-
-    this.exportReady = false;
-    this.trainReady = false;
-    this.testReady = false;
-    this.pullImages();
-
     console.log(this.projects);
-  }
 
-  private async pullImages(): Promise<void> {
+    this.trainer_state = DATASET_PULL;
     await this.pull(DATASET_IMAGE);
+
+    this.trainer_state = METRICS_PULL;
     await this.pull(METRICS_IMAGE);
+
+    this.trainer_state = TRAINER_PULL;
     await this.pull(TRAIN_IMAGE);
-    this.trainReady = true;
 
+    this.trainer_state = EXPORT_PULL;
     await this.pull(EXPORT_IMAGE);
-    this.exportReady = true;
 
+    this.trainer_state = TEST_PULL;
     await this.pull(TEST_IMAGE);
-    this.testReady = true;
+
+    this.trainer_state = READY;
     console.log("image pull complete");
-
     Promise.resolve();
-  }
-
-  private async pull(name: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.docker.pull(name, (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
-        try {
-          stream.pipe(process.stdout);
-          this.docker.modem.followProgress(stream, onFinished);
-        } catch {
-          console.log("cant pull image");
-          resolve();
-        }
-        function onFinished(err: string, output: string) {
-          if (!err) {
-            resolve(output);
-          } else {
-            console.log(err);
-            reject(err);
-          }
-        }
-      });
-    });
   }
 
   scanProjects(): ProjectData {
@@ -161,6 +160,28 @@ export default class Trainer {
     }
 
     return projects;
+  }
+
+  private async pull(name: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.docker.pull(name, (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
+        try {
+          stream.pipe(process.stdout);
+          this.docker.modem.followProgress(stream, onFinished);
+        } catch {
+          console.log("cant pull image");
+          resolve();
+        }
+        function onFinished(err: string, output: string) {
+          if (!err) {
+            resolve(output);
+          } else {
+            console.log(err);
+            reject(err);
+          }
+        }
+      });
+    });
   }
 
   addProjectData(project: Project): void {

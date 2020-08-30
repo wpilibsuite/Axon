@@ -8,6 +8,7 @@ type Query {
   datasets: [Dataset!]!
   project(id: ID!): Project
   projects: [Project!]!
+  trainerState: Int!
 }
 
 type Mutation {

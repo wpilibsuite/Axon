@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { Typography } from "@material-ui/core";
+import { Typography, Dialog, DialogTitle, DialogContent } from "@material-ui/core";
 import { gql, useQuery } from "@apollo/client";
 import { GetTrainerState } from "./__generated__/GetTrainerState";
 
@@ -53,6 +53,17 @@ export default function TrainerStatus(props: {
           ][props.trainerState]
         }
       </Typography>
+      <Dialog open={props.trainerState === 0}>
+        <DialogTitle>Docker Error</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" color="textSecondary" align="center">
+            <p>
+              There was an error when trying to fetch data from docker. Please install/enable docker and restart the
+              application.
+            </p>
+          </Typography>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
