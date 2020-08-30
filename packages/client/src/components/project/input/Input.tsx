@@ -41,7 +41,11 @@ const RESUME_TRAINING = gql`
   }
 `;
 
-export default function Input(props: { id: string; status: GetProjectData_project_status }): ReactElement {
+export default function Input(props: {
+  id: string;
+  status: GetProjectData_project_status;
+  trainerState: number;
+}): ReactElement {
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [haltTraining] = useMutation<HaltTraining, HaltTrainingVariables>(HALT_TRAINING);
   const [pauseTraining] = useMutation<PauseTraining, PauseTrainingVariables>(PAUSE_TRAINING);
@@ -56,7 +60,11 @@ export default function Input(props: { id: string; status: GetProjectData_projec
             <Divider />
             <Parameters id={props.id} />
             <Divider />
-            <Button onClick={() => startTraining({ variables: { id: props.id } })}>Start</Button>
+            {props.trainerState > 5 ? (
+              <Button onClick={() => startTraining({ variables: { id: props.id } })}>Start</Button>
+            ) : (
+              <p>training images not available yet</p>
+            )}
           </>,
           <>
             <h1>Preparing</h1>
