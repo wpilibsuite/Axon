@@ -1,7 +1,7 @@
 import { Button, Container, Divider } from "@material-ui/core";
 import Datasets from "./Datasets";
 import Parameters from "./Parameters";
-import React, { ReactElement } from "react";
+import React, { ReactElement, useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { StartTraining, StartTrainingVariables } from "./__generated__/StartTraining";
 import { HaltTraining, HaltTrainingVariables } from "./__generated__/HaltTraining";
@@ -50,6 +50,14 @@ export default function Input(props: {
   const [haltTraining] = useMutation<HaltTraining, HaltTrainingVariables>(HALT_TRAINING);
   const [pauseTraining] = useMutation<PauseTraining, PauseTrainingVariables>(PAUSE_TRAINING);
   const [resumeTraining] = useMutation<ResumeTraining, ResumeTrainingVariables>(RESUME_TRAINING);
+  const [starting, setStarting] = useState(false); //<- purely to provide instant feedback.
+
+  const handleStart = () => {
+    setStarting(true);
+    startTraining({ variables: { id: props.id } });
+  };
+
+  if (starting && props.status.trainingState > 0) setStarting(false);
 
   return (
     <Container>
@@ -60,11 +68,7 @@ export default function Input(props: {
             <Divider />
             <Parameters id={props.id} />
             <Divider />
-            {props.trainerState > 5 ? (
-              <Button onClick={() => startTraining({ variables: { id: props.id } })}>Start</Button>
-            ) : (
-              <p>training images not available yet</p>
-            )}
+            <StartButton trainerState={props.trainerState} starting={starting} handleStart={handleStart} />
           </>,
           <>
             <h1>Preparing</h1>
@@ -97,4 +101,14 @@ function ProgressBar(props: { status: GetProjectData_project_status }): ReactEle
       <p>{`Epoch ${CURRENT_EPOCH} / ${LAST_EPOCH}`}</p>
     </Container>
   );
+}
+
+function StartButton(props: {
+  trainerState: number;
+  starting: boolean;
+  handleStart: (para: void) => void;
+}): ReactElement {
+  if (props.trainerState < 5) return <p>training images not available yet</p>;
+  else if (props.starting) return <Button>Starting...</Button>;
+  else return <Button onClick={() => props.handleStart()}>Start</Button>;
 }
