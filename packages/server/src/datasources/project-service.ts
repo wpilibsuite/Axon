@@ -151,4 +151,15 @@ export class ProjectService extends DataSource {
     });
     return savePath;
   }
+
+
+  
+  async databaseTest(id: string): Promise<Project> {
+    const project = await Project.findByPk(id);
+    console.log(project);
+    return project;
+  }
+
+
+
 }

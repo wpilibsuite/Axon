@@ -7,6 +7,8 @@ import Results from "./results/Results";
 import { gql, useQuery } from "@apollo/client";
 import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
 
+import DatabaseTestButton from "./DatabaseTestButton";
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -96,6 +98,7 @@ export default function Project(props: { id: string; trainerState: number }): Re
         <TabPanel value={value} index={2}>
           <Results id={props.id} exports={data.project.exports} trainerState={props.trainerState} />
         </TabPanel>
+      <DatabaseTestButton id={props.id}/>
       </div>
     );
   } else {
