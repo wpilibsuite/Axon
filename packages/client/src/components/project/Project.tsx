@@ -51,7 +51,7 @@ const GET_PROJECT_DATA = gql`
         testingInProgress
       }
       status {
-        trainingState
+        trainingStatus
         currentEpoch
         lastEpoch
       }

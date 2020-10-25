@@ -3,17 +3,17 @@ import { Typography, Dialog, DialogTitle, DialogContent } from "@material-ui/cor
 import { gql, useQuery } from "@apollo/client";
 import { GetTrainerState } from "./__generated__/GetTrainerState";
 
-//trainer state enumeration
-// const NO_DOCKER_INSTALLED = 0;
-// const SCANNING_FOR_DOCKER = 1;
-// const SCANNING_PROJECTS = 2;
-// const DATASET_PULL = 3;
-// const METRICS_PULL = 4;
-// const TRAINER_PULL = 5;
-// const EXPORT_PULL = 6;
-// const TEST_PULL = 7;
-const READY = 8;
-// const NO_DATA = 9;
+enum trainerState {
+  NO_DOCKER_INSTALLED,
+  SCANNING_FOR_DOCKER,
+  SCANNING_PROJECTS,
+  DATASET_PULL,
+  METRICS_PULL,
+  TRAINER_PULL,
+  EXPORT_PULL,
+  TEST_PULL,
+  READY
+}
 
 const GET_TRAINER_STATE = gql`
   query GetTrainerState {
@@ -25,7 +25,7 @@ export default function TrainerStatus(props: {
   trainerState: number;
   setTrainerState: (arg: number) => void;
 }): ReactElement {
-  const options = { pollInterval: props.trainerState === READY ? 0 : 3000 };
+  const options = { pollInterval: props.trainerState === trainerState.READY ? 0 : 3000 };
   const { data, loading, error } = useQuery<GetTrainerState>(GET_TRAINER_STATE, options);
 
   if (loading) return <p>connecting to trainer</p>;

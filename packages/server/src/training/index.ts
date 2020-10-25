@@ -15,21 +15,25 @@ const TEST_IMAGE = "gcperkins/wpilib-ml-test:latest";
 const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 
 //trainer state enumeration
-const NO_DOCKER_INSTALLED = 0;
-const SCANNING_FOR_DOCKER = 1;
-const SCANNING_PROJECTS = 2;
-const DATASET_PULL = 3;
-const METRICS_PULL = 4;
-const TRAINER_PULL = 5;
-const EXPORT_PULL = 6;
-const TEST_PULL = 7;
-const READY = 8;
+enum trainerState {
+  NO_DOCKER_INSTALLED,
+  SCANNING_FOR_DOCKER,
+  SCANNING_PROJECTS,
+  DATASET_PULL,
+  METRICS_PULL,
+  TRAINER_PULL,
+  EXPORT_PULL,
+  TEST_PULL,
+  READY
+}
 
-//training state enumeration
-const NOT_TRAINING = 0;
-const PREPARING = 1;
-const TRAINING = 2;
-const PAUSED = 3;
+//training status enumeration
+enum trainingStatus {
+  NOT_TRAINING,
+  PREPARING,
+  TRAINING,
+  PAUSED
+}
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -64,7 +68,7 @@ export default class Trainer {
   readonly docker = new Dockerode();
 
   constructor() {
-    this.trainer_state = SCANNING_FOR_DOCKER;
+    this.trainer_state = trainerState.SCANNING_FOR_DOCKER;
     this.prepare();
   }
 
@@ -72,32 +76,32 @@ export default class Trainer {
     try {
       await this.docker.info();
     } catch {
-      this.trainer_state = NO_DOCKER_INSTALLED;
+      this.trainer_state = trainerState.NO_DOCKER_INSTALLED;
       console.log("docker is not responding");
       Promise.resolve();
       return;
     }
 
-    this.trainer_state = SCANNING_PROJECTS;
+    this.trainer_state = trainerState.SCANNING_PROJECTS;
     this.projects = this.scanProjects();
     console.log(this.projects);
 
-    this.trainer_state = DATASET_PULL;
+    this.trainer_state = trainerState.DATASET_PULL;
     await this.pull(DATASET_IMAGE);
 
-    this.trainer_state = METRICS_PULL;
+    this.trainer_state = trainerState.METRICS_PULL;
     await this.pull(METRICS_IMAGE);
 
-    this.trainer_state = TRAINER_PULL;
+    this.trainer_state = trainerState.TRAINER_PULL;
     await this.pull(TRAIN_IMAGE);
 
-    this.trainer_state = EXPORT_PULL;
+    this.trainer_state = trainerState.EXPORT_PULL;
     await this.pull(EXPORT_IMAGE);
 
-    this.trainer_state = TEST_PULL;
+    this.trainer_state = trainerState.TEST_PULL;
     await this.pull(TEST_IMAGE);
 
-    this.trainer_state = READY;
+    this.trainer_state = trainerState.READY;
     console.log("image pull complete");
     Promise.resolve();
   }
@@ -129,7 +133,7 @@ export default class Trainer {
           test: null
         },
         status: {
-          trainingState: NOT_TRAINING,
+          trainingStatus: trainingStatus.NOT_TRAINING,
           currentEpoch: 0,
           lastEpoch: EPOCHS
         }
@@ -202,7 +206,7 @@ export default class Trainer {
           test: null
         },
         status: {
-          trainingState: NOT_TRAINING,
+          trainingStatus: trainingStatus.NOT_TRAINING,
           currentEpoch: 0,
           lastEpoch: project.epochs
         }
@@ -218,7 +222,7 @@ export default class Trainer {
     }
 
     const ID = project.id;
-    this.projects[ID].status.trainingState = PREPARING;
+    this.projects[ID].status.trainingStatus = trainingStatus.PREPARING;
 
     const MOUNT = this.projects[ID].directory;
     const DATASETPATHS = datasets.map((dataset) =>
@@ -240,20 +244,24 @@ export default class Trainer {
     };
     await fs.promises.writeFile(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(trainParameters));
 
-    if (!this.projects[ID].status.trainingState) return "training stopped";
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
+
     this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+
     const OLD_TRAIN_DIR = path.posix.join(MOUNT, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
       fs.rmdirSync(OLD_TRAIN_DIR, { recursive: true });
       console.log("old train dir removed");
     } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
+
     const OLD_METRICS_DIR = path.posix.join(MOUNT, "metrics.json");
     if (fs.existsSync(OLD_METRICS_DIR)) {
       fs.unlinkSync(OLD_METRICS_DIR);
     } //must clear old checkpoints in order for new ones to be saved by trainer
+
     this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
 
-    if (!this.projects[ID].status.trainingState) return "training stopped";
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
     datasets.forEach((dataset) => {
       fs.copyFileSync(
         path.posix.join("data", dataset.path),
@@ -263,7 +271,7 @@ export default class Trainer {
     console.log("datasets copied");
 
     //custom checkpoints not yet supported by gui
-    if (!this.projects[ID].status.trainingState) return "training stopped";
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
     if (project.initialCheckpoint != "default") {
       if (!fs.existsSync(path.posix.join(MOUNT, "checkpoints"))) {
         await mkdirp(path.posix.join(MOUNT, "checkpoints"));
@@ -284,7 +292,7 @@ export default class Trainer {
       ]);
     }
 
-    if (!this.projects[ID].status.trainingState) return "training stopped";
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
     console.log("extracting the dataset");
     this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
     await this.projects[ID].containers.train.start();
@@ -292,8 +300,8 @@ export default class Trainer {
     await this.projects[ID].containers.train.remove();
     console.log("datasets extracted");
 
-    if (!this.projects[ID].status.trainingState) return "training stopped";
-    this.projects[ID].status.trainingState = TRAINING;
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
+    this.projects[ID].status.trainingStatus = trainingStatus.TRAINING;
     this.projects[ID].status.currentEpoch = 0;
     this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
     await this.projects[ID].containers.metrics.start();
@@ -301,7 +309,7 @@ export default class Trainer {
     await this.projects[ID].containers.train.wait();
     await this.projects[ID].containers.train.remove();
 
-    this.projects[ID].status.trainingState = NOT_TRAINING;
+    this.projects[ID].status.trainingStatus = trainingStatus.NOT_TRAINING;
     this.projects[ID].containers.train = null;
     return "training complete";
   }
@@ -451,12 +459,12 @@ export default class Trainer {
         await this.projects[id].containers.train.kill({ force: true });
       }
     }
-    this.projects[id].status.trainingState = NOT_TRAINING;
+    this.projects[id].status.trainingStatus = trainingStatus.NOT_TRAINING;
     Promise.resolve();
   }
 
   async toggleContainer(id: string, pause: boolean): Promise<void> {
-    if (!this.projects[id].status.trainingState) {
+    if (!this.projects[id].status.trainingStatus) {
       console.log("not training");
       Promise.resolve();
       return;
@@ -471,12 +479,12 @@ export default class Trainer {
     if (pause) {
       if (!(await CONTAINER.inspect()).State.Paused) {
         await CONTAINER.pause();
-        this.projects[id].status.trainingState = PAUSED;
+        this.projects[id].status.trainingStatus = trainingStatus.PAUSED;
       }
     } else {
       if ((await CONTAINER.inspect()).State.Paused) {
         CONTAINER.unpause();
-        this.projects[id].status.trainingState = TRAINING;
+        this.projects[id].status.trainingStatus = trainingStatus.TRAINING;
       }
     }
     Promise.resolve();

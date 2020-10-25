@@ -57,7 +57,7 @@ export default function Input(props: {
     startTraining({ variables: { id: props.id } });
   };
 
-  if (starting && props.status.trainingState > 0) setStarting(false);
+  if (starting && props.status.trainingStatus > 0) setStarting(false);
 
   return (
     <Container>
@@ -87,7 +87,7 @@ export default function Input(props: {
             <Button onClick={() => haltTraining({ variables: { id: props.id } })}>Halt</Button>
             <Button onClick={() => resumeTraining({ variables: { id: props.id } })}>Resume</Button>
           </>
-        ][props.status.trainingState]
+        ][props.status.trainingStatus]
       }
     </Container>
   );

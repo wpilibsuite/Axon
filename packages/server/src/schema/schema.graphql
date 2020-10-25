@@ -108,7 +108,7 @@ type Project {
 }
 
 type ProjectStatus {
-  trainingState: Int!
+  trainingStatus: Int!
   currentEpoch: Int
   lastEpoch: Int
 }
