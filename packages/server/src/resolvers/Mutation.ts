@@ -35,10 +35,7 @@ export const Mutation: MutationResolvers = {
     return dataSources.projectService.testModel(modelExport, videoName, filename, createReadStream());
   },
 
-
   databaseTest: async (parent, { id }, { dataSources }) => {
     return dataSources.projectService.databaseTest(id);
   }
-
-
 };

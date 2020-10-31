@@ -7,6 +7,7 @@ import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
+import PseudoDatabase from "./PseudoDatabase";
 
 export class ProjectService extends DataSource {
   private store: Sequelize;
@@ -82,6 +83,9 @@ export class ProjectService extends DataSource {
   async createProject(name: string): Promise<Project> {
     const project = await Project.create({ name });
     this.trainer.addProjectData(project);
+
+    PseudoDatabase.addProjectData(project);
+
     return project;
   }
 
@@ -152,14 +156,9 @@ export class ProjectService extends DataSource {
     return savePath;
   }
 
-
-  
   async databaseTest(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
     console.log(project);
     return project;
   }
-
-
-
 }

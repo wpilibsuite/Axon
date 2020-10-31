@@ -25,10 +25,7 @@ type Mutation {
   exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
   testModel(modelExport: ExportInput!, videoName: String!, video: Upload!): Project
 
-
   databaseTest(id: ID!): Project
-
-
 }
 
 type Size {

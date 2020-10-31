@@ -98,7 +98,7 @@ export default function Project(props: { id: string; trainerState: number }): Re
         <TabPanel value={value} index={2}>
           <Results id={props.id} exports={data.project.exports} trainerState={props.trainerState} />
         </TabPanel>
-      <DatabaseTestButton id={props.id}/>
+        <DatabaseTestButton id={props.id} />
       </div>
     );
   } else {
