@@ -2,7 +2,7 @@ import { DataSource } from "apollo-datasource";
 import { Checkpoint, Export, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
-import Trainer from "../training";
+import MLService from "../training";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
@@ -11,18 +11,18 @@ import PseudoDatabase from "./PseudoDatabase";
 
 export class ProjectService extends DataSource {
   private store: Sequelize;
-  private trainer: Trainer;
+  private mLService: MLService;
   private readonly path: string;
 
-  constructor(store: Sequelize, trainer: Trainer, path: string) {
+  constructor(store: Sequelize, mLService: MLService, path: string) {
     super();
     this.store = store;
-    this.trainer = trainer;
+    this.mLService = mLService;
     this.path = path;
   }
 
   async getTrainerState(): Promise<number> {
-    return this.trainer.trainer_state;
+    return this.mLService.trainer_state;
   }
 
   async getProjects(): Promise<Project[]> {
@@ -34,14 +34,14 @@ export class ProjectService extends DataSource {
   }
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
-    await this.trainer.UpdateCheckpoints(id);
-    return Object.values(this.trainer.projects[id].checkpoints);
+    await this.mLService.UpdateCheckpoints(id);
+    return Object.values(this.mLService.projects[id].checkpoints);
   }
   async getExports(id: string): Promise<Export[]> {
-    return Object.values(this.trainer.projects[id].exports);
+    return Object.values(this.mLService.projects[id].exports);
   }
   async getStatus(id: string): Promise<ProjectStatus> {
-    return this.trainer.projects[id].status;
+    return this.mLService.projects[id].status;
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -82,7 +82,7 @@ export class ProjectService extends DataSource {
 
   async createProject(name: string): Promise<Project> {
     const project = await Project.create({ name });
-    this.trainer.addProjectData(project);
+    // this.trainer.addProjectData(project);
 
     PseudoDatabase.addProjectData(project);
 
@@ -91,34 +91,34 @@ export class ProjectService extends DataSource {
 
   async startTraining(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    this.trainer.start(project);
+    this.mLService.start(project);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async haltTraining(id: string): Promise<Project> {
-    this.trainer.halt(id);
+    this.mLService.halt(id);
     const project = await Project.findByPk(id);
     console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async pauseTraining(id: string): Promise<Project> {
-    this.trainer.toggleContainer(id, true);
+    this.mLService.toggleContainer(id, true);
     const project = await Project.findByPk(id);
     console.log(`PAUSED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async resumeTraining(id: string): Promise<Project> {
-    this.trainer.toggleContainer(id, false);
+    this.mLService.toggleContainer(id, false);
     const project = await Project.findByPk(id);
     console.log(`RESUMED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async exportCheckpoint(id: string, checkpointNumber: number, name: string): Promise<Project> {
-    this.trainer.export(id, checkpointNumber, name).catch((err) => console.log(err));
+    this.mLService.export(id, checkpointNumber, name).catch((err) => console.log(err));
     const project = await Project.findByPk(id);
     console.log(`Started export on project: ${JSON.stringify(project)}`);
     return project;
@@ -131,7 +131,7 @@ export class ProjectService extends DataSource {
     stream: fs.ReadStream
   ): Promise<Project> {
     const videoPath = await this.upload(filename, modelExport.projectId, stream);
-    this.trainer.test(modelExport, videoPath, filename, videoCustomName).catch((err) => console.log(err));
+    this.mLService.test(modelExport, videoPath, filename, videoCustomName).catch((err) => console.log(err));
     const project = await Project.findByPk(modelExport.projectId);
     console.log(`Started test: \nModel: ${modelExport} \nVideo: ${filename}`);
     return project;

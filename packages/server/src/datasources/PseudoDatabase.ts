@@ -1,18 +1,20 @@
 import { Container } from "dockerode";
 import { Checkpoint, Export,  } from "../schema/__generated__/graphql";
 import { Project } from "../store";
+import { Dataset } from "../store";
 import { DATA_DIR } from "../constants";
 import { PROJECT_DATA_DIR } from "../constants";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
 
-type ProjectData = {
+export type ProjectData = {
   id: string;
   name: string;
   initialCheckpoint: string;
+  datasets: Dataset[];
   directory: string;
-  hyperparams: {
+  hyperparameters: {
     epochs: number;
     batchSize: number;
     evalFrequency: number;
@@ -40,17 +42,20 @@ export default class PseudoDatabase {
     console.log(duplicateProject);
     if (duplicateProject) throw "Attempted to add an existing project to pseudo database!";
 
+    const DATASETS: Dataset[] = await project.getDatasets();
+
     const MOUNT = `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
-    //await mkdirp(MOUNT)
-    //await fs.promises.mkdir(path.posix.join(MOUNT, "dataset"))
-    //await fs.promises.mkdir(path.posix.join(MOUNT, "exports"))
+    await mkdirp(MOUNT)
+    await fs.promises.mkdir(path.posix.join(MOUNT, "dataset"))
+    await fs.promises.mkdir(path.posix.join(MOUNT, "exports"))
 
     const newProjectData = {
       id: project.id,
       name: project.name,
       initialCheckpoint: project.initialCheckpoint,
+      datasets: DATASETS,
       directory: MOUNT,
-      hyperparams: {
+      hyperparameters: {
         epochs: project.epochs,
         batchSize: project.batchSize,
         evalFrequency: project.evalFrequency,
@@ -68,6 +73,8 @@ export default class PseudoDatabase {
     };
 
     await PseudoDatabase.pushProject(newProjectData);
+    
+    Promise.resolve()
   }
 
   public static async retrieveDatabase(): Promise<ProjectDatabase> {
@@ -90,5 +97,6 @@ export default class PseudoDatabase {
     const database = await PseudoDatabase.retrieveDatabase();
     database[project.id] = project;
     await fs.promises.writeFile(this.dataPath, JSON.stringify(database, null, 4));
+    Promise.resolve()
   }
 }
