@@ -216,7 +216,7 @@ export default class Trainer {
 
   async start(project: Project): Promise<string> {
     const datasets = await project.getDatasets();
-    if (!datasets) {
+    if (datasets.length == 0) {
       Promise.reject("there are no datasets. How am I supposed to train with no datasets?");
       return;
     }
