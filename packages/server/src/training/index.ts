@@ -222,6 +222,7 @@ export default class Trainer {
     }
 
     const ID = project.id;
+    this.projects[ID].status.lastEpoch = project.epochs;
     this.projects[ID].status.trainingStatus = trainingStatus.PREPARING;
 
     const MOUNT = this.projects[ID].directory;
@@ -242,6 +243,9 @@ export default class Trainer {
       checkpoint: INITCKPT,
       name: project.name
     };
+
+    console.log(trainParameters);
+
     await fs.promises.writeFile(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(trainParameters));
 
     if (!this.projects[ID].status.trainingStatus) return "training stopped";
