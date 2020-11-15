@@ -1,5 +1,6 @@
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
+import { Container } from "dockerode";
 import * as path from "path";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
@@ -96,6 +97,46 @@ export default class Trainer {
                 copyCheckpointFile(".meta"),
             ]);
             }
+
+            Promise.resolve();
     }
+
+    public static async runContainer(container: Container){
+        await container.start();
+        await container.wait();
+        await container.remove();
+        Promise.resolve();
+    }
+
+    public static async UpdateCheckpoints(id: string): Promise<void> {
+
+        const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+
+        const METRICSPATH = path.posix.join(project.directory, "metrics.json");
+        if (fs.existsSync(METRICSPATH)) {
+          const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
+          while (Object.keys(metrics.precision).length > Object.keys(project.checkpoints).length) {
+            const CURRENT_CKPT = Object.keys(project.checkpoints).length;
+            const step = Object.keys(metrics.precision)[CURRENT_CKPT];
+            project.checkpoints[step] = {
+              step: parseInt(step, 10),
+              metrics: {
+                precision: metrics.precision[step],
+                loss: null,
+                intersectionOverUnion: null //i will probably push an edit to the metrics container soon to make this easier
+              },
+              status: {
+                exporting: false,
+                exportPaths: []
+              }
+            };
+            project.status.currentEpoch = parseInt(step, 10);
+          }
+        } else project.status.currentEpoch = 0;
+    
+        await PseudoDatabase.pushProject(project);
+
+        Promise.resolve();
+      }
 
 }

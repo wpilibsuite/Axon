@@ -1,9 +1,10 @@
 import { Container } from "dockerode";
-import { Checkpoint, Export,  } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Dataset } from "../store";
 import { DATA_DIR } from "../constants";
 import { PROJECT_DATA_DIR } from "../constants";
+import { TrainingStatus } from "../training";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
@@ -29,6 +30,7 @@ export type ProjectData = {
     export: Container;
     test: Container;
   };
+  status : ProjectStatus;
 };
 
 type ProjectDatabase = { [id: string]: ProjectData };
@@ -69,6 +71,11 @@ export default class PseudoDatabase {
         metrics: null,
         export: null,
         test: null
+      },
+      status: {
+        trainingStatus:  TrainingStatus.NOT_TRAINING,
+        currentEpoch: 0,
+        lastEpoch: project.epochs
       }
     };
 

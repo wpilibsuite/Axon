@@ -34,7 +34,7 @@ export class ProjectService extends DataSource {
   }
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
-    await this.mLService.UpdateCheckpoints(id);
+    await this.mLService.updateCheckpoints(id);
     return Object.values(this.mLService.projects[id].checkpoints);
   }
   async getExports(id: string): Promise<Export[]> {

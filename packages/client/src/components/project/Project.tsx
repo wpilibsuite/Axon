@@ -77,7 +77,7 @@ export default function Project(props: { id: string; trainerState: number }): Re
   };
 
   if (loading) return <p>LOADING</p>;
-  if (error) return <p>ERROR</p>;
+  if (error) return <p>{error.message}</p>;
 
   if (data?.project) {
     return (

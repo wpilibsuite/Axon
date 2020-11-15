@@ -32,7 +32,7 @@ enum trainerState {
 }
 
 //training status enumeration
-enum trainingStatus {
+export enum TrainingStatus {
   NOT_TRAINING,
   PREPARING,
   TRAINING,
@@ -312,8 +312,7 @@ export default class MLService {
 
       const ID = iproject.id;
       const MOUNT = this.projects[ID].directory;
-      this.projects[ID].status.trainingStatus = trainingStatus.PREPARING;
-      let project = await PseudoDatabase.retrieveProject(ID);
+      this.projects[ID].status.trainingStatus = TrainingStatus.PREPARING;
 
       await Trainer.writeParameterFile(ID)
       
@@ -328,23 +327,27 @@ export default class MLService {
       await Trainer.moveDataToMount(ID);
   
       if (!this.projects[ID].status.trainingStatus) return "training stopped";
+
       console.log("extracting the dataset");
+
       this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
-      await this.projects[ID].containers.train.start();
-      await this.projects[ID].containers.train.wait();
-      await this.projects[ID].containers.train.remove();
+
+      await Trainer.runContainer(this.projects[ID].containers.train)
       console.log("datasets extracted");
   
       if (!this.projects[ID].status.trainingStatus) return "training stopped";
-      this.projects[ID].status.trainingStatus = trainingStatus.TRAINING;
+
+      this.projects[ID].status.trainingStatus = TrainingStatus.TRAINING;
+      
       this.projects[ID].status.currentEpoch = 0;
+      
       this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
+      
       await this.projects[ID].containers.metrics.start();
-      await this.projects[ID].containers.train.start();
-      await this.projects[ID].containers.train.wait();
-      await this.projects[ID].containers.train.remove();
+      
+      await Trainer.runContainer(this.projects[ID].containers.train);
   
-      this.projects[ID].status.trainingStatus = trainingStatus.NOT_TRAINING;
+      this.projects[ID].status.trainingStatus = TrainingStatus.NOT_TRAINING;
       this.projects[ID].containers.train = null;
       return "training complete";
     }
@@ -377,7 +380,7 @@ export default class MLService {
       )
     ]);
 
-    await this.UpdateCheckpoints(id); // <-- get rid of soon
+    await Trainer.UpdateCheckpoints(id); // <-- get rid of soon
     this.projects[id].checkpoints[checkpointNumber].status.exporting = true;
 
     const exportparameters = {
@@ -462,39 +465,13 @@ export default class MLService {
     return "testing complete";
   }
 
-  async UpdateCheckpoints(id: string): Promise<void> {
-    const METRICSPATH = path.posix.join(this.projects[id].directory, "metrics.json");
-    if (fs.existsSync(METRICSPATH)) {
-      const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
-      while (Object.keys(metrics.precision).length > Object.keys(this.projects[id].checkpoints).length) {
-        const CURRENT_CKPT = Object.keys(this.projects[id].checkpoints).length;
-        const step = Object.keys(metrics.precision)[CURRENT_CKPT];
-        this.projects[id].checkpoints[step] = {
-          step: parseInt(step, 10),
-          metrics: {
-            precision: metrics.precision[step],
-            loss: null,
-            intersectionOverUnion: null //i will probably push an edit to the metrics container soon to make this easier
-          },
-          status: {
-            exporting: false,
-            exportPaths: []
-          }
-        };
-        this.projects[id].status.currentEpoch = parseInt(step, 10);
-      }
-    } else this.projects[id].status.currentEpoch = 0;
-
-    Promise.resolve();
-  }
-
   async halt(id: string): Promise<void> {
     if (this.projects[id].containers.train) {
       if ((await this.projects[id].containers.train.inspect()).State.Running) {
         await this.projects[id].containers.train.kill({ force: true });
       }
     }
-    this.projects[id].status.trainingStatus = trainingStatus.NOT_TRAINING;
+    this.projects[id].status.trainingStatus = TrainingStatus.NOT_TRAINING;
     Promise.resolve();
   }
 
@@ -514,12 +491,12 @@ export default class MLService {
     if (pause) {
       if (!(await CONTAINER.inspect()).State.Paused) {
         await CONTAINER.pause();
-        this.projects[id].status.trainingStatus = trainingStatus.PAUSED;
+        this.projects[id].status.trainingStatus = TrainingStatus.PAUSED;
       }
     } else {
       if ((await CONTAINER.inspect()).State.Paused) {
         CONTAINER.unpause();
-        this.projects[id].status.trainingStatus = trainingStatus.TRAINING;
+        this.projects[id].status.trainingStatus = TrainingStatus.TRAINING;
       }
     }
     Promise.resolve();
@@ -582,4 +559,10 @@ export default class MLService {
     }
     Promise.resolve();
   }
+  
+  public async updateCheckpoints(id: string) : Promise<void> {
+    Trainer.UpdateCheckpoints(id);
+    Promise.resolve();
+  }
+  
 }
