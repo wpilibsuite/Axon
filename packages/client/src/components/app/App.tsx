@@ -5,8 +5,8 @@ import { Router } from "react-router";
 import { createBrowserHistory } from "history";
 import NavigationDrawer from "../navigationDrawer";
 import Footer from "../footer";
-import { makeStyles } from "@material-ui/core/styles";
-import { CssBaseline } from "@material-ui/core";
+import { createMuiTheme, makeStyles, ThemeProvider } from "@material-ui/core/styles";
+import { CssBaseline, useMediaQuery } from "@material-ui/core";
 import { ApolloClient, ApolloProvider, NormalizedCacheObject } from "@apollo/client";
 
 const browserHistory = createBrowserHistory();
@@ -25,6 +25,12 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar
 }));
 
+const theme = createMuiTheme({
+  palette: {
+    type: "dark"
+  }
+});
+
 interface Props {
   client: ApolloClient<NormalizedCacheObject>;
 }
@@ -35,16 +41,18 @@ function App({ client }: Props): ReactElement {
   return (
     <ApolloProvider client={client}>
       <div className={classes.root}>
-        <CssBaseline />
-        <Router history={browserHistory}>
-          <Header />
-          <NavigationDrawer />
-          <main className={classes.content}>
-            <div className={classes.appBarSpacer} />
-            <AppRoutes />
-            <Footer />
-          </main>
-        </Router>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router history={browserHistory}>
+            <Header />
+            <NavigationDrawer />
+            <main className={classes.content}>
+              <div className={classes.appBarSpacer} />
+              <AppRoutes />
+              <Footer />
+            </main>
+          </Router>
+        </ThemeProvider>
       </div>
     </ApolloProvider>
   );
