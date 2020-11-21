@@ -1,13 +1,13 @@
 import { IconButton, Dialog, DialogActions, DialogContent, DialogTitle, Container } from "@material-ui/core";
 import React, { ReactElement } from "react";
-import { GetProjectCheckpoints_project_checkpoints } from "../__generated__/GetProjectCheckpoints";
 import Chart from "./Chart";
 import ExportButton from "./ExportButton";
 import * as path from "path";
+import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectData";
 
 export default function Metrics(props: {
   id: string;
-  checkpoints: GetProjectCheckpoints_project_checkpoints[];
+  checkpoints: GetProjectData_project_checkpoints[];
 }): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [selectedEpoch, setSelectedEpoch] = React.useState(0);
@@ -22,9 +22,9 @@ export default function Metrics(props: {
 
   //if this function still exists by next week scold me
   function getCheckpointFromStep(
-    checkpoints: GetProjectCheckpoints_project_checkpoints[] | undefined,
+    checkpoints: GetProjectData_project_checkpoints[] | undefined,
     stepNumber: number
-  ): GetProjectCheckpoints_project_checkpoints | null {
+  ): GetProjectData_project_checkpoints | null {
     let index = 0;
     if (checkpoints) {
       while (index < checkpoints.length) {
@@ -53,7 +53,7 @@ export default function Metrics(props: {
   );
 }
 
-function CheckpointInfo(props: { checkpoint: GetProjectCheckpoints_project_checkpoints | null }): JSX.Element {
+function CheckpointInfo(props: { checkpoint: GetProjectData_project_checkpoints | null }): JSX.Element {
   if (props.checkpoint) {
     const metrics = props.checkpoint.metrics;
     return (
