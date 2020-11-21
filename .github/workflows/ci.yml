@@ -44,3 +44,17 @@ jobs:
         run: yarn
       - name: Build
         run: yarn workspace client build
+
+  build-docker:
+    name: Build Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Docker Image
+        run: docker build -t ml-app .
+      - name: Save Docker Image
+        run: docker save -o ml-app.tar ml-app
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Docker Container
+          path: ml-app.tar
