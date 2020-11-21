@@ -2,7 +2,7 @@ import React, { ReactElement } from "react";
 import { Typography, Dialog, DialogTitle, DialogContent } from "@material-ui/core";
 import { gql, useQuery } from "@apollo/client";
 import { GetTrainerState } from "./__generated__/GetTrainerState";
-
+//hi
 enum trainerState {
   NO_DOCKER_INSTALLED,
   SCANNING_FOR_DOCKER,
