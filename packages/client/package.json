@@ -42,7 +42,7 @@
     "generate": "apollo client:codegen --target=typescript",
     "start": "concurrently \"yarn generate --watch\" \"react-scripts start\"",
     "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "build": "react-scripts build",
+    "build": "yarn generate && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

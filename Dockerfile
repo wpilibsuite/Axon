@@ -1,11 +1,17 @@
 FROM node:15.2.1-alpine3.10
 
-WORKDIR /app
+WORKDIR /usr/src/app
+
+COPY package.json .
+COPY yarn.lock .
+COPY packages/client ./packages/client
+COPY packages/server ./packages/server
+
+RUN yarn install --pure-lockfile --non-interactive
 
 COPY . .
 
-RUN npm install
+EXPOSE 3000
+EXPOSE 4000
 
-CMD ["npm", "start"]
-EXPOSE [4000/tcp, 3000/tcp]
-
+CMD ["yarn", "start"]
