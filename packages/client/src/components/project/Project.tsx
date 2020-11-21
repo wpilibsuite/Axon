@@ -56,10 +56,11 @@ const GET_PROJECT_DATA = gql`
         lastEpoch
       }
     }
+    trainerState
   }
 `;
 
-export default function Project(props: { id: string; trainerState: number }): ReactElement {
+export default function Project(props: { id: string }): ReactElement {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
 
@@ -88,13 +89,13 @@ export default function Project(props: { id: string; trainerState: number }): Re
           </Tabs>
         </AppBar>
         <TabPanel value={value} index={0}>
-          <Input id={props.id} status={data.project.status} trainerState={props.trainerState} />
+          <Input id={props.id} status={data.project.status} trainerState={data.trainerState} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Metrics id={props.id} checkpoints={data.project.checkpoints} trainerState={props.trainerState} />
+          <Metrics id={props.id} checkpoints={data.project.checkpoints} trainerState={data.trainerState} />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          <Results id={props.id} exports={data.project.exports} trainerState={props.trainerState} />
+          <Results id={props.id} exports={data.project.exports} trainerState={data.trainerState} />
         </TabPanel>
       </div>
     );

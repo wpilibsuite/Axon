@@ -3,7 +3,7 @@ import { Typography, Dialog, DialogTitle, DialogContent } from "@material-ui/cor
 import { gql, useQuery } from "@apollo/client";
 import { GetTrainerState } from "./__generated__/GetTrainerState";
 //hi
-enum trainerState {
+enum TrainerState {
   NO_DOCKER_INSTALLED,
   SCANNING_FOR_DOCKER,
   SCANNING_PROJECTS,
@@ -12,7 +12,8 @@ enum trainerState {
   TRAINER_PULL,
   EXPORT_PULL,
   TEST_PULL,
-  READY
+  READY,
+  NO_DATA
 }
 
 const GET_TRAINER_STATE = gql`
@@ -21,19 +22,12 @@ const GET_TRAINER_STATE = gql`
   }
 `;
 
-export default function TrainerStatus(props: {
-  trainerState: number;
-  setTrainerState: (arg: number) => void;
-}): ReactElement {
-  const options = { pollInterval: props.trainerState === trainerState.READY ? 0 : 3000 };
+export default function TrainerStatus(): ReactElement {
+  const options = { pollInterval: 5000 };
   const { data, loading, error } = useQuery<GetTrainerState>(GET_TRAINER_STATE, options);
 
   if (loading) return <p>connecting to trainer</p>;
   if (error) return <p>cant connect to trainer</p>;
-
-  if (data) {
-    if (data.trainerState !== props.trainerState) props.setTrainerState(data.trainerState);
-  }
 
   return (
     <>
@@ -50,10 +44,10 @@ export default function TrainerStatus(props: {
             <p key={7}>downloading test container image</p>,
             <p key={8}>Ready</p>,
             <p key={9}>no data from trainer</p>
-          ][props.trainerState]
+          ][data ? data.trainerState : TrainerState.NO_DATA]
         }
       </Typography>
-      <Dialog open={props.trainerState === 0}>
+      <Dialog open={data?.trainerState === 0}>
         <DialogTitle>Docker Error</DialogTitle>
         <DialogContent dividers>
           <Typography variant="body2" color="textSecondary" align="center">
