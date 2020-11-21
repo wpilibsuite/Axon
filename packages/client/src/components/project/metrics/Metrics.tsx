@@ -1,9 +1,9 @@
 import { IconButton, Dialog, DialogActions, DialogContent, DialogTitle, Container } from "@material-ui/core";
 import React, { ReactElement } from "react";
-import { GetProjectCheckpoints_project_checkpoints } from "../__generated__/GetProjectCheckpoints";
 import Chart from "./Chart";
 import ExportButton from "./ExportButton";
 import * as path from "path";
+import { GetProjectCheckpoints_project_checkpoints } from "./__generated__/GetProjectCheckpoints";
 
 export default function Metrics(props: {
   id: string;
