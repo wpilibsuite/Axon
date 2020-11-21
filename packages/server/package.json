@@ -6,7 +6,9 @@
   "private": true,
   "scripts": {
     "generate": "graphql-codegen",
-    "start": "concurrently \"nodemon -e ts,graphql -x ts-node src/index.ts\" \"yarn generate --watch\"",
+    "dev": "concurrently \"nodemon -e ts,graphql -x ts-node src/index.ts\" \"yarn generate --watch\"",
+    "build": "yarn generate",
+    "start": "ts-node src/index.ts",
     "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
