@@ -30,7 +30,7 @@ export type ProjectData = {
     export: Container;
     test: Container;
   };
-  status : ProjectStatus;
+  status: ProjectStatus;
 };
 
 type ProjectDatabase = { [id: string]: ProjectData };
@@ -40,16 +40,14 @@ export default class PseudoDatabase {
 
   public static async addProjectData(project: Project): Promise<void> {
     const duplicateProject = await PseudoDatabase.retrieveProject(project.id);
-
-    console.log(duplicateProject);
     if (duplicateProject) throw "Attempted to add an existing project to pseudo database!";
 
     const DATASETS: Dataset[] = await project.getDatasets();
 
     const MOUNT = `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
-    await mkdirp(MOUNT)
-    await fs.promises.mkdir(path.posix.join(MOUNT, "dataset"))
-    await fs.promises.mkdir(path.posix.join(MOUNT, "exports"))
+    await mkdirp(MOUNT);
+    await fs.promises.mkdir(path.posix.join(MOUNT, "dataset"));
+    await fs.promises.mkdir(path.posix.join(MOUNT, "exports"));
 
     const newProjectData = {
       id: project.id,
@@ -73,15 +71,15 @@ export default class PseudoDatabase {
         test: null
       },
       status: {
-        trainingStatus:  TrainingStatus.NOT_TRAINING,
+        trainingStatus: TrainingStatus.NOT_TRAINING,
         currentEpoch: 0,
         lastEpoch: project.epochs
       }
     };
 
     await PseudoDatabase.pushProject(newProjectData);
-    
-    Promise.resolve()
+
+    Promise.resolve();
   }
 
   public static async retrieveDatabase(): Promise<ProjectDatabase> {
@@ -104,6 +102,6 @@ export default class PseudoDatabase {
     const database = await PseudoDatabase.retrieveDatabase();
     database[project.id] = project;
     await fs.promises.writeFile(this.dataPath, JSON.stringify(database, null, 4));
-    Promise.resolve()
+    Promise.resolve();
   }
 }

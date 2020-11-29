@@ -9,7 +9,7 @@ import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graph
 
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
-import Trainer from "./Trainer"
+import Trainer from "./Trainer";
 
 export const DATASET_IMAGE = "gcperkins/wpilib-ml-dataset:latest";
 export const METRICS_IMAGE = "gcperkins/wpilib-ml-metrics:latest";
@@ -78,7 +78,6 @@ export default class MLService {
 
     this.trainer_state = trainerState.SCANNING_PROJECTS;
     // this.projects = this.scanProjects();
-    console.log(this.projects);
 
     this.trainer_state = trainerState.DATASET_PULL;
     await this.pull(DATASET_IMAGE);
@@ -309,48 +308,47 @@ export default class MLService {
   // }
 
   async start(iproject: Project): Promise<string> {
+    const ID = iproject.id;
+    const MOUNT = this.projects[ID].directory;
+    this.projects[ID].status.trainingStatus = TrainingStatus.PREPARING;
 
-      const ID = iproject.id;
-      const MOUNT = this.projects[ID].directory;
-      this.projects[ID].status.trainingStatus = TrainingStatus.PREPARING;
+    await Trainer.writeParameterFile(ID);
 
-      await Trainer.writeParameterFile(ID)
-      
-      if (!this.projects[ID].status.trainingStatus) return "training stopped";
-  
-      this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-  
-      await Trainer.handleOldData(ID);
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
 
-      if (!this.projects[ID].status.trainingStatus) return "training stopped";
-      
-      await Trainer.moveDataToMount(ID);
-  
-      if (!this.projects[ID].status.trainingStatus) return "training stopped";
+    this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
 
-      console.log("extracting the dataset");
+    await Trainer.handleOldData(ID);
 
-      this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
 
-      await Trainer.runContainer(this.projects[ID].containers.train)
-      console.log("datasets extracted");
-  
-      if (!this.projects[ID].status.trainingStatus) return "training stopped";
+    await Trainer.moveDataToMount(ID);
 
-      this.projects[ID].status.trainingStatus = TrainingStatus.TRAINING;
-      
-      this.projects[ID].status.currentEpoch = 0;
-      
-      this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
-      
-      await this.projects[ID].containers.metrics.start();
-      
-      await Trainer.runContainer(this.projects[ID].containers.train);
-  
-      this.projects[ID].status.trainingStatus = TrainingStatus.NOT_TRAINING;
-      this.projects[ID].containers.train = null;
-      return "training complete";
-    }
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
+
+    console.log("extracting the dataset");
+
+    this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
+
+    await Trainer.runContainer(this.projects[ID].containers.train);
+    console.log("datasets extracted");
+
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
+
+    this.projects[ID].status.trainingStatus = TrainingStatus.TRAINING;
+
+    this.projects[ID].status.currentEpoch = 0;
+
+    this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
+
+    await this.projects[ID].containers.metrics.start();
+
+    await Trainer.runContainer(this.projects[ID].containers.train);
+
+    this.projects[ID].status.trainingStatus = TrainingStatus.NOT_TRAINING;
+    this.projects[ID].containers.train = null;
+    return "training complete";
+  }
 
   async export(id: string, checkpointNumber: number, name: string): Promise<string> {
     const MOUNT = this.projects[id].directory;
@@ -559,10 +557,24 @@ export default class MLService {
     }
     Promise.resolve();
   }
-  
-  public async updateCheckpoints(id: string) : Promise<void> {
+
+  public async updateCheckpoints(id: string): Promise<void> {
     Trainer.UpdateCheckpoints(id);
     Promise.resolve();
   }
-  
+
+  public async getStatus(id: string): Promise<ProjectStatus> {
+    const project = await PseudoDatabase.retrieveProject(id);
+    return project.status;
+  }
+
+  public async getCheckpoints(id: string): Promise<Checkpoint[]> {
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.checkpoints);
+  }
+
+  public async getExports(id: string): Promise<Export[]> {
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.exports);
+  }
 }
