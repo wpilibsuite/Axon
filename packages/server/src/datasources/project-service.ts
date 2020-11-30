@@ -1,6 +1,7 @@
 import { DataSource } from "apollo-datasource";
 import { Checkpoint, Export, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
+import Trainer from "../training/Trainer";
 import { Sequelize } from "sequelize";
 import MLService from "../training";
 import * as mkdirp from "mkdirp";
@@ -46,27 +47,39 @@ export class ProjectService extends DataSource {
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
     const project = await Project.findByPk(id);
+
+    const pDBproject = await PseudoDatabase.retrieveProject(id);
+
     if (updates.name !== undefined) {
       project.name = updates.name;
+      pDBproject.name = updates.name;
     }
     if (updates.datasets !== undefined) {
       await project.setDatasets(updates.datasets);
     }
     if (updates.epochs !== undefined) {
       project.epochs = updates.epochs;
+      pDBproject.hyperparameters.epochs = updates.epochs;
     }
     if (updates.batchSize !== undefined) {
       project.batchSize = updates.batchSize;
+      pDBproject.hyperparameters.batchSize = updates.batchSize;
     }
     if (updates.evalFrequency !== undefined) {
       project.evalFrequency = updates.evalFrequency;
+      pDBproject.hyperparameters.evalFrequency = updates.evalFrequency;
     }
     if (updates.percentEval !== undefined) {
       project.percentEval = updates.percentEval;
+      pDBproject.hyperparameters.percentEval = updates.percentEval;
     }
     if (updates.initialCheckpoint !== undefined) {
       project.initialCheckpoint = updates.initialCheckpoint;
+      pDBproject.initialCheckpoint = updates.initialCheckpoint;
     }
+
+    PseudoDatabase.pushProject(pDBproject);
+
     return await project.save();
   }
 
@@ -77,6 +90,9 @@ export class ProjectService extends DataSource {
     } else {
       await project.removeDataset(datasetId);
     }
+    const pDBproject = await PseudoDatabase.retrieveProject(projectId);
+    pDBproject.datasets = await project.getDatasets();
+    PseudoDatabase.pushProject(pDBproject);
     return project;
   }
 
@@ -159,6 +175,9 @@ export class ProjectService extends DataSource {
   async databaseTest(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
     console.log(project);
+
+    Trainer.handleOldData(id);
+
     return project;
   }
 }

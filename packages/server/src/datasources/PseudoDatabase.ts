@@ -100,6 +100,7 @@ export default class PseudoDatabase {
 
   public static async pushProject(project: ProjectData): Promise<void> {
     const database = await PseudoDatabase.retrieveDatabase();
+
     database[project.id] = project;
     await fs.promises.writeFile(this.dataPath, JSON.stringify(database, null, 4));
     Promise.resolve();

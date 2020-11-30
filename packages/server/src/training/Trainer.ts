@@ -1,5 +1,6 @@
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
+import { Project } from "../store";
 import { Container } from "dockerode";
 import * as path from "path";
 import * as fs from "fs";
@@ -128,10 +129,10 @@ export default class Trainer {
           }
         };
         project.status.currentEpoch = parseInt(step, 10);
+
+        await PseudoDatabase.pushProject(project);
       }
     } else project.status.currentEpoch = 0;
-
-    await PseudoDatabase.pushProject(project);
 
     Promise.resolve();
   }

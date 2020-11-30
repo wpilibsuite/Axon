@@ -309,44 +309,42 @@ export default class MLService {
 
   async start(iproject: Project): Promise<string> {
     const ID = iproject.id;
-    const MOUNT = this.projects[ID].directory;
-    this.projects[ID].status.trainingStatus = TrainingStatus.PREPARING;
+
+    const project = await PseudoDatabase.retrieveProject(ID);
+
+    const MOUNT = project.directory;
+    project.status.lastEpoch = project.hyperparameters.epochs;
+    project.status.trainingStatus = TrainingStatus.PREPARING;
+    PseudoDatabase.pushProject(project);
 
     await Trainer.writeParameterFile(ID);
 
-    if (!this.projects[ID].status.trainingStatus) return "training stopped";
-
-    this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-
     await Trainer.handleOldData(ID);
-
-    if (!this.projects[ID].status.trainingStatus) return "training stopped";
 
     await Trainer.moveDataToMount(ID);
 
-    if (!this.projects[ID].status.trainingStatus) return "training stopped";
-
     console.log("extracting the dataset");
 
-    this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
+    project.containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+    project.containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
 
-    await Trainer.runContainer(this.projects[ID].containers.train);
+    await Trainer.runContainer(project.containers.train);
     console.log("datasets extracted");
 
-    if (!this.projects[ID].status.trainingStatus) return "training stopped";
+    project.status.trainingStatus = TrainingStatus.TRAINING;
+    PseudoDatabase.pushProject(project);
 
-    this.projects[ID].status.trainingStatus = TrainingStatus.TRAINING;
+    project.status.currentEpoch = 0;
 
-    this.projects[ID].status.currentEpoch = 0;
+    project.containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
 
-    this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
+    await project.containers.metrics.start();
 
-    await this.projects[ID].containers.metrics.start();
+    await Trainer.runContainer(project.containers.train);
 
-    await Trainer.runContainer(this.projects[ID].containers.train);
-
-    this.projects[ID].status.trainingStatus = TrainingStatus.NOT_TRAINING;
-    this.projects[ID].containers.train = null;
+    project.status.trainingStatus = TrainingStatus.NOT_TRAINING;
+    project.containers.train = null;
+    PseudoDatabase.pushProject(project);
     return "training complete";
   }
 
@@ -566,6 +564,29 @@ export default class MLService {
   public async getStatus(id: string): Promise<ProjectStatus> {
     const project = await PseudoDatabase.retrieveProject(id);
     return project.status;
+
+    /* status remains if app exits poorly */
+    // if (project.status.trainingStatus != TrainingStatus.NOT_TRAINING) {
+    //   let container : Container = null;
+    //   try {container =this.docker.getContainer(project.containers.train.id);}
+    //   catch(err){console.log(err);}
+    //   if (container == null) correctStatus();
+    //   else switch (project.status.trainingStatus){
+    //     case TrainingStatus.PAUSED:
+    //       if ((await container.inspect()).State.Paused) break
+    //       await container.kill({ force: true });
+    //     case TrainingStatus.PREPARING:
+    //     case TrainingStatus.TRAINING:
+    //       if ((await container.inspect()).State.Running) break
+    //       await container.remove();
+    //       correctStatus();
+    //   }
+    // }
+    // async function correctStatus(): Promise<void> {
+    //   project.containers.train = null;
+    //   project.status.trainingStatus = TrainingStatus.NOT_TRAINING;
+    //   PseudoDatabase.pushProject(project);
+    // }
   }
 
   public async getCheckpoints(id: string): Promise<Checkpoint[]> {
