@@ -23,12 +23,12 @@ export type ProjectData = {
   };
   checkpoints: { [step: string]: Checkpoint };
   exports: { [id: string]: Export };
-  containers: {
-    tflite: Container;
-    train: Container;
-    metrics: Container;
-    export: Container;
-    test: Container;
+  containerIDs: {
+    tflite: string;
+    train: string;
+    metrics: string;
+    export: string;
+    test: string;
   };
 };
 
@@ -62,7 +62,7 @@ export default class PseudoDatabase {
       },
       checkpoints: {},
       exports: {},
-      containers: {
+      containerIDs: {
         tflite: null,
         train: null,
         metrics: null,

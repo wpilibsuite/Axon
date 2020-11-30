@@ -2,6 +2,7 @@ import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import { Project } from "../store";
 import { Container } from "dockerode";
+import * as Dockerode from "dockerode";
 import * as path from "path";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
@@ -19,6 +20,8 @@ type TrainParameters = {
 };
 
 export default class Trainer {
+  static readonly docker = new Dockerode();
+
   public static async writeParameterFile(id: string): Promise<void> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
 
@@ -100,7 +103,8 @@ export default class Trainer {
     Promise.resolve();
   }
 
-  public static async runContainer(container: Container): Promise<void> {
+  public static async runContainer(containerID: string): Promise<void> {
+    const container: Container = await Trainer.docker.getContainer(containerID);
     await container.start();
     await container.wait();
     await container.remove();

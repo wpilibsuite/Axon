@@ -99,8 +99,8 @@ export class ProjectService extends DataSource {
   async createProject(name: string): Promise<Project> {
     const project = await Project.create({ name });
     // this.trainer.addProjectData(project);
-
-    PseudoDatabase.addProjectData(project);
+    await PseudoDatabase.addProjectData(project);
+    this.mLService.addStatus(await PseudoDatabase.retrieveProject(project.id));
 
     return project;
   }

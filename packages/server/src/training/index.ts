@@ -68,13 +68,7 @@ export default class MLService {
 
     this.trainer_state = TrainerState.SCANNING_PROJECTS;
     const database = await PseudoDatabase.retrieveDatabase();
-    Object.values(database).forEach((project: ProjectData) => {
-      this.status[project.id] = {
-        trainingStatus: TrainingStatus.NOT_TRAINING,
-        currentEpoch: 0,
-        lastEpoch: project.hyperparameters.epochs
-      };
-    });
+    Object.values(database).forEach((project: ProjectData) => this.addStatus(project));
 
     this.trainer_state = TrainerState.DATASET_PULL;
     await this.pull(DATASET_IMAGE);
@@ -195,23 +189,23 @@ export default class MLService {
 
     console.log("extracting the dataset");
 
-    project.containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-    project.containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
+    project.containerIDs.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+    project.containerIDs.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
 
-    await Trainer.runContainer(project.containers.train);
+    await Trainer.runContainer(project.containerIDs.train);
     console.log("datasets extracted");
 
     this.updateState(ID, TrainingStatus.TRAINING);
     this.updateStep(ID, 0);
 
-    project.containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
+    project.containerIDs.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
 
-    await project.containers.metrics.start();
+    await this.docker.getContainer(project.containerIDs.metrics.valueOf()).start();
 
-    await Trainer.runContainer(project.containers.train);
+    await Trainer.runContainer(project.containerIDs.train);
 
     this.updateState(ID, TrainingStatus.NOT_TRAINING);
-    project.containers.train = null;
+    project.containerIDs.train = null;
     PseudoDatabase.pushProject(project);
     return "training complete";
   }
@@ -372,7 +366,7 @@ export default class MLService {
     id: string,
     mount: string,
     port: string = null
-  ): Promise<Container> {
+  ): Promise<string> {
     const NAME = tag + id;
 
     let MOUNTCMD = process.cwd().replace("C:\\", "/c/").replace(/\\/g, "/");
@@ -401,7 +395,7 @@ export default class MLService {
     const container = await this.docker.createContainer(options);
     (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(process.stdout);
 
-    return container;
+    return container.id;
   }
 
   private async deleteContainer(name: string): Promise<void> {
@@ -453,7 +447,7 @@ export default class MLService {
 
   public async updateCheckpoints(id: string): Promise<void> {
     const currentStep = await Trainer.UpdateCheckpoints(id);
-    this.updateStep(id, currentStep);
+    if (currentStep) this.updateStep(id, currentStep);
     Promise.resolve();
   }
 
@@ -467,6 +461,13 @@ export default class MLService {
     return Object.values(project.exports);
   }
 
+  public addStatus(project: ProjectData): void {
+    this.status[project.id] = {
+      trainingStatus: TrainingStatus.NOT_TRAINING,
+      currentEpoch: 0,
+      lastEpoch: project.hyperparameters.epochs
+    };
+  }
   public updateState(id: string, newState: TrainingStatus): void {
     this.status[id].trainingStatus = newState;
   }
