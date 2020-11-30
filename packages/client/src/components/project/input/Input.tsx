@@ -1,7 +1,7 @@
 import { Button, Container, Divider } from "@material-ui/core";
 import Datasets from "./Datasets";
 import Parameters from "./Parameters";
-import React, { ReactElement } from "react";
+import React, { ReactElement, useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { StartTraining, StartTrainingVariables } from "./__generated__/StartTraining";
 import { HaltTraining, HaltTrainingVariables } from "./__generated__/HaltTraining";
@@ -41,11 +41,23 @@ const RESUME_TRAINING = gql`
   }
 `;
 
-export default function Input(props: { id: string; status: GetProjectData_project_status }): ReactElement {
+export default function Input(props: {
+  id: string;
+  status: GetProjectData_project_status;
+  trainerState: number;
+}): ReactElement {
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [haltTraining] = useMutation<HaltTraining, HaltTrainingVariables>(HALT_TRAINING);
   const [pauseTraining] = useMutation<PauseTraining, PauseTrainingVariables>(PAUSE_TRAINING);
   const [resumeTraining] = useMutation<ResumeTraining, ResumeTrainingVariables>(RESUME_TRAINING);
+  const [starting, setStarting] = useState(false); //<- purely to provide instant feedback.
+
+  const handleStart = () => {
+    setStarting(true);
+    startTraining({ variables: { id: props.id } });
+  };
+
+  if (starting && props.status.trainingStatus > 0) setStarting(false);
 
   return (
     <Container>
@@ -56,7 +68,7 @@ export default function Input(props: { id: string; status: GetProjectData_projec
             <Divider />
             <Parameters id={props.id} />
             <Divider />
-            <Button onClick={() => startTraining({ variables: { id: props.id } })}>Start</Button>
+            <StartButton trainerState={props.trainerState} starting={starting} handleStart={handleStart} />
           </>,
           <>
             <h1>Preparing</h1>
@@ -75,7 +87,7 @@ export default function Input(props: { id: string; status: GetProjectData_projec
             <Button onClick={() => haltTraining({ variables: { id: props.id } })}>Halt</Button>
             <Button onClick={() => resumeTraining({ variables: { id: props.id } })}>Resume</Button>
           </>
-        ][props.status.trainingState]
+        ][props.status.trainingStatus]
       }
     </Container>
   );
@@ -89,4 +101,14 @@ function ProgressBar(props: { status: GetProjectData_project_status }): ReactEle
       <p>{`Epoch ${CURRENT_EPOCH} / ${LAST_EPOCH}`}</p>
     </Container>
   );
+}
+
+function StartButton(props: {
+  trainerState: number;
+  starting: boolean;
+  handleStart: (para: void) => void;
+}): ReactElement {
+  if (props.trainerState < 5) return <p>training images not available yet</p>;
+  else if (props.starting) return <Button>Starting...</Button>;
+  else return <Button onClick={() => props.handleStart()}>Start</Button>;
 }

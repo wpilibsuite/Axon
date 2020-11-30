@@ -51,11 +51,12 @@ const GET_PROJECT_DATA = gql`
         testingInProgress
       }
       status {
-        trainingState
+        trainingStatus
         currentEpoch
         lastEpoch
       }
     }
+    trainerState
   }
 `;
 
@@ -88,13 +89,13 @@ export default function Project(props: { id: string }): ReactElement {
           </Tabs>
         </AppBar>
         <TabPanel value={value} index={0}>
-          <Input id={props.id} status={data.project.status} />
+          <Input id={props.id} status={data.project.status} trainerState={data.trainerState} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Metrics id={props.id} checkpoints={data.project.checkpoints} />
+          <Metrics id={props.id} checkpoints={data.project.checkpoints} trainerState={data.trainerState} />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          <Results id={props.id} exports={data.project.exports} />
+          <Results id={props.id} exports={data.project.exports} trainerState={data.trainerState} />
         </TabPanel>
       </div>
     );

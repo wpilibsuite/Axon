@@ -14,11 +14,26 @@ const TRAIN_IMAGE = "gcperkins/wpilib-ml-train:latest";
 const TEST_IMAGE = "gcperkins/wpilib-ml-test:latest";
 const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 
-//training state enumeration
-const NOT_TRAINING = 0;
-const PREPARING = 1;
-const TRAINING = 2;
-const PAUSED = 3;
+//trainer state enumeration
+enum trainerState {
+  NO_DOCKER_INSTALLED,
+  SCANNING_FOR_DOCKER,
+  SCANNING_PROJECTS,
+  DATASET_PULL,
+  METRICS_PULL,
+  TRAINER_PULL,
+  EXPORT_PULL,
+  TEST_PULL,
+  READY
+}
+
+//training status enumeration
+enum trainingStatus {
+  NOT_TRAINING,
+  PREPARING,
+  TRAINING,
+  PAUSED
+}
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -48,59 +63,47 @@ type ProjectData = {
 
 export default class Trainer {
   projects: ProjectData;
-  exportReady: boolean;
-  trainReady: boolean;
-  testReady: boolean;
+  trainer_state: number;
 
   readonly docker = new Dockerode();
 
   constructor() {
+    this.trainer_state = trainerState.SCANNING_FOR_DOCKER;
+    this.prepare();
+  }
+
+  private async prepare(): Promise<void> {
+    try {
+      await this.docker.info();
+    } catch {
+      this.trainer_state = trainerState.NO_DOCKER_INSTALLED;
+      console.log("docker is not responding");
+      Promise.resolve();
+      return;
+    }
+
+    this.trainer_state = trainerState.SCANNING_PROJECTS;
     this.projects = this.scanProjects();
-
-    this.exportReady = false;
-    this.trainReady = false;
-    this.testReady = false;
-    this.pullImages();
-
     console.log(this.projects);
-  }
 
-  private async pullImages(): Promise<void> {
+    this.trainer_state = trainerState.DATASET_PULL;
     await this.pull(DATASET_IMAGE);
+
+    this.trainer_state = trainerState.METRICS_PULL;
     await this.pull(METRICS_IMAGE);
+
+    this.trainer_state = trainerState.TRAINER_PULL;
     await this.pull(TRAIN_IMAGE);
-    this.trainReady = true;
 
+    this.trainer_state = trainerState.EXPORT_PULL;
     await this.pull(EXPORT_IMAGE);
-    this.exportReady = true;
 
+    this.trainer_state = trainerState.TEST_PULL;
     await this.pull(TEST_IMAGE);
-    this.testReady = true;
+
+    this.trainer_state = trainerState.READY;
     console.log("image pull complete");
-
     Promise.resolve();
-  }
-
-  private async pull(name: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.docker.pull(name, (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
-        try {
-          stream.pipe(process.stdout);
-          this.docker.modem.followProgress(stream, onFinished);
-        } catch {
-          console.log("cant pull image");
-          resolve();
-        }
-        function onFinished(err: string, output: string) {
-          if (!err) {
-            resolve(output);
-          } else {
-            console.log(err);
-            reject(err);
-          }
-        }
-      });
-    });
   }
 
   scanProjects(): ProjectData {
@@ -130,7 +133,7 @@ export default class Trainer {
           test: null
         },
         status: {
-          trainingState: NOT_TRAINING,
+          trainingStatus: trainingStatus.NOT_TRAINING,
           currentEpoch: 0,
           lastEpoch: EPOCHS
         }
@@ -163,6 +166,28 @@ export default class Trainer {
     return projects;
   }
 
+  private async pull(name: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.docker.pull(name, (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
+        try {
+          stream.pipe(process.stdout);
+          this.docker.modem.followProgress(stream, onFinished);
+        } catch {
+          console.log("cant pull image");
+          resolve();
+        }
+        function onFinished(err: string, output: string) {
+          if (!err) {
+            resolve(output);
+          } else {
+            console.log(err);
+            reject(err);
+          }
+        }
+      });
+    });
+  }
+
   addProjectData(project: Project): void {
     if (!(project.id in this.projects)) {
       const MOUNT = `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
@@ -181,7 +206,7 @@ export default class Trainer {
           test: null
         },
         status: {
-          trainingState: NOT_TRAINING,
+          trainingStatus: trainingStatus.NOT_TRAINING,
           currentEpoch: 0,
           lastEpoch: project.epochs
         }
@@ -191,13 +216,14 @@ export default class Trainer {
 
   async start(project: Project): Promise<string> {
     const datasets = await project.getDatasets();
-    if (!datasets) {
+    if (datasets.length == 0) {
       Promise.reject("there are no datasets. How am I supposed to train with no datasets?");
       return;
     }
 
     const ID = project.id;
-    this.projects[ID].status.trainingState = PREPARING;
+    this.projects[ID].status.lastEpoch = project.epochs;
+    this.projects[ID].status.trainingStatus = trainingStatus.PREPARING;
 
     const MOUNT = this.projects[ID].directory;
     const DATASETPATHS = datasets.map((dataset) =>
@@ -217,22 +243,29 @@ export default class Trainer {
       checkpoint: INITCKPT,
       name: project.name
     };
+
+    console.log(trainParameters);
+
     await fs.promises.writeFile(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(trainParameters));
 
-    if (!this.projects[ID].status.trainingState) return "training stopped";
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
+
     this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+
     const OLD_TRAIN_DIR = path.posix.join(MOUNT, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
       fs.rmdirSync(OLD_TRAIN_DIR, { recursive: true });
       console.log("old train dir removed");
     } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
+
     const OLD_METRICS_DIR = path.posix.join(MOUNT, "metrics.json");
     if (fs.existsSync(OLD_METRICS_DIR)) {
       fs.unlinkSync(OLD_METRICS_DIR);
     } //must clear old checkpoints in order for new ones to be saved by trainer
+
     this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
 
-    if (!this.projects[ID].status.trainingState) return "training stopped";
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
     datasets.forEach((dataset) => {
       fs.copyFileSync(
         path.posix.join("data", dataset.path),
@@ -242,7 +275,7 @@ export default class Trainer {
     console.log("datasets copied");
 
     //custom checkpoints not yet supported by gui
-    if (!this.projects[ID].status.trainingState) return "training stopped";
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
     if (project.initialCheckpoint != "default") {
       if (!fs.existsSync(path.posix.join(MOUNT, "checkpoints"))) {
         await mkdirp(path.posix.join(MOUNT, "checkpoints"));
@@ -263,7 +296,7 @@ export default class Trainer {
       ]);
     }
 
-    if (!this.projects[ID].status.trainingState) return "training stopped";
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
     console.log("extracting the dataset");
     this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
     await this.projects[ID].containers.train.start();
@@ -271,8 +304,8 @@ export default class Trainer {
     await this.projects[ID].containers.train.remove();
     console.log("datasets extracted");
 
-    if (!this.projects[ID].status.trainingState) return "training stopped";
-    this.projects[ID].status.trainingState = TRAINING;
+    if (!this.projects[ID].status.trainingStatus) return "training stopped";
+    this.projects[ID].status.trainingStatus = trainingStatus.TRAINING;
     this.projects[ID].status.currentEpoch = 0;
     this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
     await this.projects[ID].containers.metrics.start();
@@ -280,7 +313,7 @@ export default class Trainer {
     await this.projects[ID].containers.train.wait();
     await this.projects[ID].containers.train.remove();
 
-    this.projects[ID].status.trainingState = NOT_TRAINING;
+    this.projects[ID].status.trainingStatus = trainingStatus.NOT_TRAINING;
     this.projects[ID].containers.train = null;
     return "training complete";
   }
@@ -430,12 +463,12 @@ export default class Trainer {
         await this.projects[id].containers.train.kill({ force: true });
       }
     }
-    this.projects[id].status.trainingState = NOT_TRAINING;
+    this.projects[id].status.trainingStatus = trainingStatus.NOT_TRAINING;
     Promise.resolve();
   }
 
   async toggleContainer(id: string, pause: boolean): Promise<void> {
-    if (!this.projects[id].status.trainingState) {
+    if (!this.projects[id].status.trainingStatus) {
       console.log("not training");
       Promise.resolve();
       return;
@@ -450,12 +483,12 @@ export default class Trainer {
     if (pause) {
       if (!(await CONTAINER.inspect()).State.Paused) {
         await CONTAINER.pause();
-        this.projects[id].status.trainingState = PAUSED;
+        this.projects[id].status.trainingStatus = trainingStatus.PAUSED;
       }
     } else {
       if ((await CONTAINER.inspect()).State.Paused) {
         CONTAINER.unpause();
-        this.projects[id].status.trainingState = TRAINING;
+        this.projects[id].status.trainingStatus = trainingStatus.TRAINING;
       }
     }
     Promise.resolve();

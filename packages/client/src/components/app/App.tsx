@@ -4,6 +4,7 @@ import Header from "../header";
 import { Router } from "react-router";
 import { createBrowserHistory } from "history";
 import NavigationDrawer from "../navigationDrawer";
+import TrainerStatus from "../trainerStatus";
 import Footer from "../footer";
 import { makeStyles } from "@material-ui/core/styles";
 import { CssBaseline } from "@material-ui/core";
@@ -42,6 +43,7 @@ function App({ client }: Props): ReactElement {
           <main className={classes.content}>
             <div className={classes.appBarSpacer} />
             <AppRoutes />
+            <TrainerStatus />
             <Footer />
           </main>
         </Router>

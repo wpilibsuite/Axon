@@ -20,6 +20,10 @@ export class ProjectService extends DataSource {
     this.path = path;
   }
 
+  async getTrainerState(): Promise<number> {
+    return this.trainer.trainer_state;
+  }
+
   async getProjects(): Promise<Project[]> {
     return Project.findAll();
   }
