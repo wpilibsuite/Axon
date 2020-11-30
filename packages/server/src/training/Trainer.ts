@@ -107,8 +107,9 @@ export default class Trainer {
     Promise.resolve();
   }
 
-  public static async UpdateCheckpoints(id: string): Promise<void> {
+  public static async UpdateCheckpoints(id: string): Promise<number> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    let currentEpoch: number;
 
     const METRICSPATH = path.posix.join(project.directory, "metrics.json");
     if (fs.existsSync(METRICSPATH)) {
@@ -128,12 +129,12 @@ export default class Trainer {
             exportPaths: []
           }
         };
-        project.status.currentEpoch = parseInt(step, 10);
+        currentEpoch = parseInt(step, 10);
 
         await PseudoDatabase.pushProject(project);
       }
-    } else project.status.currentEpoch = 0;
+    } else currentEpoch = 0;
 
-    Promise.resolve();
+    return currentEpoch;
   }
 }

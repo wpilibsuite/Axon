@@ -30,7 +30,6 @@ export type ProjectData = {
     export: Container;
     test: Container;
   };
-  status: ProjectStatus;
 };
 
 type ProjectDatabase = { [id: string]: ProjectData };

@@ -19,7 +19,7 @@ export const TEST_IMAGE = "gcperkins/wpilib-ml-test:latest";
 export const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 
 //trainer state enumeration
-enum trainerState {
+enum TrainerState {
   NO_DOCKER_INSTALLED,
   SCANNING_FOR_DOCKER,
   SCANNING_PROJECTS,
@@ -39,30 +39,20 @@ export enum TrainingStatus {
   PAUSED
 }
 
-// type ProjectData = {
-//   [id: string]: {
-//     checkpoints: { [step: string]: Checkpoint };
-//     exports: { [id: string]: Export };
-//     directory: string;
-//     containers: {
-//       tflite: Container;
-//       train: Container;
-//       metrics: Container;
-//       export: Container;
-//       test: Container;
-//     };
-//     status: ProjectStatus;
-//   };
-// };
+type ProjectStati = {
+  [id: string]: ProjectStatus;
+};
 
 export default class MLService {
   projects: ProjectData;
-  trainer_state: number;
+  trainer_state: TrainerState;
+  status: ProjectStati;
 
   readonly docker = new Dockerode();
 
   constructor() {
-    this.trainer_state = trainerState.SCANNING_FOR_DOCKER;
+    this.trainer_state = TrainerState.SCANNING_FOR_DOCKER;
+    this.status = {};
     this.prepare();
   }
 
@@ -70,31 +60,38 @@ export default class MLService {
     try {
       await this.docker.info();
     } catch {
-      this.trainer_state = trainerState.NO_DOCKER_INSTALLED;
+      this.trainer_state = TrainerState.NO_DOCKER_INSTALLED;
       console.log("docker is not responding");
       Promise.resolve();
       return;
     }
 
-    this.trainer_state = trainerState.SCANNING_PROJECTS;
-    // this.projects = this.scanProjects();
+    this.trainer_state = TrainerState.SCANNING_PROJECTS;
+    const database = await PseudoDatabase.retrieveDatabase();
+    Object.values(database).forEach((project: ProjectData) => {
+      this.status[project.id] = {
+        trainingStatus: TrainingStatus.NOT_TRAINING,
+        currentEpoch: 0,
+        lastEpoch: project.hyperparameters.epochs
+      };
+    });
 
-    this.trainer_state = trainerState.DATASET_PULL;
+    this.trainer_state = TrainerState.DATASET_PULL;
     await this.pull(DATASET_IMAGE);
 
-    this.trainer_state = trainerState.METRICS_PULL;
+    this.trainer_state = TrainerState.METRICS_PULL;
     await this.pull(METRICS_IMAGE);
 
-    this.trainer_state = trainerState.TRAINER_PULL;
+    this.trainer_state = TrainerState.TRAINER_PULL;
     await this.pull(TRAIN_IMAGE);
 
-    this.trainer_state = trainerState.EXPORT_PULL;
+    this.trainer_state = TrainerState.EXPORT_PULL;
     await this.pull(EXPORT_IMAGE);
 
-    this.trainer_state = trainerState.TEST_PULL;
+    this.trainer_state = TrainerState.TEST_PULL;
     await this.pull(TEST_IMAGE);
 
-    this.trainer_state = trainerState.READY;
+    this.trainer_state = TrainerState.READY;
     console.log("image pull complete");
     Promise.resolve();
   }
@@ -181,141 +178,14 @@ export default class MLService {
     });
   }
 
-  // addProjectData(project: Project): void {
-  //   if (!(project.id in this.projects)) {
-  //     const MOUNT = `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
-  //     mkdirp(MOUNT)
-  //       .then(() => fs.mkdirSync(path.posix.join(MOUNT, "dataset")))
-  //       .then(() => fs.mkdirSync(path.posix.join(MOUNT, "exports")));
-  //     this.projects[project.id] = {
-  //       directory: MOUNT,
-  //       checkpoints: {},
-  //       exports: {},
-  //       containers: {
-  //         tflite: null,
-  //         train: null,
-  //         metrics: null,
-  //         export: null,
-  //         test: null
-  //       },
-  //       status: {
-  //         trainingStatus: trainingStatus.NOT_TRAINING,
-  //         currentEpoch: 0,
-  //         lastEpoch: project.epochs
-  //       }
-  //     };
-  //   }
-  // }
-
-  // async start(project: Project): Promise<string> {
-  //   const datasets = await project.getDatasets();
-  //   if (!datasets) {
-  //     Promise.reject("there are no datasets. How am I supposed to train with no datasets?");
-  //     return;
-  //   }
-
-  //   const ID = project.id;
-  //   this.projects[ID].status.trainingStatus = trainingStatus.PREPARING;
-
-  //   const MOUNT = this.projects[ID].directory;
-  //   const DATASETPATHS = datasets.map((dataset) =>
-  //     path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
-  //   );
-  //   const INITCKPT =
-  //     project.initialCheckpoint !== "default"
-  //       ? path.posix.join("checkpoints", project.initialCheckpoint)
-  //       : project.initialCheckpoint;
-
-  //   const trainParameters: TrainParameters = {
-  //     "eval-frequency": project.evalFrequency,
-  //     "percent-eval": project.percentEval,
-  //     "batch-size": project.batchSize,
-  //     "dataset-path": DATASETPATHS,
-  //     epochs: project.epochs,
-  //     checkpoint: INITCKPT,
-  //     name: project.name
-  //   };
-  //   await fs.promises.writeFile(path.posix.join(MOUNT, "hyperparameters.json"), JSON.stringify(trainParameters));
-
-  //   if (!this.projects[ID].status.trainingStatus) return "training stopped";
-
-  //   this.projects[ID].containers.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-
-  //   const OLD_TRAIN_DIR = path.posix.join(MOUNT, "train");
-  //   if (fs.existsSync(OLD_TRAIN_DIR)) {
-  //     fs.rmdirSync(OLD_TRAIN_DIR, { recursive: true });
-  //     console.log("old train dir removed");
-  //   } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
-
-  //   const OLD_METRICS_DIR = path.posix.join(MOUNT, "metrics.json");
-  //   if (fs.existsSync(OLD_METRICS_DIR)) {
-  //     fs.unlinkSync(OLD_METRICS_DIR);
-  //   } //must clear old checkpoints in order for new ones to be saved by trainer
-
-  //   this.projects[ID].checkpoints = {}; //must add a way to preserve existing checkpoints somehow
-
-  //   if (!this.projects[ID].status.trainingStatus) return "training stopped";
-  //   datasets.forEach((dataset) => {
-  //     fs.copyFileSync(
-  //       path.posix.join("data", dataset.path),
-  //       path.posix.join(MOUNT, "dataset", path.basename(dataset.path))
-  //     );
-  //   });
-  //   console.log("datasets copied");
-
-  //   //custom checkpoints not yet supported by gui
-  //   if (!this.projects[ID].status.trainingStatus) return "training stopped";
-  //   if (project.initialCheckpoint != "default") {
-  //     if (!fs.existsSync(path.posix.join(MOUNT, "checkpoints"))) {
-  //       await mkdirp(path.posix.join(MOUNT, "checkpoints"));
-  //     }
-  //     await Promise.all([
-  //       fs.promises.copyFile(
-  //         path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".data-00000-of-00001")),
-  //         path.posix.join(MOUNT, "checkpoints", project.initialCheckpoint.concat(".data-00000-of-00001"))
-  //       ),
-  //       fs.promises.copyFile(
-  //         path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".index")),
-  //         path.posix.join(MOUNT, "checkpoints", project.initialCheckpoint.concat(".index"))
-  //       ),
-  //       fs.promises.copyFile(
-  //         path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(".meta")),
-  //         path.posix.join(MOUNT, "checkpoints", project.initialCheckpoint.concat(".meta"))
-  //       )
-  //     ]);
-  //   }
-
-  //   if (!this.projects[ID].status.trainingStatus) return "training stopped";
-  //   console.log("extracting the dataset");
-  //   this.projects[ID].containers.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
-  //   await this.projects[ID].containers.train.start();
-  //   await this.projects[ID].containers.train.wait();
-  //   await this.projects[ID].containers.train.remove();
-  //   console.log("datasets extracted");
-
-  //   if (!this.projects[ID].status.trainingStatus) return "training stopped";
-  //   this.projects[ID].status.trainingStatus = trainingStatus.TRAINING;
-  //   this.projects[ID].status.currentEpoch = 0;
-  //   this.projects[ID].containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
-  //   await this.projects[ID].containers.metrics.start();
-  //   await this.projects[ID].containers.train.start();
-  //   await this.projects[ID].containers.train.wait();
-  //   await this.projects[ID].containers.train.remove();
-
-  //   this.projects[ID].status.trainingStatus = trainingStatus.NOT_TRAINING;
-  //   this.projects[ID].containers.train = null;
-  //   return "training complete";
-  // }
-
   async start(iproject: Project): Promise<string> {
     const ID = iproject.id;
 
     const project = await PseudoDatabase.retrieveProject(ID);
 
     const MOUNT = project.directory;
-    project.status.lastEpoch = project.hyperparameters.epochs;
-    project.status.trainingStatus = TrainingStatus.PREPARING;
-    PseudoDatabase.pushProject(project);
+    this.updateLastStep(ID, project.hyperparameters.epochs);
+    this.updateState(ID, TrainingStatus.PREPARING);
 
     await Trainer.writeParameterFile(ID);
 
@@ -331,10 +201,8 @@ export default class MLService {
     await Trainer.runContainer(project.containers.train);
     console.log("datasets extracted");
 
-    project.status.trainingStatus = TrainingStatus.TRAINING;
-    PseudoDatabase.pushProject(project);
-
-    project.status.currentEpoch = 0;
+    this.updateState(ID, TrainingStatus.TRAINING);
+    this.updateStep(ID, 0);
 
     project.containers.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
 
@@ -342,7 +210,7 @@ export default class MLService {
 
     await Trainer.runContainer(project.containers.train);
 
-    project.status.trainingStatus = TrainingStatus.NOT_TRAINING;
+    this.updateState(ID, TrainingStatus.NOT_TRAINING);
     project.containers.train = null;
     PseudoDatabase.pushProject(project);
     return "training complete";
@@ -556,14 +424,8 @@ export default class MLService {
     Promise.resolve();
   }
 
-  public async updateCheckpoints(id: string): Promise<void> {
-    Trainer.UpdateCheckpoints(id);
-    Promise.resolve();
-  }
-
   public async getStatus(id: string): Promise<ProjectStatus> {
-    const project = await PseudoDatabase.retrieveProject(id);
-    return project.status;
+    return this.status[id];
 
     /* status remains if app exits poorly */
     // if (project.status.trainingStatus != TrainingStatus.NOT_TRAINING) {
@@ -589,6 +451,12 @@ export default class MLService {
     // }
   }
 
+  public async updateCheckpoints(id: string): Promise<void> {
+    const currentStep = await Trainer.UpdateCheckpoints(id);
+    this.updateStep(id, currentStep);
+    Promise.resolve();
+  }
+
   public async getCheckpoints(id: string): Promise<Checkpoint[]> {
     const project = await PseudoDatabase.retrieveProject(id);
     return Object.values(project.checkpoints);
@@ -597,5 +465,15 @@ export default class MLService {
   public async getExports(id: string): Promise<Export[]> {
     const project = await PseudoDatabase.retrieveProject(id);
     return Object.values(project.exports);
+  }
+
+  public updateState(id: string, newState: TrainingStatus): void {
+    this.status[id].trainingStatus = newState;
+  }
+  public updateStep(id: string, newStep: number): void {
+    this.status[id].currentEpoch = newStep;
+  }
+  public updateLastStep(id: string, newLast: number): void {
+    this.status[id].lastEpoch = newLast;
   }
 }
