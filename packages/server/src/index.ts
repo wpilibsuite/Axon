@@ -1,7 +1,7 @@
 import * as Koa from "koa";
 import { ApolloServer, PubSub } from "apollo-server-koa";
 import { schema } from "./schema";
-import Trainer from "./training";
+import Trainer from "./mL";
 import * as serve from "koa-static";
 import * as mount from "koa-mount";
 import { ProjectService } from "./datasources/project-service";

@@ -1,9 +1,9 @@
 import { DataSource } from "apollo-datasource";
 import { Checkpoint, Export, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
-import Trainer from "../training/Trainer";
+import Trainer from "../mL/Trainer";
 import { Sequelize } from "sequelize";
-import MLService from "../training";
+import MLService from "../mL";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";

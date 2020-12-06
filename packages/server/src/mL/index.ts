@@ -10,6 +10,7 @@ import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graph
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import Trainer from "./Trainer";
+import Exporter from "./Exporter";
 
 export const DATASET_IMAGE = "gcperkins/wpilib-ml-dataset:latest";
 export const METRICS_IMAGE = "gcperkins/wpilib-ml-metrics:latest";
@@ -189,7 +190,7 @@ export default class MLService {
 
     console.log("extracting the dataset");
 
-    project.containerIDs.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+    //project.containerIDs.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
     project.containerIDs.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
 
     await Trainer.runContainer(project.containerIDs.train);
@@ -200,7 +201,7 @@ export default class MLService {
 
     project.containerIDs.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
 
-    await this.docker.getContainer(project.containerIDs.metrics.valueOf()).start();
+    //await this.docker.getContainer(project.containerIDs.metrics.valueOf()).start();
 
     await Trainer.runContainer(project.containerIDs.train);
 
@@ -211,47 +212,28 @@ export default class MLService {
   }
 
   async export(id: string, checkpointNumber: number, name: string): Promise<string> {
-    const MOUNT = this.projects[id].directory;
-    const CHECKPOINT_TAG = `model.ckpt-${checkpointNumber}`;
+
+    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    const MOUNT = project.directory;
+
     const EXPORT_PATH = path.posix.join(MOUNT, "exports", name);
     const TAR_PATH = path.posix.join(EXPORT_PATH, `${name}.tar.gz`);
 
-    if (!fs.existsSync(path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`))) {
+    if (!fs.existsSync(path.posix.join(MOUNT, "train", `model.ckpt-${checkpointNumber}.meta`))) {
       Promise.reject("cannot find requested checkpoint");
       return;
     }
 
-    await mkdirp(path.posix.join(EXPORT_PATH, "checkpoint"));
-
-    await Promise.all([
-      fs.promises.copyFile(
-        path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.meta`),
-        path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.meta`)
-      ),
-      fs.promises.copyFile(
-        path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.index`),
-        path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.index`)
-      ),
-      fs.promises.copyFile(
-        path.posix.join(MOUNT, "train", `${CHECKPOINT_TAG}.data-00000-of-00001`),
-        path.posix.join(EXPORT_PATH, "checkpoint", `${CHECKPOINT_TAG}.data-00000-of-00001`)
-      )
-    ]);
-
+    await Exporter.moveCheckpointToMount(MOUNT, checkpointNumber, EXPORT_PATH);
+    
     await Trainer.UpdateCheckpoints(id); // <-- get rid of soon
-    this.projects[id].checkpoints[checkpointNumber].status.exporting = true;
 
-    const exportparameters = {
-      name: name,
-      epochs: checkpointNumber,
-      "export-dir": `exports/${name}`
-    };
-    fs.writeFileSync(path.posix.join(MOUNT, "exportparameters.json"), JSON.stringify(exportparameters));
+    await Exporter.updateCheckpointStatus(id, checkpointNumber, true);
 
-    this.projects[id].containers.export = await this.createContainer(EXPORT_IMAGE, "EXPORT-", id, MOUNT);
-    await this.projects[id].containers.export.start();
-    await this.projects[id].containers.export.wait();
-    await this.projects[id].containers.export.remove();
+    await Exporter.writeParameterFile(name, checkpointNumber, MOUNT);
+
+    project.containerIDs.export = await this.createContainer(EXPORT_IMAGE, "EXPORT-", id, MOUNT);
+    await Exporter.runContainer(project.containerIDs.export)
     this.projects[id].containers.export = null;
 
     this.projects[id].exports[name] = {
@@ -446,8 +428,8 @@ export default class MLService {
   }
 
   public async updateCheckpoints(id: string): Promise<void> {
-    const currentStep = await Trainer.UpdateCheckpoints(id);
-    if (currentStep) this.updateStep(id, currentStep);
+    // const currentStep = await Trainer.UpdateCheckpoints(id);
+    // if (currentStep) this.updateStep(id, currentStep);
     Promise.resolve();
   }
 

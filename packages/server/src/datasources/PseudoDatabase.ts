@@ -4,7 +4,7 @@ import { Project } from "../store";
 import { Dataset } from "../store";
 import { DATA_DIR } from "../constants";
 import { PROJECT_DATA_DIR } from "../constants";
-import { TrainingStatus } from "../training";
+import { TrainingStatus } from "../mL";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
