@@ -41,6 +41,7 @@
   "scripts": {
     "generate": "apollo client:codegen --target=typescript",
     "start": "concurrently \"yarn generate --watch\" \"react-scripts start\"",
+    "dev": "yarn start",
     "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "build": "yarn generate && react-scripts build",
     "test": "react-scripts test",
