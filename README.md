@@ -15,12 +15,15 @@ The WPILib Mission is to enable FIRST teams to focus on writing game-specific so
 
 # Building (Development)
 
-Building Axon is very straightforward. OutlineViewer uses yarn to compile.
+Building Axon is very straightforward. Axon uses yarn to compile.
 
 ## Requirements
 
 - [Docker](https://www.docker.com/)
 - [Node.js 14](https://nodejs.org/)
+- [Yarn pkg](https://yarnpkg.com/)
+
+To install additional required packages before launching, run the command `yarn`.
 
 ## Running
 
