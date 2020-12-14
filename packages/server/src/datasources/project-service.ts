@@ -10,18 +10,19 @@ import { createWriteStream, unlink } from "fs";
 
 export class ProjectService extends DataSource {
   private store: Sequelize;
-  private trainer: Trainer;
+  // private trainer: Trainer;
   private readonly path: string;
 
   constructor(store: Sequelize, trainer: Trainer, path: string) {
     super();
     this.store = store;
-    this.trainer = trainer;
+    // this.trainer = trainer;
     this.path = path;
   }
 
   async getTrainerState(): Promise<number> {
-    return this.trainer.trainer_state;
+    return 0;
+    // return this.trainer.trainer_state;
   }
 
   async getProjects(): Promise<Project[]> {
@@ -33,14 +34,17 @@ export class ProjectService extends DataSource {
   }
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
-    await this.trainer.UpdateCheckpoints(id);
-    return Object.values(this.trainer.projects[id].checkpoints);
+    return null;
+    // await this.trainer.UpdateCheckpoints(id);
+    // return Object.values(this.trainer.projects[id].checkpoints);
   }
   async getExports(id: string): Promise<Export[]> {
-    return Object.values(this.trainer.projects[id].exports);
+    return null;
+    // return Object.values(this.trainer.projects[id].exports);
   }
   async getStatus(id: string): Promise<ProjectStatus> {
-    return this.trainer.projects[id].status;
+    return null;
+    // return this.trainer.projects[id].status;
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -81,40 +85,40 @@ export class ProjectService extends DataSource {
 
   async createProject(name: string): Promise<Project> {
     const project = await Project.create({ name });
-    this.trainer.addProjectData(project);
+    // this.trainer.addProjectData(project);
     return project;
   }
 
   async startTraining(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    this.trainer.start(project);
+    // this.trainer.start(project);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async haltTraining(id: string): Promise<Project> {
-    this.trainer.halt(id);
+    // this.trainer.halt(id);
     const project = await Project.findByPk(id);
     console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async pauseTraining(id: string): Promise<Project> {
-    this.trainer.toggleContainer(id, true);
+    // this.trainer.toggleContainer(id, true);
     const project = await Project.findByPk(id);
     console.log(`PAUSED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async resumeTraining(id: string): Promise<Project> {
-    this.trainer.toggleContainer(id, false);
+    // this.trainer.toggleContainer(id, false);
     const project = await Project.findByPk(id);
     console.log(`RESUMED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async exportCheckpoint(id: string, checkpointNumber: number, name: string): Promise<Project> {
-    this.trainer.export(id, checkpointNumber, name).catch((err) => console.log(err));
+    // this.trainer.export(id, checkpointNumber, name).catch((err) => console.log(err));
     const project = await Project.findByPk(id);
     console.log(`Started export on project: ${JSON.stringify(project)}`);
     return project;
@@ -127,7 +131,7 @@ export class ProjectService extends DataSource {
     stream: fs.ReadStream
   ): Promise<Project> {
     const videoPath = await this.upload(filename, modelExport.projectId, stream);
-    this.trainer.test(modelExport, videoPath, filename, videoCustomName).catch((err) => console.log(err));
+    // this.trainer.test(modelExport, videoPath, filename, videoCustomName).catch((err) => console.log(err));
     const project = await Project.findByPk(modelExport.projectId);
     console.log(`Started test: \nModel: ${modelExport} \nVideo: ${filename}`);
     return project;

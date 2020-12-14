@@ -1,8 +1,14 @@
 import { QueryResolvers } from "../schema/__generated__/graphql";
 
 export const Query: QueryResolvers = {
-  isDockerConnected: async () => {
-    return true;
+  isDockerConnected: async (parent, args, { docker }) => {
+    return await docker.isConnected();
+  },
+  isDockerImagesReady: async (parent, args, { docker }) => {
+    return await docker.isImagesReady();
+  },
+  dockerVersion: async (parent, args, { docker }) => {
+    return await docker.version();
   },
   dataset: (parent, { id }, { dataSources }) => {
     return dataSources.datasetService.getDataset(id);

@@ -10,19 +10,22 @@ import { PROJECT_DATA_DIR } from "./constants";
 import { Context } from "./context";
 import { DatasetService } from "./datasources/dataset-service";
 import { sequelize } from "./store";
+import { Docker } from "./training/docker";
 
 const pubsub = new PubSub();
-const trainer = new Trainer();
+// const trainer = new Trainer();
+const docker = new Docker();
 
 const app = new Koa();
 const server = new ApolloServer({
   schema: schema,
   dataSources: () => ({
     datasetService: new DatasetService(sequelize, DATASET_DATA_DIR),
-    projectService: new ProjectService(sequelize, trainer, PROJECT_DATA_DIR)
+    projectService: new ProjectService(sequelize, null, PROJECT_DATA_DIR)
   }),
   context: {
-    pubsub
+    pubsub,
+    docker
   } as Context,
   uploads: {
     // Limits here should be stricter than config for surrounding
