@@ -43,8 +43,6 @@ interface ProjectAttributes {
   batchSize: number;
   evalFrequency: number;
   percentEval: number;
-
-  inProgress: boolean;
 }
 
 type ProjectCreationAttributes = Optional<ProjectAttributes, keyof ProjectAttributes>;
@@ -57,8 +55,6 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   batchSize: number;
   evalFrequency: number;
   percentEval: number;
-
-  inProgress: boolean;
 
   public getDatasets!: HasManyGetAssociationsMixin<Dataset>;
   public setDatasets!: HasManySetAssociationsMixin<Dataset, string>;
@@ -127,10 +123,6 @@ Project.init(
     percentEval: {
       type: DataTypes.FLOAT,
       defaultValue: 30
-    },
-    inProgress: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
     }
   },
   {

@@ -2,21 +2,21 @@ import { DataSource } from "apollo-datasource";
 import { Checkpoint, Export, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
-import Trainer from "../training";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
+import { Trainer } from "../training/docker";
 
 export class ProjectService extends DataSource {
-  private store: Sequelize;
-  // private trainer: Trainer;
+  private readonly store: Sequelize;
+  private readonly trainer: Trainer;
   private readonly path: string;
 
   constructor(store: Sequelize, trainer: Trainer, path: string) {
     super();
     this.store = store;
-    // this.trainer = trainer;
+    this.trainer = trainer;
     this.path = path;
   }
 
@@ -91,8 +91,7 @@ export class ProjectService extends DataSource {
 
   async startTraining(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    // this.trainer.start(project);
-    console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
+    this.trainer.start(project);
     return project;
   }
 

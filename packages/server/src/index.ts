@@ -1,7 +1,6 @@
 import * as Koa from "koa";
 import { ApolloServer, PubSub } from "apollo-server-koa";
 import { schema } from "./schema";
-import Trainer from "./training";
 import * as serve from "koa-static";
 import * as mount from "koa-mount";
 import { ProjectService } from "./datasources/project-service";
@@ -10,18 +9,20 @@ import { PROJECT_DATA_DIR } from "./constants";
 import { Context } from "./context";
 import { DatasetService } from "./datasources/dataset-service";
 import { sequelize } from "./store";
-import { Docker } from "./training/docker";
+import { Docker, DockerTrainer } from "./training/docker";
+import * as Dockerode from "dockerode";
 
 const pubsub = new PubSub();
-// const trainer = new Trainer();
-const docker = new Docker();
+const dockerode = new Dockerode();
+const docker = new Docker(dockerode);
+const trainer = new DockerTrainer(dockerode);
 
 const app = new Koa();
 const server = new ApolloServer({
   schema: schema,
   dataSources: () => ({
     datasetService: new DatasetService(sequelize, DATASET_DATA_DIR),
-    projectService: new ProjectService(sequelize, null, PROJECT_DATA_DIR)
+    projectService: new ProjectService(sequelize, trainer, PROJECT_DATA_DIR)
   }),
   context: {
     pubsub,

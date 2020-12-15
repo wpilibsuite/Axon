@@ -116,10 +116,16 @@ type Project {
   status: ProjectStatus!
 }
 
+enum TrainingStatus {
+  NOT_TRAINING
+  PREPARING
+  TRAINING
+  PAUSED
+}
+
 type ProjectStatus {
-  trainingStatus: Int!
-  currentEpoch: Int
-  lastEpoch: Int
+  trainingStatus: TrainingStatus!
+  epoch: Int
 }
 
 input ProjectUpdateInput {
