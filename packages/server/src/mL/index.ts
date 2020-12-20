@@ -226,7 +226,9 @@ export default class MLService {
       return;
     }
 
-    await Exporter.moveCheckpointToMount(MOUNT, checkpointNumber, EXPORT_PATH);
+    //line below is needed eventually but not possible until tflite container is changed.
+    // await Exporter.moveCheckpointToMount(MOUNT, checkpointNumber, EXPORT_PATH);
+    await mkdirp(path.posix.join(EXPORT_PATH, "checkpoint"));
 
     await Trainer.UpdateCheckpoints(id); // <-- get rid of soon
 
@@ -236,16 +238,18 @@ export default class MLService {
 
     project.containerIDs.export = await this.createContainer(EXPORT_IMAGE, "EXPORT-", id, MOUNT);
     await Exporter.runContainer(project.containerIDs.export);
-    this.projects[id].containers.export = null;
+    project.containerIDs.export = null;
 
-    this.projects[id].exports[name] = {
+    project.exports[name] = {
       projectId: id,
       name: name,
       directory: EXPORT_PATH,
       tarPath: TAR_PATH
     };
-    this.projects[id].checkpoints[checkpointNumber].status.exportPaths.push(TAR_PATH);
-    this.projects[id].checkpoints[checkpointNumber].status.exporting = false;
+    project.checkpoints[checkpointNumber].status.exportPaths.push(TAR_PATH);
+    PseudoDatabase.pushProject(project);
+
+    await Exporter.updateCheckpointStatus(id, checkpointNumber, false);
 
     return "exported";
   }
