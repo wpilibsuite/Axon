@@ -2,8 +2,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as mkdirp from "mkdirp";
 import { Project } from "../store";
-import { Container } from "dockerode";
-import * as Dockerode from "dockerode";
 import { PROJECT_DATA_DIR } from "../constants";
 import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
 
@@ -11,13 +9,13 @@ import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import Trainer from "./Trainer";
 import Exporter from "./Exporter";
+import Docker from "./Docker";
 
 export const DATASET_IMAGE = "gcperkins/wpilib-ml-dataset:latest";
 export const METRICS_IMAGE = "gcperkins/wpilib-ml-metrics:latest";
 export const EXPORT_IMAGE = "gcperkins/wpilib-ml-tflite:latest";
 export const TRAIN_IMAGE = "gcperkins/wpilib-ml-train:latest";
 export const TEST_IMAGE = "gcperkins/wpilib-ml-test:latest";
-export const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 
 //trainer state enumeration
 enum TrainerState {
@@ -49,8 +47,6 @@ export default class MLService {
   trainer_state: TrainerState;
   status: ProjectStati;
 
-  readonly docker = new Dockerode();
-
   constructor() {
     this.trainer_state = TrainerState.SCANNING_FOR_DOCKER;
     this.status = {};
@@ -58,9 +54,7 @@ export default class MLService {
   }
 
   private async prepare(): Promise<void> {
-    try {
-      await this.docker.info();
-    } catch {
+    if (!(await Docker.testDaemon())) {
       this.trainer_state = TrainerState.NO_DOCKER_INSTALLED;
       console.log("docker is not responding");
       Promise.resolve();
@@ -72,105 +66,23 @@ export default class MLService {
     Object.values(database).forEach((project: ProjectData) => this.addStatus(project));
 
     this.trainer_state = TrainerState.DATASET_PULL;
-    await this.pull(DATASET_IMAGE);
+    await Docker.pull(DATASET_IMAGE);
 
     this.trainer_state = TrainerState.METRICS_PULL;
-    await this.pull(METRICS_IMAGE);
+    await Docker.pull(METRICS_IMAGE);
 
     this.trainer_state = TrainerState.TRAINER_PULL;
-    await this.pull(TRAIN_IMAGE);
+    await Docker.pull(TRAIN_IMAGE);
 
     this.trainer_state = TrainerState.EXPORT_PULL;
-    await this.pull(EXPORT_IMAGE);
+    await Docker.pull(EXPORT_IMAGE);
 
     this.trainer_state = TrainerState.TEST_PULL;
-    await this.pull(TEST_IMAGE);
+    await Docker.pull(TEST_IMAGE);
 
     this.trainer_state = TrainerState.READY;
     console.log("image pull complete");
     Promise.resolve();
-  }
-
-  // scanProjects(): ProjectData {
-  //   const projects = {};
-
-  //   fs.readdirSync(PROJECT_DATA_DIR).forEach(pushProject);
-  //   function pushProject(projectID) {
-  //     const PROJECTDIR = `${PROJECT_DATA_DIR}/${projectID}`.replace(/\\/g, "/");
-  //     const EXPORTSDIR = path.posix.join(PROJECTDIR, "exports");
-
-  //     let EPOCHS = null;
-  //     const HYPERPATH = path.posix.join(PROJECTDIR, "hyperparameters.json");
-  //     if (fs.existsSync(HYPERPATH)) {
-  //       const HYPERPARAMETERS = JSON.parse(fs.readFileSync(HYPERPATH, "utf8"));
-  //       EPOCHS = HYPERPARAMETERS.epochs;
-  //     }
-
-  //     projects[projectID] = {
-  //       directory: PROJECTDIR,
-  //       checkpoints: {},
-  //       exports: {},
-  //       containers: {
-  //         tflite: null,
-  //         train: null,
-  //         metrics: null,
-  //         export: null,
-  //         test: null
-  //       },
-  //       status: {
-  //         trainingStatus: trainingStatus.NOT_TRAINING,
-  //         currentEpoch: 0,
-  //         lastEpoch: EPOCHS
-  //       }
-  //     };
-
-  //     if (!fs.existsSync(EXPORTSDIR)) {
-  //       fs.mkdirSync(EXPORTSDIR);
-  //     }
-
-  //     fs.readdirSync(EXPORTSDIR).forEach(pushExport);
-  //     function pushExport(exportID) {
-  //       const EXPORT_DIR = path.posix.join(EXPORTSDIR, exportID);
-  //       const TARFILENAME = fs.readdirSync(EXPORT_DIR).find((thing) => thing.includes(".tar.gz"));
-
-  //       if (TARFILENAME) {
-  //         const TARFILEPATH = path.posix.join(EXPORT_DIR, TARFILENAME);
-  //         const NAME = TARFILENAME.replace(".tar.gz", "");
-
-  //         projects[projectID].exports[exportID] = {
-  //           testingInProgress: false,
-  //           directory: EXPORT_DIR,
-  //           tarPath: TARFILEPATH,
-  //           projectId: projectID,
-  //           name: NAME
-  //         };
-  //       }
-  //     }
-  //   }
-
-  //   return projects;
-  // }
-
-  private async pull(name: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.docker.pull(name, (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
-        try {
-          stream.pipe(process.stdout);
-          this.docker.modem.followProgress(stream, onFinished);
-        } catch {
-          console.log("cant pull image");
-          resolve();
-        }
-        function onFinished(err: string, output: string) {
-          if (!err) {
-            resolve(output);
-          } else {
-            console.log(err);
-            reject(err);
-          }
-        }
-      });
-    });
   }
 
   async start(iproject: Project): Promise<string> {
@@ -190,23 +102,22 @@ export default class MLService {
 
     console.log("extracting the dataset");
 
-    project.containerIDs.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-    project.containerIDs.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
+    project.containerIDs.metrics = await Docker.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+    project.containerIDs.train = await Docker.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
 
-    await Trainer.runContainer(project.containerIDs.train);
+    await Docker.runContainer(project.containerIDs.train);
     console.log("datasets extracted");
 
     this.updateState(ID, TrainingStatus.TRAINING);
     this.updateStep(ID, 0);
 
-    project.containerIDs.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
+    project.containerIDs.train = await Docker.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
 
-    await this.docker.getContainer(project.containerIDs.metrics.valueOf()).start();
+    await Docker.startContainer(project.containerIDs.metrics);
 
-    await Trainer.runContainer(project.containerIDs.train);
+    await Docker.runContainer(project.containerIDs.train);
 
-    await this.docker.getContainer(project.containerIDs.metrics.valueOf()).stop();
-    await this.docker.getContainer(project.containerIDs.metrics.valueOf()).remove();
+    await Docker.removeContainer(project.containerIDs.metrics);
 
     this.updateState(ID, TrainingStatus.NOT_TRAINING);
     project.containerIDs.train = null;
@@ -236,8 +147,8 @@ export default class MLService {
 
     await Exporter.writeParameterFile(name, checkpointNumber, MOUNT);
 
-    project.containerIDs.export = await this.createContainer(EXPORT_IMAGE, "EXPORT-", id, MOUNT);
-    await Exporter.runContainer(project.containerIDs.export);
+    project.containerIDs.export = await Docker.createContainer(EXPORT_IMAGE, "EXPORT-", id, MOUNT);
+    await Docker.runContainer(project.containerIDs.export);
     project.containerIDs.export = null;
 
     project.exports[name] = {
@@ -255,59 +166,59 @@ export default class MLService {
   }
 
   async test(modelExport: Export, videoPath: string, videoFilename: string, videoCustomName: string): Promise<string> {
-    const ID = modelExport.projectId;
-    const MOUNT = this.projects[ID].directory;
+    // const ID = modelExport.projectId;
+    // const MOUNT = this.projects[ID].directory;
 
-    const MOUNTED_MODEL_DIR = path.posix.join(MOUNT, "exports", modelExport.name);
-    const MOUNTED_MODEL_PATH = path.posix.join(MOUNTED_MODEL_DIR, `${modelExport.name}.tar.gz`);
-    const CONTAINER_MODEL_PATH = path.posix.join(
-      CONTAINER_MOUNT_PATH,
-      "exports",
-      modelExport.name,
-      `${modelExport.name}.tar.gz`
-    );
+    // const MOUNTED_MODEL_DIR = path.posix.join(MOUNT, "exports", modelExport.name);
+    // const MOUNTED_MODEL_PATH = path.posix.join(MOUNTED_MODEL_DIR, `${modelExport.name}.tar.gz`);
+    // const CONTAINER_MODEL_PATH = path.posix.join(
+    //   CONTAINER_MOUNT_PATH,
+    //   "exports",
+    //   modelExport.name,
+    //   `${modelExport.name}.tar.gz`
+    // );
 
-    const MOUNTED_VIDEO_PATH = path.posix.join(MOUNT, "videos", videoFilename);
-    const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", videoFilename);
+    // const MOUNTED_VIDEO_PATH = path.posix.join(MOUNT, "videos", videoFilename);
+    // const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", videoFilename);
 
-    if (!fs.existsSync(modelExport.tarPath)) {
-      Promise.reject("model not found");
-      return;
-    }
-    if (!fs.existsSync(videoPath)) {
-      Promise.reject("video not found");
-      return;
-    }
+    // if (!fs.existsSync(modelExport.tarPath)) {
+    //   Promise.reject("model not found");
+    //   return;
+    // }
+    // if (!fs.existsSync(videoPath)) {
+    //   Promise.reject("video not found");
+    //   return;
+    // }
 
-    this.projects[ID].exports[modelExport.name].testingInProgress = true;
+    // this.projects[ID].exports[modelExport.name].testingInProgress = true;
 
-    if (!fs.existsSync(MOUNTED_MODEL_PATH)) {
-      await fs.promises.copyFile(modelExport.tarPath, MOUNTED_MODEL_PATH);
-    }
-    if (!fs.existsSync(MOUNTED_VIDEO_PATH)) {
-      await fs.promises.copyFile(videoPath, MOUNTED_VIDEO_PATH);
-    }
-    const testparameters = {
-      "test-video": CONTAINER_VIDEO_PATH,
-      "model-tar": CONTAINER_MODEL_PATH
-    };
-    fs.writeFileSync(path.posix.join(MOUNT, "testparameters.json"), JSON.stringify(testparameters));
+    // if (!fs.existsSync(MOUNTED_MODEL_PATH)) {
+    //   await fs.promises.copyFile(modelExport.tarPath, MOUNTED_MODEL_PATH);
+    // }
+    // if (!fs.existsSync(MOUNTED_VIDEO_PATH)) {
+    //   await fs.promises.copyFile(videoPath, MOUNTED_VIDEO_PATH);
+    // }
+    // const testparameters = {
+    //   "test-video": CONTAINER_VIDEO_PATH,
+    //   "model-tar": CONTAINER_MODEL_PATH
+    // };
+    // fs.writeFileSync(path.posix.join(MOUNT, "testparameters.json"), JSON.stringify(testparameters));
 
-    this.projects[ID].containers.test = await this.createContainer(TEST_IMAGE, "TEST-", ID, MOUNT, "5000");
-    await this.projects[ID].containers.test.start();
-    await this.projects[ID].containers.test.wait();
-    await this.projects[ID].containers.test.remove();
+    // this.projects[ID].containers.test = await this.createContainer(TEST_IMAGE, "TEST-", ID, MOUNT, "5000");
+    // await this.projects[ID].containers.test.start();
+    // await this.projects[ID].containers.test.wait();
+    // await this.projects[ID].containers.test.remove();
 
-    const OUTPUT_VID_PATH = path.posix.join(MOUNT, "inference.mp4");
-    if (!fs.existsSync(OUTPUT_VID_PATH)) return "cant find output video";
+    // const OUTPUT_VID_PATH = path.posix.join(MOUNT, "inference.mp4");
+    // if (!fs.existsSync(OUTPUT_VID_PATH)) return "cant find output video";
 
-    const CUSTOM_VID_DIR = path.posix.join(MOUNTED_MODEL_DIR, "tests", videoCustomName);
-    const CUSTOM_VID_PATH = path.posix.join(CUSTOM_VID_DIR, `${videoCustomName}.mp4`);
-    await mkdirp(CUSTOM_VID_DIR);
-    await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
+    // const CUSTOM_VID_DIR = path.posix.join(MOUNTED_MODEL_DIR, "tests", videoCustomName);
+    // const CUSTOM_VID_PATH = path.posix.join(CUSTOM_VID_DIR, `${videoCustomName}.mp4`);
+    // await mkdirp(CUSTOM_VID_DIR);
+    // await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
 
-    this.projects[ID].containers.test = null;
-    this.projects[ID].exports[modelExport.name].testingInProgress = false;
+    // this.projects[ID].containers.test = null;
+    // this.projects[ID].exports[modelExport.name].testingInProgress = false;
     return "testing complete";
   }
 
@@ -318,91 +229,6 @@ export default class MLService {
       }
     }
     this.projects[id].status.trainingStatus = TrainingStatus.NOT_TRAINING;
-    Promise.resolve();
-  }
-
-  async toggleContainer(id: string, pause: boolean): Promise<void> {
-    if (!this.projects[id].status.trainingStatus) {
-      console.log("not training");
-      Promise.resolve();
-      return;
-    }
-    if (!this.projects[id].containers.train) {
-      console.log("no container to pause");
-      Promise.resolve();
-      return;
-    }
-    const CONTAINER = this.projects[id].containers.train;
-
-    if (pause) {
-      if (!(await CONTAINER.inspect()).State.Paused) {
-        await CONTAINER.pause();
-        this.projects[id].status.trainingStatus = TrainingStatus.PAUSED;
-      }
-    } else {
-      if ((await CONTAINER.inspect()).State.Paused) {
-        CONTAINER.unpause();
-        this.projects[id].status.trainingStatus = TrainingStatus.TRAINING;
-      }
-    }
-    Promise.resolve();
-  }
-
-  private async createContainer(
-    image: string,
-    tag: string,
-    id: string,
-    mount: string,
-    port: string = null
-  ): Promise<string> {
-    const NAME = tag + id;
-
-    let MOUNTCMD = process.cwd().replace("C:\\", "/c/").replace(/\\/g, "/");
-    MOUNTCMD = path.posix.join(MOUNTCMD, mount);
-    MOUNTCMD = `${MOUNTCMD}:${CONTAINER_MOUNT_PATH}:rw`;
-
-    const options = {
-      Image: image,
-      name: NAME,
-      AttachStdin: false,
-      AttachStdout: true,
-      AttachStderr: true,
-      OpenStdin: false,
-      StdinOnce: false,
-      Tty: true,
-      Volumes: { [CONTAINER_MOUNT_PATH]: {} },
-      HostConfig: { Binds: [MOUNTCMD] }
-    };
-    if (port) {
-      const PORTCMD = `${port}/tcp`;
-      options["ExposedPorts"] = { [PORTCMD]: {} };
-      options.HostConfig["PortBindings"] = { [PORTCMD]: [{ HostPort: port }] };
-    }
-
-    await this.deleteContainer(NAME);
-    const container = await this.docker.createContainer(options);
-    (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(process.stdout);
-
-    return container.id;
-  }
-
-  private async deleteContainer(name: string): Promise<void> {
-    const container: Container = await new Promise((resolve) => {
-      const opts = {
-        limit: 1,
-        filters: `{"name": ["${name}"]}`
-      };
-      this.docker.listContainers(opts, (err, containers) => {
-        resolve(containers.length > 0 ? this.docker.getContainer(containers[0].Id) : null);
-      });
-    });
-
-    if (container) {
-      if ((await container.inspect()).State.Running) {
-        await container.kill({ force: true });
-      }
-      await container.remove();
-    }
     Promise.resolve();
   }
 

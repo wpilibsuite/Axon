@@ -1,4 +1,3 @@
-import { Container } from "dockerode";
 import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Dataset } from "../store";

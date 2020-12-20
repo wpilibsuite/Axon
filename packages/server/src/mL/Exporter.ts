@@ -1,25 +1,11 @@
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import { Project } from "../store";
-import { Container } from "dockerode";
-import * as Dockerode from "dockerode";
 import * as path from "path";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 
-import { CONTAINER_MOUNT_PATH } from "./index";
-
 export default class Exporter {
-  static readonly docker = new Dockerode();
-
-  public static async runContainer(containerID: string): Promise<void> {
-    const container: Container = await Exporter.docker.getContainer(containerID);
-    await container.start();
-    await container.wait();
-    await container.remove();
-    Promise.resolve();
-  }
-
   public static async moveCheckpointToMount(mount: string, checkpointNum: number, exportPath: string): Promise<void> {
     await mkdirp(path.posix.join(exportPath, "checkpoint"));
     async function copyCheckpointFile(extention: string): Promise<void> {

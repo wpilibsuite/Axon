@@ -1,13 +1,10 @@
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import { Project } from "../store";
-import { Container } from "dockerode";
-import * as Dockerode from "dockerode";
+import { CONTAINER_MOUNT_PATH } from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
-
-import { CONTAINER_MOUNT_PATH } from "./index";
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -20,16 +17,6 @@ type TrainParameters = {
 };
 
 export default class Trainer {
-  public static async runContainer(containerID: string): Promise<void> {
-    const container: Container = await Trainer.docker.getContainer(containerID);
-    await container.start();
-    await container.wait();
-    await container.remove();
-    Promise.resolve();
-  }
-
-  static readonly docker = new Dockerode();
-
   public static async writeParameterFile(id: string): Promise<void> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
 
@@ -64,12 +51,12 @@ export default class Trainer {
     const OLD_TRAIN_DIR = path.posix.join(project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
       fs.rmdirSync(OLD_TRAIN_DIR, { recursive: true });
-      console.log("old train dir removed");
+      console.log(`old train dir ${OLD_TRAIN_DIR} removed`);
     } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
 
-    const OLD_METRICS_DIR = path.posix.join(project.directory, "metrics.json");
-    if (fs.existsSync(OLD_METRICS_DIR)) {
-      fs.unlinkSync(OLD_METRICS_DIR);
+    const OLD_METRICS_FILE = path.posix.join(project.directory, "metrics.json");
+    if (fs.existsSync(OLD_METRICS_FILE)) {
+      fs.unlinkSync(OLD_METRICS_FILE);
     } //must clear old checkpoints in order for new ones to be saved by trainer
 
     project.checkpoints = {}; //must add a way to preserve existing checkpoints somehow

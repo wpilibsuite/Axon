@@ -120,16 +120,16 @@ export class ProjectService extends DataSource {
   }
 
   async pauseTraining(id: string): Promise<Project> {
-    this.mLService.toggleContainer(id, true);
+    // this.mLService.toggleContainer(id, true);
     const project = await Project.findByPk(id);
-    console.log(`PAUSED Training on project: ${JSON.stringify(project)}`);
+    // console.log(`PAUSED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async resumeTraining(id: string): Promise<Project> {
-    this.mLService.toggleContainer(id, false);
+    // this.mLService.toggleContainer(id, false);
     const project = await Project.findByPk(id);
-    console.log(`RESUMED Training on project: ${JSON.stringify(project)}`);
+    // console.log(`RESUMED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
