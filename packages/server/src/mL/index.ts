@@ -190,7 +190,7 @@ export default class MLService {
 
     console.log("extracting the dataset");
 
-    //project.containerIDs.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
+    project.containerIDs.metrics = await this.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
     project.containerIDs.train = await this.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
 
     await Trainer.runContainer(project.containerIDs.train);
@@ -201,9 +201,12 @@ export default class MLService {
 
     project.containerIDs.train = await this.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
 
-    //await this.docker.getContainer(project.containerIDs.metrics.valueOf()).start();
+    await this.docker.getContainer(project.containerIDs.metrics.valueOf()).start();
 
     await Trainer.runContainer(project.containerIDs.train);
+
+    await this.docker.getContainer(project.containerIDs.metrics.valueOf()).stop();
+    await this.docker.getContainer(project.containerIDs.metrics.valueOf()).remove();
 
     this.updateState(ID, TrainingStatus.NOT_TRAINING);
     project.containerIDs.train = null;
@@ -427,8 +430,8 @@ export default class MLService {
   }
 
   public async updateCheckpoints(id: string): Promise<void> {
-    // const currentStep = await Trainer.UpdateCheckpoints(id);
-    // if (currentStep) this.updateStep(id, currentStep);
+    const currentStep = await Trainer.UpdateCheckpoints(id);
+    if (currentStep) this.updateStep(id, currentStep);
     Promise.resolve();
   }
 
