@@ -1,7 +1,7 @@
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 
-export const DATA_DIR = "data";
+export const DATA_DIR = path.posix.join(process.cwd(), "data");
 export const DATASET_DATA_DIR = path.join(DATA_DIR, "datasets");
 export const PROJECT_DATA_DIR = path.join(DATA_DIR, "projects");
 

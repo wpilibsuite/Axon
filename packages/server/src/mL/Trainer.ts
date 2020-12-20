@@ -5,6 +5,7 @@ import { CONTAINER_MOUNT_PATH } from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
+import * as rimraf from "rimraf";
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -50,7 +51,7 @@ export default class Trainer {
 
     const OLD_TRAIN_DIR = path.posix.join(project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
-      fs.rmdirSync(OLD_TRAIN_DIR, { recursive: true });
+      rimraf.sync(OLD_TRAIN_DIR);
       console.log(`old train dir ${OLD_TRAIN_DIR} removed`);
     } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
 

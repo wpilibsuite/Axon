@@ -42,7 +42,7 @@ export default class PseudoDatabase {
 
     const DATASETS: Dataset[] = await project.getDatasets();
 
-    const MOUNT = `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
+    const MOUNT = `/${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
     await mkdirp(MOUNT);
     await fs.promises.mkdir(path.posix.join(MOUNT, "dataset"));
     await fs.promises.mkdir(path.posix.join(MOUNT, "exports"));

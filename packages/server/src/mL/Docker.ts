@@ -46,9 +46,7 @@ export default class Docker {
     port: string = null
   ): Promise<string> {
     const NAME = tag + id;
-    let MOUNTCMD = process.cwd().replace("C:\\", "/c/").replace(/\\/g, "/");
-    MOUNTCMD = path.posix.join(MOUNTCMD, mount);
-    MOUNTCMD = `${MOUNTCMD}:${CONTAINER_MOUNT_PATH}:rw`;
+    const MOUNTCMD = `${mount}:${CONTAINER_MOUNT_PATH}:rw`;
 
     const options = {
       Image: image,
@@ -110,6 +108,7 @@ export default class Docker {
     await container.wait();
     await container.remove();
     Promise.resolve();
+    return;
   }
 
   static async toggleContainer(containerID: string, pause: boolean): Promise<void> {
