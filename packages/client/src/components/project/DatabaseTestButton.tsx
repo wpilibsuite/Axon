@@ -24,7 +24,7 @@ export default function DatabaseTestButton(props: { id: string }): ReactElement 
   return (
     <>
       <button autoFocus onClick={handleClick} color="primary">
-        <p>Swag</p>
+        <p>devTestButton</p>
       </button>
     </>
   );
