@@ -1,4 +1,4 @@
-import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
+import { Checkpoint, Export } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Dataset } from "../store";
 import { DATA_DIR } from "../constants";

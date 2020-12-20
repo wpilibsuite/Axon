@@ -1,6 +1,5 @@
 import * as Dockerode from "dockerode";
 import { Container } from "dockerode";
-import * as path from "path";
 
 export const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 
@@ -91,15 +90,20 @@ export default class Docker {
       await container.remove();
     }
     Promise.resolve();
+    return;
   }
 
-  static async startContainer(containerID: string) {
+  static async startContainer(containerID: string): Promise<void> {
     await this.docker.getContainer(containerID).start();
+    Promise.resolve();
+    return;
   }
 
-  static async removeContainer(containerID: string) {
+  static async removeContainer(containerID: string): Promise<void> {
     await this.docker.getContainer(containerID).stop();
     await this.docker.getContainer(containerID).remove();
+    Promise.resolve();
+    return;
   }
 
   static async runContainer(containerID: string): Promise<void> {
@@ -124,5 +128,6 @@ export default class Docker {
       }
     }
     Promise.resolve();
+    return;
   }
 }

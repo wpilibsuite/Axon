@@ -1,6 +1,5 @@
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
-import { Project } from "../store";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
 import * as path from "path";
 import * as fs from "fs";

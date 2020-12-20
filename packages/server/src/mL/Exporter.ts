@@ -1,6 +1,5 @@
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
-import { Project } from "../store";
 import * as path from "path";
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
@@ -24,7 +23,7 @@ export default class Exporter {
     return;
   }
 
-  public static async writeParameterFile(name, checkpointNumber, mount: string): Promise<void> {
+  public static async writeParameterFile(name: string, checkpointNumber: number, mount: string): Promise<void> {
     const exportparameters = {
       name: name,
       epochs: checkpointNumber,

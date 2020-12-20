@@ -2,7 +2,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as mkdirp from "mkdirp";
 import { Project } from "../store";
-import { PROJECT_DATA_DIR } from "../constants";
 import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";
