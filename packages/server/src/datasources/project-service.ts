@@ -1,5 +1,5 @@
 import { DataSource } from "apollo-datasource";
-import { Checkpoint, Export, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, ExportInput, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import Trainer from "../mL/Trainer";
 import { Sequelize } from "sequelize";
@@ -141,7 +141,7 @@ export class ProjectService extends DataSource {
   }
 
   async testModel(
-    modelExport: Export,
+    modelExport: ExportInput,
     videoCustomName: string,
     filename: string,
     stream: fs.ReadStream

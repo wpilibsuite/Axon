@@ -42,7 +42,7 @@ const GET_PROJECT_DATA = gql`
         }
         status {
           exporting
-          exportPaths
+          downloadPaths
         }
       }
       exports {
@@ -50,6 +50,7 @@ const GET_PROJECT_DATA = gql`
         name
         directory
         tarPath
+        downloadPath
         testingInProgress
       }
       status {

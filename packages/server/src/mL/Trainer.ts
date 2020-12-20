@@ -117,7 +117,7 @@ export default class Trainer {
           },
           status: {
             exporting: false,
-            exportPaths: []
+            downloadPaths: []
           }
         };
         currentEpoch = parseInt(step, 10);

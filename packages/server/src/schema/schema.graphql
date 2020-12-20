@@ -69,7 +69,7 @@ type TrainingMetrics {
 
 type CheckpointStatus {
   exporting: Boolean!
-  exportPaths: [String!]!
+  downloadPaths: [String!]!
 }
 
 type Checkpoint {
@@ -90,6 +90,7 @@ type Export {
   name: String!
   directory: String!
   tarPath: String!
+  downloadPath: String!
   testingInProgress: Boolean
 }
 

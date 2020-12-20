@@ -33,7 +33,7 @@ export default function Results(props: {
                 <TableCell>{exportInfo.name}</TableCell>
                 <TableCell>
                   {props.trainerState > 7 ? <TestButton modelExport={exportInfo} /> : <p>testing unavailable</p>}
-                  <a download href={`http://localhost:4000/${exportInfo.tarPath.replace("data/projects", "projects")}`}>
+                  <a download href={`http://localhost:4000/${exportInfo.downloadPath}`}>
                     <IconButton>Download</IconButton>
                   </a>
                 </TableCell>

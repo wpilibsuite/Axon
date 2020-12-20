@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as mkdirp from "mkdirp";
 import { Project } from "../store";
-import { Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, ExportInput, ProjectStatus } from "../schema/__generated__/graphql";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
@@ -150,13 +150,17 @@ export default class MLService {
     await Docker.runContainer(project.containerIDs.export);
     project.containerIDs.export = null;
 
+    const DOWNLOAD_PATH = TAR_PATH.split("/server/data/")[1];
+
     project.exports[name] = {
       projectId: id,
       name: name,
       directory: EXPORT_PATH,
-      tarPath: TAR_PATH
+      tarPath: TAR_PATH,
+      downloadPath: DOWNLOAD_PATH
     };
-    project.checkpoints[checkpointNumber].status.exportPaths.push(TAR_PATH);
+    project.checkpoints[checkpointNumber].status.downloadPaths.push(DOWNLOAD_PATH);
+
     PseudoDatabase.pushProject(project);
 
     await Exporter.updateCheckpointStatus(id, checkpointNumber, false);
@@ -164,7 +168,12 @@ export default class MLService {
     return "exported";
   }
 
-  async test(modelExport: Export, videoPath: string, videoFilename: string, videoCustomName: string): Promise<string> {
+  async test(
+    modelExport: ExportInput,
+    videoPath: string,
+    videoFilename: string,
+    videoCustomName: string
+  ): Promise<string> {
     // const ID = modelExport.projectId;
     // const MOUNT = this.projects[ID].directory;
 

@@ -39,9 +39,9 @@ export default class Exporter {
     return;
   }
 
-  public static async addExportPath(id: string, checkpointNum: number, exportPath: string): Promise<void> {
+  public static async addDownloadPath(id: string, checkpointNum: number, exportPath: string): Promise<void> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-    project.checkpoints[checkpointNum].status.exportPaths.push(exportPath);
+    project.checkpoints[checkpointNum].status.downloadPaths.push(exportPath);
     Promise.resolve();
     return;
   }
