@@ -20,13 +20,12 @@ type TrainParameters = {
 };
 
 export default class Trainer {
-  
   public static async runContainer(containerID: string): Promise<void> {
-      const container: Container = await Trainer.docker.getContainer(containerID);
-      await container.start();
-      await container.wait();
-      await container.remove();
-      Promise.resolve();
+    const container: Container = await Trainer.docker.getContainer(containerID);
+    await container.start();
+    await container.wait();
+    await container.remove();
+    Promise.resolve();
   }
 
   static readonly docker = new Dockerode();

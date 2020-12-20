@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { GetProjectCheckpoints_project_checkpoints } from "./__generated__/GetProjectCheckpoints";
+import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectData";
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -9,7 +9,7 @@ type Datapoint = {
 };
 
 export default function Chart(props: {
-  checkpoints: GetProjectCheckpoints_project_checkpoints[] | undefined;
+  checkpoints: GetProjectData_project_checkpoints[] | undefined;
   onClick: (para: number) => void;
 }): ReactElement {
   const data: Datapoint[] = props.checkpoints

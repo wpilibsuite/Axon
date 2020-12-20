@@ -212,7 +212,6 @@ export default class MLService {
   }
 
   async export(id: string, checkpointNumber: number, name: string): Promise<string> {
-
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
     const MOUNT = project.directory;
 
@@ -225,7 +224,7 @@ export default class MLService {
     }
 
     await Exporter.moveCheckpointToMount(MOUNT, checkpointNumber, EXPORT_PATH);
-    
+
     await Trainer.UpdateCheckpoints(id); // <-- get rid of soon
 
     await Exporter.updateCheckpointStatus(id, checkpointNumber, true);
@@ -233,7 +232,7 @@ export default class MLService {
     await Exporter.writeParameterFile(name, checkpointNumber, MOUNT);
 
     project.containerIDs.export = await this.createContainer(EXPORT_IMAGE, "EXPORT-", id, MOUNT);
-    await Exporter.runContainer(project.containerIDs.export)
+    await Exporter.runContainer(project.containerIDs.export);
     this.projects[id].containers.export = null;
 
     this.projects[id].exports[name] = {
