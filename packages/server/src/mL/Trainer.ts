@@ -50,7 +50,14 @@ export default class Trainer {
 
     const OLD_TRAIN_DIR = path.posix.join(project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
-      rimraf.sync(OLD_TRAIN_DIR);
+      try {
+        rimraf.sync(OLD_TRAIN_DIR);
+      } catch (e) {
+        if (e.message.toLowerCase().includes("permission denied"))
+          Promise.reject("permission denied when deleting old train directory");
+        else throw e;
+      }
+
       console.log(`old train dir ${OLD_TRAIN_DIR} removed`);
     } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
 
