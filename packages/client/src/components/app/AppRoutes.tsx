@@ -6,7 +6,7 @@ import About from "../about";
 import Dataset from "../dataset";
 import Projects from "../projects";
 
-export default function AppRoutes(props: { trainerState: number }): ReactElement {
+export default function AppRoutes(): ReactElement {
   return (
     <Switch>
       <Route path="/" exact component={About} />
@@ -24,7 +24,7 @@ export default function AppRoutes(props: { trainerState: number }): ReactElement
         exact
         path="/projects/:id"
         render={({ match }) => {
-          return <Project id={match.params.id} trainerState={props.trainerState} />;
+          return <Project id={match.params.id} />;
         }}
       />
     </Switch>

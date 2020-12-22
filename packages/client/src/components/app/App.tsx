@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement } from "react";
 import AppRoutes from "./AppRoutes";
 import Header from "../header";
 import { Router } from "react-router";
@@ -32,7 +32,6 @@ interface Props {
 
 function App({ client }: Props): ReactElement {
   const classes = useStyles();
-  const [trainerState, setTrainerState] = useState(9);
 
   return (
     <ApolloProvider client={client}>
@@ -43,8 +42,8 @@ function App({ client }: Props): ReactElement {
           <NavigationDrawer />
           <main className={classes.content}>
             <div className={classes.appBarSpacer} />
-            <AppRoutes trainerState={trainerState} />
-            <TrainerStatus trainerState={trainerState} setTrainerState={setTrainerState} />
+            <AppRoutes />
+            <TrainerStatus />
             <Footer />
           </main>
         </Router>
