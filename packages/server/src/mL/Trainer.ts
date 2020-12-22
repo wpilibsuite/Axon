@@ -1,10 +1,12 @@
-import PseudoDatabase from "../datasources/PseudoDatabase";
+import { DATASET_IMAGE, METRICS_IMAGE, TRAIN_IMAGE } from "./index";
 import { ProjectData } from "../datasources/PseudoDatabase";
+import PseudoDatabase from "../datasources/PseudoDatabase";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
-import * as path from "path";
-import * as fs from "fs";
 import * as mkdirp from "mkdirp";
 import * as rimraf from "rimraf";
+import Docker from "./Docker";
+import * as path from "path";
+import * as fs from "fs";
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -105,7 +107,36 @@ export default class Trainer {
     Promise.resolve();
   }
 
-  public static async UpdateCheckpoints(id: string): Promise<number> {
+  public static async extractDataset(id: string): Promise<void> {
+    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+
+    project.containerIDs.train = await Docker.createContainer(DATASET_IMAGE, "TRAIN-", project.id, project.directory);
+
+    console.log("extracting the dataset");
+    await Docker.runContainer(project.containerIDs.train);
+
+    console.log("datasets extracted");
+  }
+
+  public static async trainModel(id: string): Promise<void> {
+    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+
+    project.containerIDs.metrics = await Docker.createContainer(
+      METRICS_IMAGE,
+      "METRICS-",
+      project.id,
+      project.directory,
+      "6006"
+    );
+    await Docker.startContainer(project.containerIDs.metrics);
+
+    project.containerIDs.train = await Docker.createContainer(TRAIN_IMAGE, "TRAIN-", project.id, project.directory);
+    await Docker.runContainer(project.containerIDs.train);
+
+    await Docker.removeContainer(project.containerIDs.metrics);
+  }
+
+  public static async updateCheckpoints(id: string): Promise<number> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
     let currentEpoch: number;
 

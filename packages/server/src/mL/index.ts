@@ -86,11 +86,9 @@ export default class MLService {
   }
 
   async start(iproject: Project): Promise<string> {
-    const ID = iproject.id;
+    const project = await PseudoDatabase.retrieveProject(iproject.id);
+    const ID = project.id;
 
-    const project = await PseudoDatabase.retrieveProject(ID);
-
-    const MOUNT = project.directory;
     this.updateLastStep(ID, project.hyperparameters.epochs);
     this.updateState(ID, TrainingStatus.PREPARING);
 
@@ -100,24 +98,12 @@ export default class MLService {
 
     await Trainer.moveDataToMount(ID);
 
-    console.log("extracting the dataset");
-
-    project.containerIDs.metrics = await Docker.createContainer(METRICS_IMAGE, "METRICS-", ID, MOUNT, "6006");
-    project.containerIDs.train = await Docker.createContainer(DATASET_IMAGE, "TRAIN-", ID, MOUNT);
-
-    await Docker.runContainer(project.containerIDs.train);
-    console.log("datasets extracted");
+    await Trainer.extractDataset(ID);
 
     this.updateState(ID, TrainingStatus.TRAINING);
     this.updateStep(ID, 0);
 
-    project.containerIDs.train = await Docker.createContainer(TRAIN_IMAGE, "TRAIN-", ID, MOUNT);
-
-    await Docker.startContainer(project.containerIDs.metrics);
-
-    await Docker.runContainer(project.containerIDs.train);
-
-    await Docker.removeContainer(project.containerIDs.metrics);
+    await Trainer.trainModel(ID);
 
     this.updateState(ID, TrainingStatus.NOT_TRAINING);
     project.containerIDs.train = null;
@@ -141,7 +127,7 @@ export default class MLService {
     // await Exporter.moveCheckpointToMount(MOUNT, checkpointNumber, EXPORT_PATH);
     await mkdirp(path.posix.join(EXPORT_PATH, "checkpoint"));
 
-    await Trainer.UpdateCheckpoints(id); // <-- get rid of soon
+    await Trainer.updateCheckpoints(id); // <-- get rid of soon
 
     await Exporter.updateCheckpointStatus(id, checkpointNumber, true);
 
@@ -234,7 +220,7 @@ export default class MLService {
   }
 
   public async updateCheckpoints(id: string): Promise<void> {
-    const currentStep = await Trainer.UpdateCheckpoints(id);
+    const currentStep = await Trainer.updateCheckpoints(id);
     if (currentStep) this.updateStep(id, currentStep);
     Promise.resolve();
   }
