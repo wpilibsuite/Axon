@@ -111,9 +111,7 @@ export default class MLService {
   }
 
   async export(id: string, checkpointNumber: number, name: string): Promise<string> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-
-    await Exporter.locateCheckpoint(project.id, checkpointNumber);
+    await Exporter.locateCheckpoint(id, checkpointNumber);
 
     const exp: Export = await Exporter.createExport(id, name);
 
@@ -121,7 +119,7 @@ export default class MLService {
 
     await Exporter.updateCheckpointStatus(id, checkpointNumber, true);
 
-    await Exporter.writeParameterFile(id, name, checkpointNumber);
+    await Exporter.writeParameterFile(id, checkpointNumber, exp);
 
     await Exporter.exportCheckpoint(id);
 
@@ -136,7 +134,6 @@ export default class MLService {
     const test: Test = await Tester.createTest(testName, projectID, exportID, videoID);
 
     const project: ProjectData = await PseudoDatabase.retrieveProject(projectID);
-    project.tests[test.id] = test;
 
     const mountedModelPath = await Tester.mountModel(test, project.directory);
     const mountedVideoPath = await Tester.mountVideo(test, project.directory);
@@ -156,6 +153,7 @@ export default class MLService {
 
     await Tester.saveOutputVid(test, project.directory);
 
+    project.tests[test.id] = test;
     project.containerIDs.test = null;
     PseudoDatabase.pushProject(project);
     return "testing complete";

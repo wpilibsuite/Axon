@@ -25,15 +25,17 @@ export default class Tester {
   }
 
   static async mountModel(test: Test, mount: string): Promise<string> {
-    const RELATIVE_MODEL_PATH = path.posix.join("exports", test.model.id, `${test.model.name}.tar.gz`);
-    const MOUNTED_MODEL_PATH = path.posix.join(mount, RELATIVE_MODEL_PATH);
-    const CONTAINER_MODEL_PATH = path.posix.join(CONTAINER_MOUNT_PATH, RELATIVE_MODEL_PATH);
+    const FULL_TAR_PATH = path.posix.join(test.model.directory, test.model.tarfileName);
+    const MOUNTED_MODEL_PATH = path.posix.join(mount, test.model.relativeDirPath, test.model.tarfileName);
+    const CONTAINER_MODEL_PATH = path.posix.join(
+      CONTAINER_MOUNT_PATH,
+      test.model.relativeDirPath,
+      test.model.tarfileName
+    );
 
-    if (!fs.existsSync(test.model.tarPath)) {
-      Promise.reject("model not found");
-      return;
-    }
-    if (!fs.existsSync(MOUNTED_MODEL_PATH)) await fs.promises.copyFile(test.model.tarPath, MOUNTED_MODEL_PATH);
+    if (!fs.existsSync(FULL_TAR_PATH)) return Promise.reject("model not found");
+
+    if (!fs.existsSync(MOUNTED_MODEL_PATH)) await fs.promises.copyFile(FULL_TAR_PATH, MOUNTED_MODEL_PATH);
 
     return Promise.resolve(CONTAINER_MODEL_PATH);
   }

@@ -18,17 +18,19 @@ export default class Exporter {
   public static async createExport(id: string, name: string): Promise<Export> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
 
-    const EXPORT_DIR = path.posix.join(project.directory, "exports", name);
-    const TAR_PATH = path.posix.join(EXPORT_DIR, `${name}.tar.gz`);
-    const DOWNLOAD_PATH = TAR_PATH.split("/server/data/")[1];
+    const TARFILE_NAME = `${name}.tar.gz`;
+    const RELATIVE_DIR_PATH = path.posix.join("exports", name);
+    const FULL_DIR_PATH = path.posix.join(project.directory, RELATIVE_DIR_PATH);
+    const DOWNLOAD_PATH = path.posix.join(FULL_DIR_PATH, TARFILE_NAME).split("/server/data/")[1]; //<- need to do this better
 
     const exp: Export = {
       id: name, //<-- id should be the IDv4 when moved to sequelize
       name: name,
       projectId: id,
-      tarPath: TAR_PATH,
-      directory: EXPORT_DIR,
-      downloadPath: DOWNLOAD_PATH
+      directory: FULL_DIR_PATH,
+      tarfileName: TARFILE_NAME,
+      downloadPath: DOWNLOAD_PATH,
+      relativeDirPath: RELATIVE_DIR_PATH
     };
 
     return Promise.resolve(exp);
@@ -56,12 +58,12 @@ export default class Exporter {
     return;
   }
 
-  public static async writeParameterFile(id: string, name: string, checkpointNumber: number): Promise<void> {
+  public static async writeParameterFile(id: string, checkpointNumber: number, exp: Export): Promise<void> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
     const exportparameters = {
-      name: name,
+      name: exp.name,
       epochs: checkpointNumber,
-      "export-dir": `exports/${name}`
+      "export-dir": exp.relativeDirPath
     };
     fs.writeFileSync(path.posix.join(project.directory, "exportparameters.json"), JSON.stringify(exportparameters));
   }

@@ -50,7 +50,6 @@ const GET_PROJECT_DATA = gql`
         projectId
         name
         directory
-        tarPath
         downloadPath
       }
       videos {

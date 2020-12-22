@@ -83,8 +83,9 @@ type Export {
   projectId: ID!
   name: String!
   directory: String!
-  tarPath: String!
+  tarfileName: String!
   downloadPath: String!
+  relativeDirPath: String!
 }
 
 type Video {
