@@ -46,12 +46,18 @@ const GET_PROJECT_DATA = gql`
         }
       }
       exports {
+        id
         projectId
         name
         directory
         tarPath
         downloadPath
-        testingInProgress
+      }
+      videos {
+        id
+        name
+        filename
+        fullPath
       }
       status {
         trainingStatus
@@ -97,7 +103,12 @@ export default function Project(props: { id: string; trainerState: number }): Re
           <Metrics id={props.id} checkpoints={data.project.checkpoints} trainerState={props.trainerState} />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          <Results id={props.id} exports={data.project.exports} trainerState={props.trainerState} />
+          <Results
+            id={props.id}
+            exports={data.project.exports}
+            trainerState={props.trainerState}
+            videos={data.project.videos}
+          />
         </TabPanel>
         <DatabaseTestButton id={props.id} />
       </div>

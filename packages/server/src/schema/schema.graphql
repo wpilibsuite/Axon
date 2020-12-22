@@ -22,9 +22,9 @@ type Mutation {
   haltTraining(id: ID!): Project
   pauseTraining(id: ID!): Project
   resumeTraining(id: ID!): Project
+  saveVideo(projectId: ID!, videoName: String!, video: Upload!): Video
   exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
-  testModel(modelExport: ExportInput!, videoName: String!, video: Upload!): Project
-
+  testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
   databaseTest(id: ID!): Project
 }
 
@@ -78,20 +78,28 @@ type Checkpoint {
   metrics: TrainingMetrics!
 }
 
-input ExportInput {
-  projectId: ID!
-  name: String!
-  directory: String!
-  tarPath: String!
-}
-
 type Export {
+  id: String!
   projectId: ID!
   name: String!
   directory: String!
   tarPath: String!
   downloadPath: String!
-  testingInProgress: Boolean
+}
+
+type Video {
+  id: String!
+  name: String!
+  filename: String!
+  fullPath: String!
+}
+
+type Test {
+  id: String!
+  name: String!
+  model: Export!
+  video: Video!
+  directory: String!
 }
 
 type Project {
@@ -109,6 +117,8 @@ type Project {
 
   checkpoints: [Checkpoint!]!
   exports: [Export!]!
+  videos: [Video!]!
+  tests: [Test!]!
   status: ProjectStatus!
 }
 

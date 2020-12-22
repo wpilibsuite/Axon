@@ -1,13 +1,14 @@
-import * as fs from "fs";
-import * as path from "path";
-import * as mkdirp from "mkdirp";
+import { Test, Video, Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
 import { Project } from "../store";
-import { Checkpoint, Export, ExportInput, ProjectStatus } from "../schema/__generated__/graphql";
+import * as mkdirp from "mkdirp";
+import * as path from "path";
+import * as fs from "fs";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import Trainer from "./Trainer";
 import Exporter from "./Exporter";
+import Tester from "./Tester";
 import Docker from "./Docker";
 
 export const DATASET_IMAGE = "gcperkins/wpilib-ml-dataset:latest";
@@ -153,6 +154,7 @@ export default class MLService {
     const DOWNLOAD_PATH = TAR_PATH.split("/server/data/")[1];
 
     project.exports[name] = {
+      id: name, //<-- id should be the IDv4 when moved to sequelize
       projectId: id,
       name: name,
       directory: EXPORT_PATH,
@@ -161,72 +163,39 @@ export default class MLService {
     };
     project.checkpoints[checkpointNumber].status.downloadPaths.push(DOWNLOAD_PATH);
 
-    PseudoDatabase.pushProject(project);
+    await PseudoDatabase.pushProject(project);
 
     await Exporter.updateCheckpointStatus(id, checkpointNumber, false);
 
     return "exported";
   }
 
-  async test(
-    modelExport: ExportInput,
-    videoPath: string,
-    videoFilename: string,
-    videoCustomName: string
-  ): Promise<string> {
-    // const ID = modelExport.projectId;
-    // const MOUNT = this.projects[ID].directory;
+  async test(testName: string, projectID: string, exportID: string, videoID: string): Promise<string> {
+    const test: Test = await Tester.createTest(testName, projectID, exportID, videoID);
 
-    // const MOUNTED_MODEL_DIR = path.posix.join(MOUNT, "exports", modelExport.name);
-    // const MOUNTED_MODEL_PATH = path.posix.join(MOUNTED_MODEL_DIR, `${modelExport.name}.tar.gz`);
-    // const CONTAINER_MODEL_PATH = path.posix.join(
-    //   CONTAINER_MOUNT_PATH,
-    //   "exports",
-    //   modelExport.name,
-    //   `${modelExport.name}.tar.gz`
-    // );
+    const project: ProjectData = await PseudoDatabase.retrieveProject(projectID);
+    project.tests[test.id] = test;
 
-    // const MOUNTED_VIDEO_PATH = path.posix.join(MOUNT, "videos", videoFilename);
-    // const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", videoFilename);
+    const mountedModelPath = await Tester.mountModel(test, project.directory);
+    const mountedVideoPath = await Tester.mountVideo(test, project.directory);
 
-    // if (!fs.existsSync(modelExport.tarPath)) {
-    //   Promise.reject("model not found");
-    //   return;
-    // }
-    // if (!fs.existsSync(videoPath)) {
-    //   Promise.reject("video not found");
-    //   return;
-    // }
+    await Tester.writeParameterFile(project.directory, mountedModelPath, mountedVideoPath);
 
-    // this.projects[ID].exports[modelExport.name].testingInProgress = true;
+    //insert way to indicate testing in progress here
 
-    // if (!fs.existsSync(MOUNTED_MODEL_PATH)) {
-    //   await fs.promises.copyFile(modelExport.tarPath, MOUNTED_MODEL_PATH);
-    // }
-    // if (!fs.existsSync(MOUNTED_VIDEO_PATH)) {
-    //   await fs.promises.copyFile(videoPath, MOUNTED_VIDEO_PATH);
-    // }
-    // const testparameters = {
-    //   "test-video": CONTAINER_VIDEO_PATH,
-    //   "model-tar": CONTAINER_MODEL_PATH
-    // };
-    // fs.writeFileSync(path.posix.join(MOUNT, "testparameters.json"), JSON.stringify(testparameters));
+    project.containerIDs.test = await Docker.createContainer(
+      TEST_IMAGE,
+      "TEST-",
+      project.id,
+      project.directory,
+      "5000"
+    );
+    await Docker.runContainer(project.containerIDs.test);
 
-    // this.projects[ID].containers.test = await this.createContainer(TEST_IMAGE, "TEST-", ID, MOUNT, "5000");
-    // await this.projects[ID].containers.test.start();
-    // await this.projects[ID].containers.test.wait();
-    // await this.projects[ID].containers.test.remove();
+    await Tester.saveOutputVid(test, project.directory);
 
-    // const OUTPUT_VID_PATH = path.posix.join(MOUNT, "inference.mp4");
-    // if (!fs.existsSync(OUTPUT_VID_PATH)) return "cant find output video";
-
-    // const CUSTOM_VID_DIR = path.posix.join(MOUNTED_MODEL_DIR, "tests", videoCustomName);
-    // const CUSTOM_VID_PATH = path.posix.join(CUSTOM_VID_DIR, `${videoCustomName}.mp4`);
-    // await mkdirp(CUSTOM_VID_DIR);
-    // await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
-
-    // this.projects[ID].containers.test = null;
-    // this.projects[ID].exports[modelExport.name].testingInProgress = false;
+    project.containerIDs.test = null;
+    PseudoDatabase.pushProject(project);
     return "testing complete";
   }
 
@@ -281,6 +250,11 @@ export default class MLService {
   public async getExports(id: string): Promise<Export[]> {
     const project = await PseudoDatabase.retrieveProject(id);
     return Object.values(project.exports);
+  }
+
+  public async getVideos(id: string): Promise<Video[]> {
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.videos);
   }
 
   public addStatus(project: ProjectData): void {

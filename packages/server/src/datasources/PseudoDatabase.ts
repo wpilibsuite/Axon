@@ -1,4 +1,4 @@
-import { Checkpoint, Export } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, Test, Video } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Dataset } from "../store";
 import { DATA_DIR } from "../constants";
@@ -22,6 +22,8 @@ export type ProjectData = {
   };
   checkpoints: { [step: string]: Checkpoint };
   exports: { [id: string]: Export };
+  videos: { [id: string]: Video };
+  tests: { [id: string]: Test };
   containerIDs: {
     tflite: string;
     train: string;
@@ -61,6 +63,8 @@ export default class PseudoDatabase {
       },
       checkpoints: {},
       exports: {},
+      videos: {},
+      tests: {},
       containerIDs: {
         tflite: null,
         train: null,
