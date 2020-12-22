@@ -1,8 +1,5 @@
 import { Test, Video, Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
 import { Project } from "../store";
-import * as mkdirp from "mkdirp";
-import * as path from "path";
-import * as fs from "fs";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
@@ -105,6 +102,8 @@ export default class MLService {
 
     await Trainer.trainModel(ID);
 
+    await Trainer.updateCheckpoints(ID);
+
     this.updateState(ID, TrainingStatus.NOT_TRAINING);
     project.containerIDs.train = null;
     PseudoDatabase.pushProject(project);
@@ -113,43 +112,20 @@ export default class MLService {
 
   async export(id: string, checkpointNumber: number, name: string): Promise<string> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-    const MOUNT = project.directory;
 
-    const EXPORT_PATH = path.posix.join(MOUNT, "exports", name);
-    const TAR_PATH = path.posix.join(EXPORT_PATH, `${name}.tar.gz`);
+    await Exporter.locateCheckpoint(project.id, checkpointNumber);
 
-    if (!fs.existsSync(path.posix.join(MOUNT, "train", `model.ckpt-${checkpointNumber}.meta`))) {
-      Promise.reject("cannot find requested checkpoint");
-      return;
-    }
+    const exp: Export = await Exporter.createExport(id, name);
 
-    //line below is needed eventually but not possible until tflite container is changed.
-    // await Exporter.moveCheckpointToMount(MOUNT, checkpointNumber, EXPORT_PATH);
-    await mkdirp(path.posix.join(EXPORT_PATH, "checkpoint"));
-
-    await Trainer.updateCheckpoints(id); // <-- get rid of soon
+    await Exporter.createDestinationDirectory(exp);
 
     await Exporter.updateCheckpointStatus(id, checkpointNumber, true);
 
-    await Exporter.writeParameterFile(name, checkpointNumber, MOUNT);
+    await Exporter.writeParameterFile(id, name, checkpointNumber);
 
-    project.containerIDs.export = await Docker.createContainer(EXPORT_IMAGE, "EXPORT-", id, MOUNT);
-    await Docker.runContainer(project.containerIDs.export);
-    project.containerIDs.export = null;
+    await Exporter.exportCheckpoint(id);
 
-    const DOWNLOAD_PATH = TAR_PATH.split("/server/data/")[1];
-
-    project.exports[name] = {
-      id: name, //<-- id should be the IDv4 when moved to sequelize
-      projectId: id,
-      name: name,
-      directory: EXPORT_PATH,
-      tarPath: TAR_PATH,
-      downloadPath: DOWNLOAD_PATH
-    };
-    project.checkpoints[checkpointNumber].status.downloadPaths.push(DOWNLOAD_PATH);
-
-    await PseudoDatabase.pushProject(project);
+    await Exporter.saveExport(id, exp, checkpointNumber);
 
     await Exporter.updateCheckpointStatus(id, checkpointNumber, false);
 
