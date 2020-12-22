@@ -136,26 +136,17 @@ export default class MLService {
     const project: ProjectData = await PseudoDatabase.retrieveProject(projectID);
 
     const mountedModelPath = await Tester.mountModel(test, project.directory);
+
     const mountedVideoPath = await Tester.mountVideo(test, project.directory);
 
     await Tester.writeParameterFile(project.directory, mountedModelPath, mountedVideoPath);
 
-    //insert way to indicate testing in progress here
-
-    project.containerIDs.test = await Docker.createContainer(
-      TEST_IMAGE,
-      "TEST-",
-      project.id,
-      project.directory,
-      "5000"
-    );
-    await Docker.runContainer(project.containerIDs.test);
+    await Tester.testModel(project.id);
 
     await Tester.saveOutputVid(test, project.directory);
 
-    project.tests[test.id] = test;
-    project.containerIDs.test = null;
-    PseudoDatabase.pushProject(project);
+    await Tester.saveTest(test, project.id);
+
     return "testing complete";
   }
 

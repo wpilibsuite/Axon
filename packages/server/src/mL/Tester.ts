@@ -2,6 +2,8 @@ import { Test } from "../schema/__generated__/graphql";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
+import { TEST_IMAGE } from "./index";
+import Docker from "./Docker";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
@@ -59,6 +61,25 @@ export default class Tester {
       "model-tar": modelPath
     };
     fs.writeFileSync(path.posix.join(mount, "testparameters.json"), JSON.stringify(testparameters));
+  }
+
+  static async testModel(id: string): Promise<void> {
+    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    project.containerIDs.test = await Docker.createContainer(
+      TEST_IMAGE,
+      "TEST-",
+      project.id,
+      project.directory,
+      "5000"
+    );
+    await Docker.runContainer(project.containerIDs.test);
+    project.containerIDs.test = null;
+  }
+
+  static async saveTest(test: Test, id: string): Promise<void> {
+    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    project.tests[test.id] = test;
+    PseudoDatabase.pushProject(project);
   }
 
   static async saveOutputVid(test: Test, mount: string): Promise<void> {
