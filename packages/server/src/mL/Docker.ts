@@ -100,10 +100,13 @@ export default class Docker {
   }
 
   static async removeContainer(containerID: string): Promise<void> {
-    await this.docker.getContainer(containerID).stop();
-    await this.docker.getContainer(containerID).remove();
-    Promise.resolve();
-    return;
+    const container: Container = await this.docker.getContainer(containerID);
+    if (container == null) return Promise.reject("container does not exist");
+
+    if ((await container.inspect()).State.Running) await container.kill({ force: true });
+    await container.remove();
+
+    return Promise.resolve();
   }
 
   static async runContainer(containerID: string): Promise<void> {
@@ -117,7 +120,6 @@ export default class Docker {
 
   static async toggleContainer(containerID: string, pause: boolean): Promise<void> {
     const container: Container = this.docker.getContainer(containerID);
-
     if (pause) {
       if (!(await container.inspect()).State.Paused) {
         await container.pause();

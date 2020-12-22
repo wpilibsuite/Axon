@@ -200,13 +200,10 @@ export default class MLService {
   }
 
   async halt(id: string): Promise<void> {
-    if (this.projects[id].containers.train) {
-      if ((await this.projects[id].containers.train.inspect()).State.Running) {
-        await this.projects[id].containers.train.kill({ force: true });
-      }
-    }
-    this.projects[id].status.trainingStatus = TrainingStatus.NOT_TRAINING;
-    Promise.resolve();
+    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    if (project.containerIDs.train) await Docker.removeContainer(project.containerIDs.train);
+    this.status[project.id].trainingStatus = TrainingStatus.NOT_TRAINING;
+    return Promise.resolve();
   }
 
   public async getStatus(id: string): Promise<ProjectStatus> {

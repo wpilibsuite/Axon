@@ -117,9 +117,9 @@ export class ProjectService extends DataSource {
   }
 
   async haltTraining(id: string): Promise<Project> {
-    this.mLService.halt(id);
     const project = await Project.findByPk(id);
-    console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
+    console.log(`stopping training on project: ${JSON.stringify(project)}`);
+    this.mLService.halt(id);
     return project;
   }
 
