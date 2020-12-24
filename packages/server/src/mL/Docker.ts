@@ -131,18 +131,17 @@ export default class Docker {
     await container.remove();
   }
 
-  static async toggleContainer(containerID: string, pause: boolean): Promise<void> {
+  static async pauseContainer(containerID: string): Promise<void> {
     const container: Container = this.docker.getContainer(containerID);
-    if (pause) {
-      if (!(await container.inspect()).State.Paused) {
-        await container.pause();
-      }
-    } else {
-      if ((await container.inspect()).State.Paused) {
-        container.unpause();
-      }
-    }
-    Promise.resolve();
-    return;
+    if (container == null) return Promise.reject("container does not exist");
+    if ((await container.inspect()).State.Paused) return Promise.reject("container is already paused");
+    await container.pause();
+  }
+
+  static async resumeContainer(containerID: string): Promise<void> {
+    const container: Container = this.docker.getContainer(containerID);
+    if (container == null) return Promise.reject("container does not exist");
+    if (!(await container.inspect()).State.Paused) return Promise.reject("container is not paused");
+    await container.unpause();
   }
 }

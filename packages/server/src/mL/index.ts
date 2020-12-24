@@ -157,6 +157,22 @@ export default class MLService {
     this.status[project.id].trainingStatus = TrainingStatus.NOT_TRAINING;
   }
 
+  async pauseTraining(id: string): Promise<void> {
+    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    if (this.status[id].trainingStatus == TrainingStatus.PAUSED) return Promise.reject("training is already paused");
+    if (project.containerIDs.train == null) return Promise.reject("no trainjob found");
+    await Docker.pauseContainer(project.containerIDs.train);
+    this.status[project.id].trainingStatus = TrainingStatus.PAUSED;
+  }
+
+  async resumeTraining(id: string): Promise<void> {
+    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    if (this.status[id].trainingStatus != TrainingStatus.PAUSED) return Promise.reject("training is not paused");
+    if (project.containerIDs.train == null) return Promise.reject("no trainjob found");
+    await Docker.resumeContainer(project.containerIDs.train);
+    this.status[project.id].trainingStatus = TrainingStatus.TRAINING;
+  }
+
   public async getStatus(id: string): Promise<ProjectStatus> {
     return this.status[id];
   }
