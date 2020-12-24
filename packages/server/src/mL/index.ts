@@ -152,36 +152,13 @@ export default class MLService {
 
   async halt(id: string): Promise<void> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-    if (project.containerIDs.train) await Docker.removeContainer(project.containerIDs.train);
+    if (project.containerIDs.train) await Docker.killContainer(project.containerIDs.train);
+    else return Promise.reject("no trainjob found");
     this.status[project.id].trainingStatus = TrainingStatus.NOT_TRAINING;
-    return Promise.resolve();
   }
 
   public async getStatus(id: string): Promise<ProjectStatus> {
     return this.status[id];
-
-    /* status remains if app exits poorly */
-    // if (project.status.trainingStatus != TrainingStatus.NOT_TRAINING) {
-    //   let container : Container = null;
-    //   try {container =this.docker.getContainer(project.containers.train.id);}
-    //   catch(err){console.log(err);}
-    //   if (container == null) correctStatus();
-    //   else switch (project.status.trainingStatus){
-    //     case TrainingStatus.PAUSED:
-    //       if ((await container.inspect()).State.Paused) break
-    //       await container.kill({ force: true });
-    //     case TrainingStatus.PREPARING:
-    //     case TrainingStatus.TRAINING:
-    //       if ((await container.inspect()).State.Running) break
-    //       await container.remove();
-    //       correctStatus();
-    //   }
-    // }
-    // async function correctStatus(): Promise<void> {
-    //   project.containers.train = null;
-    //   project.status.trainingStatus = TrainingStatus.NOT_TRAINING;
-    //   PseudoDatabase.pushProject(project);
-    // }
   }
 
   public async updateCheckpoints(id: string): Promise<void> {

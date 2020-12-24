@@ -73,7 +73,7 @@ export default function Input(props: {
           <>
             <h1>Preparing</h1>
             <ProgressBar status={props.status} />
-            <Button onClick={() => haltTraining({ variables: { id: props.id } })}>Halt</Button>
+            {/* <Button onClick={() => haltTraining({ variables: { id: props.id } })}>Halt</Button> temporarilly suppressed until status management improves (: */}
           </>,
           <>
             <h1>Training</h1>

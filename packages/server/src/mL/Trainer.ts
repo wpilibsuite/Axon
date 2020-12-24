@@ -112,6 +112,8 @@ export default class Trainer {
 
     project.containerIDs.train = await Docker.createContainer(DATASET_IMAGE, "TRAIN-", project.id, project.directory);
 
+    PseudoDatabase.pushProject(project);
+
     console.log("extracting the dataset");
     await Docker.runContainer(project.containerIDs.train);
 
@@ -128,11 +130,12 @@ export default class Trainer {
       project.directory,
       "6006"
     );
-    await Docker.startContainer(project.containerIDs.metrics);
-
     project.containerIDs.train = await Docker.createContainer(TRAIN_IMAGE, "TRAIN-", project.id, project.directory);
+    PseudoDatabase.pushProject(project);
+    await Docker.startContainer(project.containerIDs.metrics);
     await Docker.runContainer(project.containerIDs.train);
 
+    await Docker.killContainer(project.containerIDs.metrics);
     await Docker.removeContainer(project.containerIDs.metrics);
   }
 
