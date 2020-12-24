@@ -1,7 +1,10 @@
-import React, { ReactElement } from "react";
+import React, { ReactElement, ChangeEvent } from "react";
 
 import {
   Button,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
   Container,
   Dialog,
   DialogActions,
@@ -12,22 +15,25 @@ import {
 } from "@material-ui/core";
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/client";
-import { DropzoneArea } from "material-ui-dropzone";
-import { GetProjectData_project_exports } from "../__generated__/GetProjectData";
+import VideoUploadButton from "./VideoUploadButton";
+import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 
 const TEST_MODEL_MUTATION = gql`
-  mutation testModel($modelExport: ExportInput!, $videoName: String!, $video: Upload!) {
-    testModel(modelExport: $modelExport, videoName: $videoName, video: $video) {
+  mutation testModel($testName: String!, $projectID: String!, $exportID: String!, $videoID: String!) {
+    testModel(testName: $testName, projectID: $projectID, exportID: $exportID, videoID: $videoID) {
       id
     }
   }
 `;
 
-export default function TestButton(props: { modelExport: GetProjectData_project_exports }): ReactElement {
+export default function TestButton(props: {
+  modelExport: GetProjectData_project_exports;
+  videos: GetProjectData_project_videos[];
+}): ReactElement {
   const [testModel] = useMutation(TEST_MODEL_MUTATION);
   const [preparing, setPreparing] = React.useState(false);
-  const [videoName, setVideoName] = React.useState("");
-  const [video, setVideo] = React.useState<File>();
+  const [videoID, setVideoID] = React.useState<string>();
+  const [testName, setTestName] = React.useState<string>();
 
   const [viewing, setViewing] = React.useState(false);
   const [streamLoading, setStreamLoading] = React.useState(false);
@@ -41,15 +47,16 @@ export default function TestButton(props: { modelExport: GetProjectData_project_
   const handleClosePrepare = () => {
     setPreparing(false);
   };
-  const handleTest = () => {
-    const modelExport = {
-      projectId: props.modelExport.projectId,
-      name: props.modelExport.name,
-      directory: props.modelExport.directory,
-      tarPath: props.modelExport.tarPath
-    }; //bad request if not this because the queried export has extra typing values
-    console.log(modelExport);
-    testModel({ variables: { modelExport, videoName, video } }).catch((err) => {
+  const handleTest = async () => {
+    const projectID = props.modelExport.projectId;
+    const exportID = props.modelExport.id;
+
+    console.log(testName);
+    console.log(projectID);
+    console.log(exportID);
+    console.log(videoID);
+
+    await testModel({ variables: { testName, projectID, exportID, videoID } }).catch((err) => {
       console.log(err);
     });
 
@@ -57,6 +64,14 @@ export default function TestButton(props: { modelExport: GetProjectData_project_
     setStreamLoading(true);
     handleOpenView();
   };
+
+  const handleVideoChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setVideoID(event.target.value);
+  };
+  const handleTestNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setTestName(event.target.value);
+  };
+
   const handleOpenView = () => {
     setStreamError(false);
     setTestError(false);
@@ -80,9 +95,6 @@ export default function TestButton(props: { modelExport: GetProjectData_project_
       setTestError(true);
       setStreamLoading(false);
     }
-    if (!streamLoading && !props.modelExport.testingInProgress) {
-      handleEnd();
-    }
   };
   const handleStreamLoaded = () => {
     setStreamLoading(false);
@@ -91,35 +103,29 @@ export default function TestButton(props: { modelExport: GetProjectData_project_
   return (
     <>
       <Tooltip title="Test">
-        {props.modelExport.testingInProgress ? (
-          <IconButton onClick={handleOpenView}>View</IconButton>
-        ) : (
-          <IconButton onClick={handleClickPrepare}>Test</IconButton>
-        )}
+        <IconButton onClick={handleClickPrepare}>Test</IconButton>
       </Tooltip>
+
       <Dialog onClose={handleClosePrepare} open={preparing}>
         <DialogContent dividers>
-          <TextField
-            onChange={(event) => setVideoName(event.target.value)}
-            autoFocus
-            margin="dense"
-            label="Video Name"
-            fullWidth
-          />
-          <DropzoneArea
-            onChange={(files) => setVideo(files[0] || {})}
-            acceptedFiles={["video/*"]}
-            filesLimit={1}
-            maxFileSize={Infinity}
-            showFileNames={true}
-            showPreviewsInDropzone={true}
-          />
+          <p>Video to test: </p>
+
+          <RadioGroup onChange={handleVideoChange}>
+            {props.videos.map((video) => (
+              <FormControlLabel key={video.id} value={video.id} control={<Radio />} label={video.name} />
+            ))}
+          </RadioGroup>
+
+          <VideoUploadButton id={props.modelExport.projectId} />
+
+          <TextField onChange={handleTestNameChange} autoFocus margin="dense" label="Test Name" fullWidth />
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClosePrepare}>
             Cancel
           </Button>
-          {video && (
+
+          {videoID && (
             <Button autoFocus onClick={handleTest} color="primary">
               Test
             </Button>

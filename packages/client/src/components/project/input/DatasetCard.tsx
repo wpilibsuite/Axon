@@ -78,10 +78,12 @@ export function DatasetCard(props: { projectId: string; dataset: GetDatasets_dat
         title={props.dataset.name}
         subheader={`${props.dataset.images.length} images`}
       />
-      <CardMedia
-        className={classes.media}
-        image={encodeURI(`http://localhost:4000/${props.dataset.images[0].path.replace("data/datasets", "dataset")}`)}
-      />
+      {props.dataset.images.length > 0 && (
+        <CardMedia
+          className={classes.media}
+          image={encodeURI(`http://localhost:4000/${props.dataset.images[0].path.replace("data/datasets", "dataset")}`)}
+        />
+      )}
     </Card>
   );
 }

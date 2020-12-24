@@ -22,8 +22,10 @@ type Mutation {
   haltTraining(id: ID!): Project
   pauseTraining(id: ID!): Project
   resumeTraining(id: ID!): Project
+  saveVideo(projectId: ID!, videoName: String!, video: Upload!): Video
   exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
-  testModel(modelExport: ExportInput!, videoName: String!, video: Upload!): Project
+  testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
+  databaseTest(id: ID!): Project
 }
 
 type Size {
@@ -67,7 +69,7 @@ type TrainingMetrics {
 
 type CheckpointStatus {
   exporting: Boolean!
-  exportPaths: [String!]!
+  downloadPaths: [String!]!
 }
 
 type Checkpoint {
@@ -76,19 +78,29 @@ type Checkpoint {
   metrics: TrainingMetrics!
 }
 
-input ExportInput {
+type Export {
+  id: String!
   projectId: ID!
   name: String!
   directory: String!
-  tarPath: String!
+  tarfileName: String!
+  downloadPath: String!
+  relativeDirPath: String!
 }
 
-type Export {
-  projectId: ID!
+type Video {
+  id: String!
   name: String!
+  filename: String!
+  fullPath: String!
+}
+
+type Test {
+  id: String!
+  name: String!
+  model: Export!
+  video: Video!
   directory: String!
-  tarPath: String!
-  testingInProgress: Boolean
 }
 
 type Project {
@@ -97,6 +109,8 @@ type Project {
   initialCheckpoint: String!
   datasets: [Dataset!]!
 
+  directory: String!
+
   epochs: Int!
   batchSize: Int!
   evalFrequency: Int!
@@ -104,6 +118,8 @@ type Project {
 
   checkpoints: [Checkpoint!]!
   exports: [Export!]!
+  videos: [Video!]!
+  tests: [Test!]!
   status: ProjectStatus!
 }
 

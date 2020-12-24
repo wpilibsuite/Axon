@@ -7,6 +7,8 @@ import Results from "./results/Results";
 import { gql, useQuery } from "@apollo/client";
 import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
 
+import DatabaseTestButton from "./DatabaseTestButton";
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -40,15 +42,21 @@ const GET_PROJECT_DATA = gql`
         }
         status {
           exporting
-          exportPaths
+          downloadPaths
         }
       }
       exports {
+        id
         projectId
         name
         directory
-        tarPath
-        testingInProgress
+        downloadPath
+      }
+      videos {
+        id
+        name
+        filename
+        fullPath
       }
       status {
         trainingStatus
@@ -76,7 +84,7 @@ export default function Project(props: { id: string }): ReactElement {
   };
 
   if (loading) return <p>LOADING</p>;
-  if (error) return <p>ERROR</p>;
+  if (error) return <p>{error.message}</p>;
 
   if (data?.project) {
     return (
@@ -95,8 +103,14 @@ export default function Project(props: { id: string }): ReactElement {
           <Metrics id={props.id} checkpoints={data.project.checkpoints} trainerState={data.trainerState} />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          <Results id={props.id} exports={data.project.exports} trainerState={data.trainerState} />
+          <Results
+            id={props.id}
+            exports={data.project.exports}
+            trainerState={data.trainerState}
+            videos={data.project.videos}
+          />
         </TabPanel>
+        <DatabaseTestButton id={props.id} />
       </div>
     );
   } else {

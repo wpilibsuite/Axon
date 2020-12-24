@@ -76,14 +76,14 @@ function CheckpointInfo(props: { checkpoint: GetProjectData_project_checkpoints 
           )}
         </Container>
         <Container>
-          {props.checkpoint.status.exportPaths.length > 0 ? (
+          {props.checkpoint.status.downloadPaths.length > 0 ? (
             <>
               <p>Exports available at:</p>
               <ul>
-                {props.checkpoint.status.exportPaths.map((exportPath) => (
-                  <li key={exportPath}>
-                    <a download href={`http://localhost:4000/${exportPath.replace("data/projects", "projects")}`}>
-                      <IconButton>{path.basename(exportPath)}</IconButton>
+                {props.checkpoint.status.downloadPaths.map((downloadPath) => (
+                  <li key={downloadPath}>
+                    <a download href={`http://localhost:4000/${downloadPath}`}>
+                      <IconButton>{path.basename(downloadPath)}</IconButton>
                     </a>
                   </li>
                 ))}

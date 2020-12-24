@@ -1,7 +1,7 @@
 import * as Koa from "koa";
 import { ApolloServer, PubSub } from "apollo-server-koa";
 import { schema } from "./schema";
-import Trainer from "./training";
+import MLService from "./mL";
 import * as serve from "koa-static";
 import * as mount from "koa-mount";
 import { ProjectService } from "./datasources/project-service";
@@ -12,14 +12,14 @@ import { DatasetService } from "./datasources/dataset-service";
 import { sequelize } from "./store";
 
 const pubsub = new PubSub();
-const trainer = new Trainer();
+const mLService = new MLService();
 
 const app = new Koa();
 const server = new ApolloServer({
   schema: schema,
   dataSources: () => ({
     datasetService: new DatasetService(sequelize, DATASET_DATA_DIR),
-    projectService: new ProjectService(sequelize, trainer, PROJECT_DATA_DIR)
+    projectService: new ProjectService(sequelize, mLService, PROJECT_DATA_DIR)
   }),
   context: {
     pubsub
