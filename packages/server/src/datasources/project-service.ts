@@ -12,8 +12,8 @@ import PseudoDatabase from "./PseudoDatabase";
 import { ProjectData } from "./PseudoDatabase";
 
 export class ProjectService extends DataSource {
-  private store: Sequelize;
-  private mLService: MLService;
+  private readonly store: Sequelize;
+  private readonly mLService: MLService;
   private readonly path: string;
 
   constructor(store: Sequelize, mLService: MLService, path: string) {
