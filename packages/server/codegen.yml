@@ -8,6 +8,7 @@ generates:
         Dataset: ../../store#Dataset
         Project: ../../store#Project
       contextType: ../../context#Context
+      mapperTypeSuffix: Model
     plugins:
       - "typescript"
       - "typescript-resolvers"
