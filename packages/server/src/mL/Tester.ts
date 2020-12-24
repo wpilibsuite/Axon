@@ -9,7 +9,20 @@ import * as path from "path";
 import * as fs from "fs";
 
 export default class Tester {
-  static async createTest(name: string, projectID: string, exportID: string, videoID: string): Promise<Test> {
+  static readonly images: Record<string, DockerImage> = {
+    export: { name: "gcperkins/wpilib-ml-test", tag: "latest" }
+  }
+
+  readonly project: ProjectData;
+  readonly docker: Docker;
+  test: Test;
+
+  constructor(project: ProjectData, docker: Docker){
+    this.project = project;
+    this.docker = docker;
+  }
+
+  public async createTest(name: string, projectID: string, exportID: string, videoID: string): Promise<void> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(projectID);
 
     const id = name; //will be the random idv4 when in sequalize
@@ -17,7 +30,7 @@ export default class Tester {
     const video = project.videos[videoID];
     const destinationDir = path.posix.join(project.directory, "tests", id);
 
-    return {
+    this.test = {
       id: id,
       name: name,
       model: model,
@@ -26,7 +39,7 @@ export default class Tester {
     };
   }
 
-  static async mountModel(test: Test, mount: string): Promise<string> {
+  public async mountModel(test: Test, mount: string): Promise<string> {
     const FULL_TAR_PATH = path.posix.join(test.model.directory, test.model.tarfileName);
     const MOUNTED_MODEL_PATH = path.posix.join(mount, test.model.relativeDirPath, test.model.tarfileName);
     const CONTAINER_MODEL_PATH = path.posix.join(
@@ -42,7 +55,7 @@ export default class Tester {
     return Promise.resolve(CONTAINER_MODEL_PATH);
   }
 
-  static async mountVideo(test: Test, mount: string): Promise<string> {
+  public async mountVideo(test: Test, mount: string): Promise<string> {
     const MOUNTED_VIDEO_PATH = path.posix.join(mount, "videos", test.video.filename);
     const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", test.video.filename);
 
@@ -55,7 +68,7 @@ export default class Tester {
     return Promise.resolve(CONTAINER_VIDEO_PATH);
   }
 
-  static async writeParameterFile(mount: string, modelPath: string, videoPath: string): Promise<void> {
+  public async writeParameterFile(mount: string, modelPath: string, videoPath: string): Promise<void> {
     const testparameters = {
       "test-video": videoPath,
       "model-tar": modelPath
@@ -63,7 +76,7 @@ export default class Tester {
     fs.writeFileSync(path.posix.join(mount, "testparameters.json"), JSON.stringify(testparameters));
   }
 
-  static async testModel(id: string): Promise<void> {
+  public async testModel(id: string): Promise<void> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
     project.containerIDs.test = await Docker.createContainer(
       TEST_IMAGE,
@@ -76,13 +89,13 @@ export default class Tester {
     project.containerIDs.test = null;
   }
 
-  static async saveTest(test: Test, id: string): Promise<void> {
+  public async saveTest(test: Test, id: string): Promise<void> {
     const project: ProjectData = await PseudoDatabase.retrieveProject(id);
     project.tests[test.id] = test;
     PseudoDatabase.pushProject(project);
   }
 
-  static async saveOutputVid(test: Test, mount: string): Promise<void> {
+  public async saveOutputVid(test: Test, mount: string): Promise<void> {
     const OUTPUT_VID_PATH = path.posix.join(mount, "inference.mp4");
     if (!fs.existsSync(OUTPUT_VID_PATH)) Promise.reject("cant find output video");
 

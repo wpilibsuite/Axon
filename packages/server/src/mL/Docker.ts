@@ -1,55 +1,114 @@
 import * as Dockerode from "dockerode";
-import { Container } from "dockerode";
+import { Container, ContainerCreateOptions } from "dockerode";
+import { PROJECT_DATA_DIR } from "../constants";
+import { ProjectData } from "../datasources/PseudoDatabase";
+import { DockerImage } from "../schema/__generated__/graphql";
+import { Project } from "../store";
 
 export const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 
-export default class Docker {
-  static readonly docker = new Dockerode();
+/**
+  * Get the working directory of a project.
+  *
+  * @param project The project to get the working directory of
+  */
+function getProjectWorkingDirectory(project: ProjectData): string {
+  return `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
+}
 
-  public static async testDaemon(): Promise<boolean> {
+export default class Docker {
+  readonly docker;
+
+  constructor(docker: Dockerode) {
+    this.docker = docker;
+  }
+
+  /**
+   * Get the status of the Docker Service.
+   */
+  async isConnected(): Promise<boolean> {
     try {
-      await this.docker.info();
-      return true;
-    } catch {
+      await this.docker.ping();
+    } catch (e) {
       return false;
     }
+    return true;
   }
 
-  static async pull(name: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.docker.pull(name, (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
-        try {
-          stream.pipe(process.stdout);
-          this.docker.modem.followProgress(stream, onFinished);
-        } catch {
-          console.log("cant pull image");
-          resolve();
-        }
-        function onFinished(err: string, output: string) {
-          if (!err) {
-            resolve(output);
-          } else {
-            console.log(err);
-            reject(err);
-          }
-        }
-      });
+  /**
+   * Checks if all of our images are downloaded.
+   */
+  async isImagesReady(images: DockerImage[]): Promise<boolean> {
+    try {
+      await Promise.all(
+        Object.entries(images).map(async ([, value]) => this.docker.getImage(`${value.name}:${value.tag}`).inspect())
+      );
+    } catch (e) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Get the docker version number.
+   */
+  async version(): Promise<string> {
+    return (await this.docker.version()).Version;
+  }
+
+  /**
+   * Reset Docker by removing all containers.
+   */
+  async reset(): Promise<boolean> {
+    // Stop active containers that we manage
+    const containers = await this.docker.listContainers({
+      all: true,
+      filters: {
+        label: ["wpilib=ml"]
+      }
     });
+    await Promise.all(containers.map(async (container) => this.docker.getContainer(container.Id).stop()));
+
+    return true;
   }
 
-  static async createContainer(
-    image: string,
-    tag: string,
-    id: string,
-    mount: string,
-    port: string = null
-  ): Promise<string> {
-    const NAME = tag + id;
-    const MOUNTCMD = `${mount}:${CONTAINER_MOUNT_PATH}:rw`;
+  /**
+   * Pull resources needed for training.
+   */
+  async pullImages(images: DockerImage[]): Promise<void[]> {
+    return Promise.all(
+      Object.entries(images).map(async ([, value]) => {
+        console.info(`Pulling image ${value.name}:${value.tag}`);
+        const stream = await this.docker.pull(`${value.name}:${value.tag}`);
+        this.docker.modem.followProgress(stream, () =>
+          console.info(`Finished pulling image ${value.name}:${value.tag}`)
+        );
+      })
+    );
+  }
 
-    const options = {
-      Image: image,
-      name: NAME,
+  /**
+   * Create a container for the provided project with the given image. Opens and binds ports as provided.
+   *
+   * If the container already exists (as known by its name), it will remove that container first.
+   *
+   * @param project The project for this container
+   * @param image The image to base this container on
+   * @param ports The ports to expose
+   */
+  async createContainer(project: ProjectData, image: DockerImage, ports: [string?] = []): Promise<Container> {
+    console.info(`${project.id}: Launching container ${image.name}`);
+
+    const localMountPath = getProjectWorkingDirectory(project).replace("C:\\", "/c/").replace(/\\/g, "/");
+    const options: ContainerCreateOptions = {
+      Image: `${image.name}:${image.tag}`,
+      name: `wpilib-${image.name.replaceAll("/", "_")}-${project.id}`,
+      Labels: {
+        wpilib: "ml",
+        "wpilib-ml-name": image.name,
+        "wpilib-ml-id": project.id
+      },
       AttachStdin: false,
       AttachStdout: true,
       AttachStderr: true,
@@ -57,91 +116,22 @@ export default class Docker {
       StdinOnce: false,
       Tty: true,
       Volumes: { [CONTAINER_MOUNT_PATH]: {} },
-      HostConfig: { Binds: [MOUNTCMD] }
+      HostConfig: {
+        Binds: [`${localMountPath}:${CONTAINER_MOUNT_PATH}:rw`],
+        PortBindings: Object.assign({}, ...ports.map((port) => ({ [port]: [{ HostPort: port.split("/")[0] }] })))
+      },
+      ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))
     };
-    if (port) {
-      const PORTCMD = `${port}/tcp`;
-      options["ExposedPorts"] = { [PORTCMD]: {} };
-      options.HostConfig["PortBindings"] = { [PORTCMD]: [{ HostPort: port }] };
-    }
 
-    await Docker.deleteContainer(NAME);
     const container = await this.docker.createContainer(options);
     (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(process.stdout);
 
-    return container.id;
+    return container;
   }
 
-  static async deleteContainer(name: string): Promise<void> {
-    const container: Container = await new Promise((resolve) => {
-      const opts = {
-        limit: 1,
-        filters: `{"name": ["${name}"]}`
-      };
-      this.docker.listContainers(opts, (err, containers) => {
-        resolve(containers.length > 0 ? this.docker.getContainer(containers[0].Id) : null);
-      });
-    });
-
-    if (container) {
-      if ((await container.inspect()).State.Running) {
-        await container.kill({ force: true });
-      }
-      await container.remove();
-    }
-    Promise.resolve();
-    return;
-  }
-
-  static async startContainer(containerID: string): Promise<void> {
-    await this.docker.getContainer(containerID).start();
-    Promise.resolve();
-    return;
-  }
-
-  static async removeContainer(containerID: string): Promise<void> {
-    const container: Container = await this.docker.getContainer(containerID);
-
-    if (container == null) return Promise.reject("container does not exist");
-    if ((await container.inspect()).State.Running) return Promise.reject("container is running");
-
-    try {
-      await container.remove();
-    } catch (e) {
-      return Promise.reject(e.message);
-    }
-  }
-
-  static async killContainer(containerID: string): Promise<void> {
-    const container: Container = await this.docker.getContainer(containerID);
-    if (container == null) return Promise.reject("container does not exist");
-    if ((await container.inspect()).State.Running) {
-      try {
-        await container.kill({ force: true });
-      } catch (e) {
-        Promise.reject(e.message);
-      }
-    }
-  }
-
-  static async runContainer(containerID: string): Promise<void> {
-    const container: Container = await this.docker.getContainer(containerID);
+  static async runContainer(container: Container): Promise<void> {
     await container.start();
     await container.wait();
     await container.remove();
-  }
-
-  static async pauseContainer(containerID: string): Promise<void> {
-    const container: Container = this.docker.getContainer(containerID);
-    if (container == null) return Promise.reject("container does not exist");
-    if ((await container.inspect()).State.Paused) return Promise.reject("container is already paused");
-    await container.pause();
-  }
-
-  static async resumeContainer(containerID: string): Promise<void> {
-    const container: Container = this.docker.getContainer(containerID);
-    if (container == null) return Promise.reject("container does not exist");
-    if (!(await container.inspect()).State.Paused) return Promise.reject("container is not paused");
-    await container.unpause();
   }
 }

@@ -10,9 +10,13 @@ import { PROJECT_DATA_DIR } from "./constants";
 import { Context } from "./context";
 import { DatasetService } from "./datasources/dataset-service";
 import { sequelize } from "./store";
+import Dockerode = require("dockerode");
+import Docker from "./mL/Docker";
 
 const pubsub = new PubSub();
-const mLService = new MLService();
+const dockerode = new Dockerode();
+const docker = new Docker(dockerode);
+const mLService = new MLService(docker);
 
 const app = new Koa();
 const server = new ApolloServer({
@@ -22,7 +26,8 @@ const server = new ApolloServer({
     projectService: new ProjectService(sequelize, mLService, PROJECT_DATA_DIR)
   }),
   context: {
-    pubsub
+    pubsub,
+    docker
   } as Context,
   uploads: {
     // Limits here should be stricter than config for surrounding

@@ -3,6 +3,7 @@ scalar Upload
 
 type Query {
   isDockerConnected: Boolean!
+  dockerVersion: String!
 
   dataset(id: ID!): Dataset
   datasets: [Dataset!]!
@@ -12,6 +13,8 @@ type Query {
 }
 
 type Mutation {
+  resetDocker: Boolean!
+
   createDataset(upload: Upload!): Dataset
 
   createProject(name: String!): Project
@@ -26,6 +29,11 @@ type Mutation {
   exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
   testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
   databaseTest(id: ID!): Project
+}
+
+type DockerImage {
+  name: String!
+  tag: String!
 }
 
 type Size {

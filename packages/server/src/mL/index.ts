@@ -8,24 +8,6 @@ import Exporter from "./Exporter";
 import Tester from "./Tester";
 import Docker from "./Docker";
 
-export const DATASET_IMAGE = "gcperkins/wpilib-ml-dataset:latest";
-export const METRICS_IMAGE = "gcperkins/wpilib-ml-metrics:latest";
-export const EXPORT_IMAGE = "gcperkins/wpilib-ml-tflite:latest";
-export const TRAIN_IMAGE = "gcperkins/wpilib-ml-train:latest";
-export const TEST_IMAGE = "gcperkins/wpilib-ml-test:latest";
-
-//trainer state enumeration
-enum TrainerState {
-  NO_DOCKER_INSTALLED,
-  SCANNING_FOR_DOCKER,
-  SCANNING_PROJECTS,
-  DATASET_PULL,
-  METRICS_PULL,
-  TRAINER_PULL,
-  EXPORT_PULL,
-  TEST_PULL,
-  READY
-}
 
 //training status enumeration
 export enum TrainingStatus {
@@ -40,112 +22,94 @@ type ProjectStati = {
 };
 
 export default class MLService {
+  readonly docker: Docker;
+
   projects: ProjectData;
-  trainer_state: TrainerState;
   status: ProjectStati;
 
-  constructor() {
-    this.trainer_state = TrainerState.SCANNING_FOR_DOCKER;
+  constructor(docker: Docker) {
+    this.docker = docker;
+    
     this.status = {};
-    this.prepare();
   }
 
-  private async prepare(): Promise<void> {
-    if (!(await Docker.testDaemon())) {
-      this.trainer_state = TrainerState.NO_DOCKER_INSTALLED;
-      console.log("docker is not responding");
-      Promise.resolve();
-      return;
-    }
-
-    this.trainer_state = TrainerState.SCANNING_PROJECTS;
-    const database = await PseudoDatabase.retrieveDatabase();
-    Object.values(database).forEach((project: ProjectData) => this.addStatus(project));
-
-    this.trainer_state = TrainerState.DATASET_PULL;
-    await Docker.pull(DATASET_IMAGE);
-
-    this.trainer_state = TrainerState.METRICS_PULL;
-    await Docker.pull(METRICS_IMAGE);
-
-    this.trainer_state = TrainerState.TRAINER_PULL;
-    await Docker.pull(TRAIN_IMAGE);
-
-    this.trainer_state = TrainerState.EXPORT_PULL;
-    await Docker.pull(EXPORT_IMAGE);
-
-    this.trainer_state = TrainerState.TEST_PULL;
-    await Docker.pull(TEST_IMAGE);
-
-    this.trainer_state = TrainerState.READY;
-    console.log("image pull complete");
-    Promise.resolve();
+  async pullAllResources(): Promise<void[]> {
+    return this.docker.pullImages(Object.values(Trainer.images));
   }
 
-  async start(iproject: Project): Promise<string> {
+  async start(iproject: Project): Promise<void> {
+    console.info(`${iproject.id}: Starting training`);
     const project = await PseudoDatabase.retrieveProject(iproject.id);
-    const ID = project.id;
 
-    this.updateLastStep(ID, project.hyperparameters.epochs);
-    this.updateState(ID, TrainingStatus.PREPARING);
+    const trainer = new Trainer(this.docker, project);
+ 
+    this.updateLastStep(project.id, project.hyperparameters.epochs);
+    this.updateState(project.id, TrainingStatus.PREPARING);
 
-    await Trainer.writeParameterFile(ID);
+    await trainer.writeParameterFile();
 
-    await Trainer.handleOldData(ID);
+    await trainer.handleOldData();
 
-    await Trainer.moveDataToMount(ID);
+    await trainer.moveDataToMount();
 
-    await Trainer.extractDataset(ID);
+    await trainer.extractDataset();
 
-    this.updateState(ID, TrainingStatus.TRAINING);
-    this.updateStep(ID, 0);
+    this.updateState(project.id, TrainingStatus.TRAINING);
+    this.updateStep(project.id, 0);
 
-    await Trainer.trainModel(ID);
+    await trainer.trainModel();
 
-    await Trainer.updateCheckpoints(ID);
+    await trainer.updateCheckpoints();
 
-    this.updateState(ID, TrainingStatus.NOT_TRAINING);
+    this.updateState(project.id, TrainingStatus.NOT_TRAINING);
     project.containerIDs.train = null;
     PseudoDatabase.pushProject(project);
-    return "training complete";
+
+    console.info(`${iproject.id}: Training complete`);
   }
 
   async export(id: string, checkpointNumber: number, name: string): Promise<string> {
-    await Exporter.locateCheckpoint(id, checkpointNumber);
+    const project = await PseudoDatabase.retrieveProject(id);
+    const exporter: Exporter = new Exporter(project, this.docker);
 
-    const exp: Export = await Exporter.createExport(id, name);
+    await exporter.locateCheckpoint(checkpointNumber);
 
-    await Exporter.createDestinationDirectory(exp);
+    await Exporter.createExport(name);
 
-    await Exporter.updateCheckpointStatus(id, checkpointNumber, true);
+    await exporter.createDestinationDirectory(exp);
 
-    await Exporter.writeParameterFile(id, checkpointNumber, exp);
+    await exporter.updateCheckpointStatus(checkpointNumber, true);
 
-    await Exporter.exportCheckpoint(id);
+    await exporter.writeParameterFile(checkpointNumber);
 
-    await Exporter.saveExport(id, exp, checkpointNumber);
+    await exporter.exportCheckpoint();
 
-    await Exporter.updateCheckpointStatus(id, checkpointNumber, false);
+    await exporter.saveExport(checkpointNumber);
+
+    await exporter.updateCheckpointStatus(checkpointNumber, false);
 
     return "exported";
   }
 
   async test(testName: string, projectID: string, exportID: string, videoID: string): Promise<string> {
-    const test: Test = await Tester.createTest(testName, projectID, exportID, videoID);
+    const project = await PseudoDatabase.retrieveProject(id);
+    const tester: Tester = new Tester(project, this.docker);
+
+    await tester.createTest(testName, projectID, exportID, videoID);
 
     const project: ProjectData = await PseudoDatabase.retrieveProject(projectID);
 
-    const mountedModelPath = await Tester.mountModel(test, project.directory);
+    const mountedModelPath = await tester.mountModel(test, project.directory);
 
-    const mountedVideoPath = await Tester.mountVideo(test, project.directory);
+    const mountedVideoPath = await tester.mountVideo(test, project.directory);
 
-    await Tester.writeParameterFile(project.directory, mountedModelPath, mountedVideoPath);
+    await tester.writeParameterFile(project.directory, mountedModelPath, mountedVideoPath);
 
-    await Tester.testModel(project.id);
+    await tester.testModel(project.id);
 
-    await Tester.saveOutputVid(test, project.directory);
+    await tester.saveOutputVid(test, project.directory);
 
-    await Tester.saveTest(test, project.id);
+    await tester.saveTest(test, project.id);
 
     return "testing complete";
   }

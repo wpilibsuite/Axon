@@ -1,4 +1,3 @@
-import { DATASET_IMAGE, METRICS_IMAGE, TRAIN_IMAGE } from "./index";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
@@ -7,6 +6,9 @@ import * as rimraf from "rimraf";
 import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
+import { DockerImage } from "../schema/__generated__/graphql";
+import { Project } from "../store";
+import { Container } from "dockerode";
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -19,38 +21,49 @@ type TrainParameters = {
 };
 
 export default class Trainer {
-  public static async writeParameterFile(id: string): Promise<void> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+  static readonly images: Record<string, DockerImage> = {
+    dataset: { name: "gcperkins/wpilib-ml-dataset", tag: "latest" },
+    metrics: { name: "gcperkins/wpilib-ml-metrics", tag: "latest" },
+    train: { name: "gcperkins/wpilib-ml-train", tag: "latest" }
+  }
 
-    const DATASETPATHS = project.datasets.map((dataset) =>
+  readonly project: ProjectData;
+  readonly docker: Docker;
+
+  public constructor(docker: Docker, project: ProjectData) {
+    this.project = project;
+    this.docker = docker;
+  }
+
+  public async writeParameterFile(): Promise<void> {
+
+    const DATASETPATHS = this.project.datasets.map((dataset) =>
       path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
     );
 
     const INITCKPT =
-      project.initialCheckpoint !== "default"
-        ? path.posix.join("checkpoints", project.initialCheckpoint)
-        : project.initialCheckpoint;
+      this.project.initialCheckpoint !== "default"
+        ? path.posix.join("checkpoints", this.project.initialCheckpoint)
+        : this.project.initialCheckpoint;
 
     const trainParameters: TrainParameters = {
-      "eval-frequency": project.hyperparameters.evalFrequency,
-      "percent-eval": project.hyperparameters.percentEval,
-      "batch-size": project.hyperparameters.batchSize,
+      "eval-frequency": this.project.hyperparameters.evalFrequency,
+      "percent-eval": this.project.hyperparameters.percentEval,
+      "batch-size": this.project.hyperparameters.batchSize,
       "dataset-path": DATASETPATHS,
-      epochs: project.hyperparameters.epochs,
+      epochs: this.project.hyperparameters.epochs,
       checkpoint: INITCKPT,
-      name: project.name
+      name: this.project.name
     };
 
-    const HYPERPARAMETER_FILE_PATH = path.posix.join(project.directory, "hyperparameters.json");
+    const HYPERPARAMETER_FILE_PATH = path.posix.join(this.project.directory, "hyperparameters.json");
     await fs.promises.writeFile(HYPERPARAMETER_FILE_PATH, JSON.stringify(trainParameters));
 
-    Promise.resolve();
   }
 
-  public static async handleOldData(id: string): Promise<void> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+  public async handleOldData(): Promise<void> {
 
-    const OLD_TRAIN_DIR = path.posix.join(project.directory, "train");
+    const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
       try {
         rimraf.sync(OLD_TRAIN_DIR);
@@ -63,33 +76,30 @@ export default class Trainer {
       console.log(`old train dir ${OLD_TRAIN_DIR} removed`);
     } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
 
-    const OLD_METRICS_FILE = path.posix.join(project.directory, "metrics.json");
+    const OLD_METRICS_FILE = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(OLD_METRICS_FILE)) {
       fs.unlinkSync(OLD_METRICS_FILE);
     } //must clear old checkpoints in order for new ones to be saved by trainer
 
-    project.checkpoints = {}; //must add a way to preserve existing checkpoints somehow
+    this.project.checkpoints = {}; //must add a way to preserve existing checkpoints somehow
 
-    await PseudoDatabase.pushProject(project);
-
-    Promise.resolve();
+    await PseudoDatabase.pushProject(this.project);
   }
 
-  public static async moveDataToMount(id: string): Promise<void> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+  public async moveDataToMount(): Promise<void> {
 
-    project.datasets.forEach((dataset) => {
+    this.project.datasets.forEach((dataset) => {
       fs.copyFileSync(
         path.posix.join("data", dataset.path),
-        path.posix.join(project.directory, "dataset", path.basename(dataset.path))
+        path.posix.join(this.project.directory, "dataset", path.basename(dataset.path))
       );
     });
     console.log("datasets copied");
 
     //custom checkpoints not yet supported by gui
-    if (project.initialCheckpoint != "default") {
-      if (!fs.existsSync(path.posix.join(project.directory, "checkpoints")))
-        await mkdirp(path.posix.join(project.directory, "checkpoints"));
+    if (this.project.initialCheckpoint != "default") {
+      if (!fs.existsSync(path.posix.join(this.project.directory, "checkpoints")))
+        await mkdirp(path.posix.join(this.project.directory, "checkpoints"));
 
       await Promise.all([
         copyCheckpointFile(".data-00000-of-00001"),
@@ -100,56 +110,45 @@ export default class Trainer {
 
     async function copyCheckpointFile(extention: string): Promise<void> {
       return fs.promises.copyFile(
-        path.posix.join("data", "checkpoints", project.initialCheckpoint.concat(extention)),
-        path.posix.join(project.directory, "checkpoints", project.initialCheckpoint.concat(extention))
+        path.posix.join("data", "checkpoints", this.project.initialCheckpoint.concat(extention)),
+        path.posix.join(this.project.directory, "checkpoints", this.project.initialCheckpoint.concat(extention))
       );
     }
-    Promise.resolve();
   }
 
-  public static async extractDataset(id: string): Promise<void> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-
-    project.containerIDs.train = await Docker.createContainer(DATASET_IMAGE, "TRAIN-", project.id, project.directory);
-
-    PseudoDatabase.pushProject(project);
-
-    console.log("extracting the dataset");
-    await Docker.runContainer(project.containerIDs.train);
-
-    console.log("datasets extracted");
+  public async extractDataset(): Promise<void> {
+    console.info(`${this.project.id}: Trainer extracting dataset`);
+    const container: Container = await this.docker.createContainer(this.project, Trainer.images.dataset);
+    await Docker.runContainer(container);
+    console.info(`${this.project.id}: Trainer extracted dataset`);
   }
 
-  public static async trainModel(id: string): Promise<void> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-
-    project.containerIDs.metrics = await Docker.createContainer(
-      METRICS_IMAGE,
-      "METRICS-",
-      project.id,
-      project.directory,
-      "6006"
+  /**
+    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
+    */
+  public async trainModel(): Promise<void> {
+    const metricsContainer = await this.docker.createContainer(
+      this.project,
+      Trainer.images.metrics,
+      ["6006/tcp"]
     );
-    project.containerIDs.train = await Docker.createContainer(TRAIN_IMAGE, "TRAIN-", project.id, project.directory);
-    PseudoDatabase.pushProject(project);
-    await Docker.startContainer(project.containerIDs.metrics);
-    await Docker.runContainer(project.containerIDs.train);
-
-    await Docker.killContainer(project.containerIDs.metrics);
-    await Docker.removeContainer(project.containerIDs.metrics);
+    const trainContainer = await this.docker.createContainer(this.project, Trainer.images.train);
+    await metricsContainer.start();
+    await Docker.runContainer(trainContainer);
+    await metricsContainer.stop();
+    await metricsContainer.remove();
   }
 
-  public static async updateCheckpoints(id: string): Promise<number> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+  public async updateCheckpoints(): Promise<number> {
     let currentEpoch: number;
 
-    const METRICSPATH = path.posix.join(project.directory, "metrics.json");
+    const METRICSPATH = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(METRICSPATH)) {
       const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
-      while (Object.keys(metrics.precision).length > Object.keys(project.checkpoints).length) {
-        const CURRENT_CKPT = Object.keys(project.checkpoints).length;
+      while (Object.keys(metrics.precision).length > Object.keys(this.project.checkpoints).length) {
+        const CURRENT_CKPT = Object.keys(this.project.checkpoints).length;
         const step = Object.keys(metrics.precision)[CURRENT_CKPT];
-        project.checkpoints[step] = {
+        this.project.checkpoints[step] = {
           step: parseInt(step, 10),
           metrics: {
             precision: metrics.precision[step],
@@ -163,7 +162,7 @@ export default class Trainer {
         };
         currentEpoch = parseInt(step, 10);
 
-        await PseudoDatabase.pushProject(project);
+        await PseudoDatabase.pushProject(this.project);
       }
     } else currentEpoch = 0;
 
