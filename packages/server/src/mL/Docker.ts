@@ -8,10 +8,10 @@ import { Project } from "../store";
 export const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 
 /**
-  * Get the working directory of a project.
-  *
-  * @param project The project to get the working directory of
-  */
+ * Get the working directory of a project.
+ *
+ * @param project The project to get the working directory of
+ */
 function getProjectWorkingDirectory(project: ProjectData): string {
   return `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
 }
@@ -103,7 +103,7 @@ export default class Docker {
     const localMountPath = getProjectWorkingDirectory(project).replace("C:\\", "/c/").replace(/\\/g, "/");
     const options: ContainerCreateOptions = {
       Image: `${image.name}:${image.tag}`,
-      name: `wpilib-${image.name.replaceAll("/", "_")}-${project.id}`,
+      name: `wpilib-${image.name.replace(/\//g, "_")}-${project.id}`,
       Labels: {
         wpilib: "ml",
         "wpilib-ml-name": image.name,
@@ -129,7 +129,12 @@ export default class Docker {
     return container;
   }
 
-  static async runContainer(container: Container): Promise<void> {
+  /**
+   * Starts the provided container, and removes it when it stops.
+   *
+   * @param container The container to run
+   */
+  public async runContainer(container: Container): Promise<void> {
     await container.start();
     await container.wait();
     await container.remove();

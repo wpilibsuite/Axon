@@ -44,7 +44,7 @@ const RESUME_TRAINING = gql`
 export default function Input(props: {
   id: string;
   status: GetProjectData_project_status;
-  trainerState: number;
+  dockerState: number;
 }): ReactElement {
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [haltTraining] = useMutation<HaltTraining, HaltTrainingVariables>(HALT_TRAINING);
@@ -68,7 +68,7 @@ export default function Input(props: {
             <Divider />
             <Parameters id={props.id} />
             <Divider />
-            <StartButton trainerState={props.trainerState} starting={starting} handleStart={handleStart} />
+            <StartButton dockerState={props.dockerState} starting={starting} handleStart={handleStart} />
           </>,
           <>
             <h1>Preparing</h1>
@@ -104,11 +104,11 @@ function ProgressBar(props: { status: GetProjectData_project_status }): ReactEle
 }
 
 function StartButton(props: {
-  trainerState: number;
+  dockerState: number;
   starting: boolean;
   handleStart: (para: void) => void;
 }): ReactElement {
-  if (props.trainerState < 5) return <p>training images not available yet</p>;
+  if (props.dockerState < 3) return <p>training images not available yet</p>;
   else if (props.starting) return <Button>Starting...</Button>;
   else return <Button onClick={() => props.handleStart()}>Start</Button>;
 }

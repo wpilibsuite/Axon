@@ -9,7 +9,7 @@ type Query {
   datasets: [Dataset!]!
   project(id: ID!): Project
   projects: [Project!]!
-  trainerState: Int!
+  dockerState: Int!
 }
 
 type Mutation {

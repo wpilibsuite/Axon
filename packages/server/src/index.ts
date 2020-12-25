@@ -10,8 +10,8 @@ import { PROJECT_DATA_DIR } from "./constants";
 import { Context } from "./context";
 import { DatasetService } from "./datasources/dataset-service";
 import { sequelize } from "./store";
-import Dockerode = require("dockerode");
 import Docker from "./mL/Docker";
+import * as Dockerode from "dockerode";
 
 const pubsub = new PubSub();
 const dockerode = new Dockerode();

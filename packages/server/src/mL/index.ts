@@ -8,7 +8,6 @@ import Exporter from "./Exporter";
 import Tester from "./Tester";
 import Docker from "./Docker";
 
-
 //training status enumeration
 export enum TrainingStatus {
   NOT_TRAINING,
@@ -17,24 +16,56 @@ export enum TrainingStatus {
   PAUSED
 }
 
+export enum DockerState {
+  NO_DOCKER,
+  SCANNING_FOR_DOCKER,
+  TRAIN_PULL,
+  EXPORT_PULL,
+  TEST_PULL,
+  READY
+}
+
 type ProjectStati = {
   [id: string]: ProjectStatus;
 };
 
 export default class MLService {
   readonly docker: Docker;
-
-  projects: ProjectData;
-  status: ProjectStati;
+  private dockerState: DockerState;
+  private status: ProjectStati;
 
   constructor(docker: Docker) {
     this.docker = docker;
-    
     this.status = {};
+    this.initialize();
   }
 
-  async pullAllResources(): Promise<void[]> {
-    return this.docker.pullImages(Object.values(Trainer.images));
+  async initialize(): Promise<void> {
+    const database = await PseudoDatabase.retrieveDatabase();
+    for (const id in database) {
+      this.status[id] = {
+        trainingStatus: TrainingStatus.NOT_TRAINING,
+        currentEpoch: 0,
+        lastEpoch: 0
+      };
+    }
+
+    this.dockerState = DockerState.SCANNING_FOR_DOCKER;
+    if (!(await this.docker.isConnected())) {
+      this.dockerState = DockerState.NO_DOCKER;
+      return Promise.resolve();
+    }
+
+    this.dockerState = DockerState.TRAIN_PULL;
+    await this.docker.pullImages(Object.values(Trainer.images));
+
+    this.dockerState = DockerState.EXPORT_PULL;
+    await this.docker.pullImages(Object.values(Exporter.images));
+
+    this.dockerState = DockerState.TEST_PULL;
+    await this.docker.pullImages(Object.values(Tester.images));
+
+    this.dockerState = DockerState.READY;
   }
 
   async start(iproject: Project): Promise<void> {
@@ -42,7 +73,7 @@ export default class MLService {
     const project = await PseudoDatabase.retrieveProject(iproject.id);
 
     const trainer = new Trainer(this.docker, project);
- 
+
     this.updateLastStep(project.id, project.hyperparameters.epochs);
     this.updateState(project.id, TrainingStatus.PREPARING);
 
@@ -59,7 +90,7 @@ export default class MLService {
 
     await trainer.trainModel();
 
-    await trainer.updateCheckpoints();
+    await Trainer.updateCheckpoints(project.id);
 
     this.updateState(project.id, TrainingStatus.NOT_TRAINING);
     project.containerIDs.train = null;
@@ -74,9 +105,9 @@ export default class MLService {
 
     await exporter.locateCheckpoint(checkpointNumber);
 
-    await Exporter.createExport(name);
+    await exporter.createExport(name);
 
-    await exporter.createDestinationDirectory(exp);
+    await exporter.createDestinationDirectory();
 
     await exporter.updateCheckpointStatus(checkpointNumber, true);
 
@@ -92,53 +123,55 @@ export default class MLService {
   }
 
   async test(testName: string, projectID: string, exportID: string, videoID: string): Promise<string> {
-    const project = await PseudoDatabase.retrieveProject(id);
+    const project = await PseudoDatabase.retrieveProject(projectID);
     const tester: Tester = new Tester(project, this.docker);
 
-    await tester.createTest(testName, projectID, exportID, videoID);
+    await tester.createTest(testName, exportID, videoID);
 
-    const project: ProjectData = await PseudoDatabase.retrieveProject(projectID);
+    const mountedModelPath = await tester.mountModel();
 
-    const mountedModelPath = await tester.mountModel(test, project.directory);
+    const mountedVideoPath = await tester.mountVideo();
 
-    const mountedVideoPath = await tester.mountVideo(test, project.directory);
+    await tester.writeParameterFile(mountedModelPath, mountedVideoPath);
 
-    await tester.writeParameterFile(project.directory, mountedModelPath, mountedVideoPath);
+    await tester.testModel();
 
-    await tester.testModel(project.id);
+    await tester.saveOutputVid();
 
-    await tester.saveOutputVid(test, project.directory);
-
-    await tester.saveTest(test, project.id);
+    await tester.saveTest();
 
     return "testing complete";
   }
 
   async halt(id: string): Promise<void> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-    if (project.containerIDs.train) await Docker.killContainer(project.containerIDs.train);
-    else return Promise.reject("no trainjob found");
-    this.status[project.id].trainingStatus = TrainingStatus.NOT_TRAINING;
+    // const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    // if (project.containerIDs.train) await Docker.killContainer(project.containerIDs.train);
+    // else return Promise.reject("no trainjob found");
+    // this.status[project.id].trainingStatus = TrainingStatus.NOT_TRAINING;
   }
 
   async pauseTraining(id: string): Promise<void> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-    if (this.status[id].trainingStatus == TrainingStatus.PAUSED) return Promise.reject("training is already paused");
-    if (project.containerIDs.train == null) return Promise.reject("no trainjob found");
-    await Docker.pauseContainer(project.containerIDs.train);
-    this.status[project.id].trainingStatus = TrainingStatus.PAUSED;
+    // const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    // if (this.status[id].trainingStatus == TrainingStatus.PAUSED) return Promise.reject("training is already paused");
+    // if (project.containerIDs.train == null) return Promise.reject("no trainjob found");
+    // await Docker.pauseContainer(project.containerIDs.train);
+    // this.status[project.id].trainingStatus = TrainingStatus.PAUSED;
   }
 
   async resumeTraining(id: string): Promise<void> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-    if (this.status[id].trainingStatus != TrainingStatus.PAUSED) return Promise.reject("training is not paused");
-    if (project.containerIDs.train == null) return Promise.reject("no trainjob found");
-    await Docker.resumeContainer(project.containerIDs.train);
-    this.status[project.id].trainingStatus = TrainingStatus.TRAINING;
+    // const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+    // if (this.status[id].trainingStatus != TrainingStatus.PAUSED) return Promise.reject("training is not paused");
+    // if (project.containerIDs.train == null) return Promise.reject("no trainjob found");
+    // await Docker.resumeContainer(project.containerIDs.train);
+    // this.status[project.id].trainingStatus = TrainingStatus.TRAINING;
   }
 
   public async getStatus(id: string): Promise<ProjectStatus> {
     return this.status[id];
+  }
+
+  public getDockerState(): DockerState {
+    return this.dockerState;
   }
 
   public async updateCheckpoints(id: string): Promise<void> {

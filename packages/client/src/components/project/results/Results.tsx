@@ -16,7 +16,7 @@ import TestButton from "./TestButton";
 export default function Results(props: {
   id: string;
   exports: GetProjectData_project_exports[];
-  trainerState: number;
+  dockerState: number;
   videos: GetProjectData_project_videos[];
 }): ReactElement {
   return (
@@ -33,7 +33,7 @@ export default function Results(props: {
               <TableRow key={exportInfo.name}>
                 <TableCell>{exportInfo.name}</TableCell>
                 <TableCell>
-                  {props.trainerState > 7 ? (
+                  {props.dockerState == 5 ? (
                     <TestButton modelExport={exportInfo} videos={props.videos} />
                   ) : (
                     <p>testing unavailable</p>

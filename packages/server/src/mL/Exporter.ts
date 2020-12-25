@@ -1,6 +1,7 @@
 import { DockerImage, Export } from "../schema/__generated__/graphql";
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
+import { Container } from "dockerode";
 import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
@@ -9,13 +10,13 @@ import * as mkdirp from "mkdirp";
 export default class Exporter {
   static readonly images: Record<string, DockerImage> = {
     export: { name: "gcperkins/wpilib-ml-tflite", tag: "latest" }
-  }
+  };
 
   readonly project: ProjectData;
   readonly docker: Docker;
   exp: Export;
 
-  public constructor(project: ProjectData, docker: Docker){
+  public constructor(project: ProjectData, docker: Docker) {
     this.project = project;
     this.docker = docker;
   }
@@ -26,15 +27,15 @@ export default class Exporter {
     else return Promise.reject("cannot find requested checkpoint");
   }
 
-  public async createExport(id: string, name: string): Promise<void> {
+  public async createExport(name: string): Promise<void> {
     const TARFILE_NAME = `${name}.tar.gz`;
     const RELATIVE_DIR_PATH = path.posix.join("exports", name);
-    const FULL_DIR_PATH = path.posix.join(project.directory, RELATIVE_DIR_PATH);
+    const FULL_DIR_PATH = path.posix.join(this.project.directory, RELATIVE_DIR_PATH);
     const DOWNLOAD_PATH = path.posix.join(FULL_DIR_PATH, TARFILE_NAME).split("/server/data/")[1]; //<- need to do this better
     this.exp = {
       id: name, //<-- id should be the IDv4 when moved to sequelize
       name: name,
-      projectId: id,
+      projectId: this.project.id,
       directory: FULL_DIR_PATH,
       tarfileName: TARFILE_NAME,
       downloadPath: DOWNLOAD_PATH,
@@ -42,8 +43,8 @@ export default class Exporter {
     };
   }
 
-  public async createDestinationDirectory(exp: Export): Promise<void> {
-    await mkdirp(path.posix.join(exp.directory, "checkpoint"));
+  public async createDestinationDirectory(): Promise<void> {
+    await mkdirp(path.posix.join(this.exp.directory, "checkpoint"));
   }
 
   public async moveCheckpointToMount(mount: string, checkpointNum: number, exportPath: string): Promise<void[]> {
@@ -67,18 +68,21 @@ export default class Exporter {
       epochs: checkpointNumber,
       "export-dir": this.exp.relativeDirPath
     };
-    fs.writeFileSync(path.posix.join(project.directory, "exportparameters.json"), JSON.stringify(exportparameters));
+    fs.writeFileSync(
+      path.posix.join(this.project.directory, "exportparameters.json"),
+      JSON.stringify(exportparameters)
+    );
   }
 
   public async exportCheckpoint(): Promise<void> {
     const container: Container = await this.docker.createContainer(this.project, Exporter.images.export);
-    await docker.runContainer(container);
+    await this.docker.runContainer(container);
   }
 
   public async saveExport(checkpointNumber: number): Promise<void> {
-    this.project.exports[exp.id] = exp;
-    project.checkpoints[checkpointNumber].status.downloadPaths.push(exp.downloadPath);
-    await PseudoDatabase.pushProject(project);
+    this.project.exports[this.exp.id] = this.exp;
+    this.project.checkpoints[checkpointNumber].status.downloadPaths.push(this.exp.downloadPath);
+    await PseudoDatabase.pushProject(this.project);
   }
 
   public async updateCheckpointStatus(checkpointNum: number, isExporting: boolean): Promise<void> {

@@ -3,10 +3,10 @@ import { QueryResolvers } from "../schema/__generated__/graphql";
 export const Query: QueryResolvers = {
   isDockerConnected: async (parent, args, { docker }) => {
     return await docker.isConnected();
-   },
-   dockerVersion: async (parent, args, { docker }) => {
-     return await docker.version();
-   },
+  },
+  dockerVersion: async (parent, args, { docker }) => {
+    return await docker.version();
+  },
   dataset: (parent, { id }, { dataSources }) => {
     return dataSources.datasetService.getDataset(id);
   },
@@ -19,7 +19,7 @@ export const Query: QueryResolvers = {
   projects: (_, args, { dataSources }) => {
     return dataSources.projectService.getProjects();
   },
-  trainerState: (_, args, { dataSources }) => {
-    return dataSources.projectService.getTrainerState();
+  dockerState: (_, args, { dataSources }) => {
+    return dataSources.projectService.getDockerState();
   }
 };

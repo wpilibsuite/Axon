@@ -25,7 +25,7 @@ export default class Trainer {
     dataset: { name: "gcperkins/wpilib-ml-dataset", tag: "latest" },
     metrics: { name: "gcperkins/wpilib-ml-metrics", tag: "latest" },
     train: { name: "gcperkins/wpilib-ml-train", tag: "latest" }
-  }
+  };
 
   readonly project: ProjectData;
   readonly docker: Docker;
@@ -36,7 +36,6 @@ export default class Trainer {
   }
 
   public async writeParameterFile(): Promise<void> {
-
     const DATASETPATHS = this.project.datasets.map((dataset) =>
       path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
     );
@@ -58,11 +57,9 @@ export default class Trainer {
 
     const HYPERPARAMETER_FILE_PATH = path.posix.join(this.project.directory, "hyperparameters.json");
     await fs.promises.writeFile(HYPERPARAMETER_FILE_PATH, JSON.stringify(trainParameters));
-
   }
 
   public async handleOldData(): Promise<void> {
-
     const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
       try {
@@ -87,7 +84,6 @@ export default class Trainer {
   }
 
   public async moveDataToMount(): Promise<void> {
-
     this.project.datasets.forEach((dataset) => {
       fs.copyFileSync(
         path.posix.join("data", dataset.path),
@@ -119,36 +115,33 @@ export default class Trainer {
   public async extractDataset(): Promise<void> {
     console.info(`${this.project.id}: Trainer extracting dataset`);
     const container: Container = await this.docker.createContainer(this.project, Trainer.images.dataset);
-    await Docker.runContainer(container);
+    await this.docker.runContainer(container);
     console.info(`${this.project.id}: Trainer extracted dataset`);
   }
 
   /**
-    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
-    */
+   * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
+   */
   public async trainModel(): Promise<void> {
-    const metricsContainer = await this.docker.createContainer(
-      this.project,
-      Trainer.images.metrics,
-      ["6006/tcp"]
-    );
+    const metricsContainer = await this.docker.createContainer(this.project, Trainer.images.metrics, ["6006/tcp"]);
     const trainContainer = await this.docker.createContainer(this.project, Trainer.images.train);
     await metricsContainer.start();
-    await Docker.runContainer(trainContainer);
+    await this.docker.runContainer(trainContainer);
     await metricsContainer.stop();
     await metricsContainer.remove();
   }
 
-  public async updateCheckpoints(): Promise<number> {
+  public static async updateCheckpoints(id: string): Promise<number> {
+    const project = await PseudoDatabase.retrieveProject(id);
     let currentEpoch: number;
 
-    const METRICSPATH = path.posix.join(this.project.directory, "metrics.json");
+    const METRICSPATH = path.posix.join(project.directory, "metrics.json");
     if (fs.existsSync(METRICSPATH)) {
       const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
-      while (Object.keys(metrics.precision).length > Object.keys(this.project.checkpoints).length) {
-        const CURRENT_CKPT = Object.keys(this.project.checkpoints).length;
+      while (Object.keys(metrics.precision).length > Object.keys(project.checkpoints).length) {
+        const CURRENT_CKPT = Object.keys(project.checkpoints).length;
         const step = Object.keys(metrics.precision)[CURRENT_CKPT];
-        this.project.checkpoints[step] = {
+        project.checkpoints[step] = {
           step: parseInt(step, 10),
           metrics: {
             precision: metrics.precision[step],
@@ -162,7 +155,7 @@ export default class Trainer {
         };
         currentEpoch = parseInt(step, 10);
 
-        await PseudoDatabase.pushProject(this.project);
+        await PseudoDatabase.pushProject(project);
       }
     } else currentEpoch = 0;
 

@@ -10,6 +10,7 @@ import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
 import PseudoDatabase from "./PseudoDatabase";
 import { ProjectData } from "./PseudoDatabase";
+import { DockerState } from "../mL/index"; //need help with graphql enum type for the client query
 
 export class ProjectService extends DataSource {
   private store: Sequelize;
@@ -23,8 +24,8 @@ export class ProjectService extends DataSource {
     this.path = path;
   }
 
-  async getTrainerState(): Promise<number> {
-    return this.mLService.trainer_state;
+  async getDockerState(): Promise<DockerState> {
+    return this.mLService.getDockerState();
   }
 
   async getProjects(): Promise<Project[]> {
@@ -186,9 +187,6 @@ export class ProjectService extends DataSource {
   async databaseTest(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
     console.log(project);
-
-    Trainer.handleOldData(id);
-
     return project;
   }
 }

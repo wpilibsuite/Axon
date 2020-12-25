@@ -8,7 +8,7 @@ import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectD
 export default function Metrics(props: {
   id: string;
   checkpoints: GetProjectData_project_checkpoints[];
-  trainerState: number;
+  dockerState: number;
 }): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [selectedEpoch, setSelectedEpoch] = React.useState(0);
@@ -47,7 +47,7 @@ export default function Metrics(props: {
           <CheckpointInfo checkpoint={getCheckpointFromStep(props.checkpoints, selectedEpoch)} />
         </DialogContent>
         <DialogActions>
-          {props.trainerState > 6 ? (
+          {props.dockerState > 4 ? (
             <ExportButton id={props.id} ckptNumber={selectedEpoch} />
           ) : (
             <p> export image not available yet </p>

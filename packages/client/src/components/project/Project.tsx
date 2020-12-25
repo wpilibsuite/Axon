@@ -64,7 +64,7 @@ const GET_PROJECT_DATA = gql`
         lastEpoch
       }
     }
-    trainerState
+    dockerState
   }
 `;
 
@@ -97,16 +97,16 @@ export default function Project(props: { id: string }): ReactElement {
           </Tabs>
         </AppBar>
         <TabPanel value={value} index={0}>
-          <Input id={props.id} status={data.project.status} trainerState={data.trainerState} />
+          <Input id={props.id} status={data.project.status} dockerState={data.dockerState} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Metrics id={props.id} checkpoints={data.project.checkpoints} trainerState={data.trainerState} />
+          <Metrics id={props.id} checkpoints={data.project.checkpoints} dockerState={data.dockerState} />
         </TabPanel>
         <TabPanel value={value} index={2}>
           <Results
             id={props.id}
             exports={data.project.exports}
-            trainerState={data.trainerState}
+            dockerState={data.dockerState}
             videos={data.project.videos}
           />
         </TabPanel>
