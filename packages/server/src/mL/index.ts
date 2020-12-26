@@ -40,6 +40,11 @@ export default class MLService {
     this.initialize();
   }
 
+  /**
+   * Create status objects for monitoring existing projects,
+   * check if docker is connected,
+   * pull docker images.
+   */
   async initialize(): Promise<void> {
     const database = await PseudoDatabase.retrieveDatabase();
     for (const id in database) {
@@ -68,6 +73,11 @@ export default class MLService {
     this.dockerState = DockerState.READY;
   }
 
+  /**
+   * Train a model based on the parameters in the given project.
+   *
+   * @param iproject The model's project.
+   */
   async start(iproject: Project): Promise<void> {
     console.info(`${iproject.id}: Starting training`);
     const project = await PseudoDatabase.retrieveProject(iproject.id);
@@ -99,6 +109,13 @@ export default class MLService {
     console.info(`${iproject.id}: Training complete`);
   }
 
+  /**
+   * Export a checkpoint to a tflite model.
+   *
+   * @param id The id of the checkpoint's project.
+   * @param checkpointNumber The epoch of the checkpoint to be exported.
+   * @param name The desired name of the exported file.
+   */
   async export(id: string, checkpointNumber: number, name: string): Promise<string> {
     const project = await PseudoDatabase.retrieveProject(id);
     const exporter: Exporter = new Exporter(project, this.docker);
@@ -122,6 +139,14 @@ export default class MLService {
     return "exported";
   }
 
+  /**
+   * Test an exported model on a provided video.
+   *
+   * @param testName Desired name of the test.
+   * @param projectID The test project's id.
+   * @param exportID The id of the export to be tested.
+   * @param videoID The id of the video to be used in the test
+   */
   async test(testName: string, projectID: string, exportID: string, videoID: string): Promise<string> {
     const project = await PseudoDatabase.retrieveProject(projectID);
     const tester: Tester = new Tester(project, this.docker);
@@ -143,6 +168,12 @@ export default class MLService {
     return "testing complete";
   }
 
+  /**
+   * Stop the training of a project.
+   * Can only be resumed from an eval checkpoint.
+   *
+   * @param id The id of the project.
+   */
   async halt(id: string): Promise<void> {
     // const project: ProjectData = await PseudoDatabase.retrieveProject(id);
     // if (project.containerIDs.train) await Docker.killContainer(project.containerIDs.train);
@@ -150,6 +181,12 @@ export default class MLService {
     // this.status[project.id].trainingStatus = TrainingStatus.NOT_TRAINING;
   }
 
+  /**
+   * Pause the training of a project.
+   * Can be easilly resumed.
+   *
+   * @param id The id of the project.
+   */
   async pauseTraining(id: string): Promise<void> {
     // const project: ProjectData = await PseudoDatabase.retrieveProject(id);
     // if (this.status[id].trainingStatus == TrainingStatus.PAUSED) return Promise.reject("training is already paused");
@@ -158,6 +195,11 @@ export default class MLService {
     // this.status[project.id].trainingStatus = TrainingStatus.PAUSED;
   }
 
+  /**
+   * Resume a paused trainjob of a project.
+   *
+   * @param id The id of the project.
+   */
   async resumeTraining(id: string): Promise<void> {
     // const project: ProjectData = await PseudoDatabase.retrieveProject(id);
     // if (this.status[id].trainingStatus != TrainingStatus.PAUSED) return Promise.reject("training is not paused");

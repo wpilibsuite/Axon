@@ -34,6 +34,9 @@ export default class Trainer {
     this.docker = docker;
   }
 
+  /**
+   * Create the training parameter file in the container's mounted directory to control the container.
+   */
   public async writeParameterFile(): Promise<void> {
     const DATASETPATHS = this.project.datasets.map((dataset) =>
       path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
@@ -58,6 +61,9 @@ export default class Trainer {
     await fs.promises.writeFile(HYPERPARAMETER_FILE_PATH, JSON.stringify(trainParameters));
   }
 
+  /**
+   * Clean the container's mounted directory if a training has already taken place.
+   */
   public async handleOldData(): Promise<void> {
     const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
@@ -82,6 +88,9 @@ export default class Trainer {
     await PseudoDatabase.pushProject(this.project);
   }
 
+  /**
+   * Move datasets and custom initial checkpoints to the mounted directory.
+   */
   public async moveDataToMount(): Promise<void> {
     this.project.datasets.forEach((dataset) => {
       fs.copyFileSync(
@@ -111,6 +120,9 @@ export default class Trainer {
     }
   }
 
+  /**
+   * Extracts the dataset file so that the dataset can be used by the training container.
+   */
   public async extractDataset(): Promise<void> {
     console.info(`${this.project.id}: Trainer extracting dataset`);
     const container: Container = await this.docker.createContainer(this.project, Trainer.images.dataset);
@@ -130,6 +142,12 @@ export default class Trainer {
     await metricsContainer.remove();
   }
 
+  /**
+   * Read the training metrics file and save the metrics in checkpoint objects in the project.
+   * Updates the database with the latest checkpoints.
+   *
+   * @param id The id of the project.
+   */
   public static async updateCheckpoints(id: string): Promise<number> {
     const project = await PseudoDatabase.retrieveProject(id);
     let currentEpoch: number;

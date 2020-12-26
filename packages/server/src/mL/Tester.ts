@@ -22,6 +22,13 @@ export default class Tester {
     this.docker = docker;
   }
 
+  /**
+   * Create test object to be stored by the Tester instance and then saved to the database.
+   *
+   * @param name The desired name of the test, and output video.
+   * @param exportID the id of the export to be tested.
+   * @param videoID the id of the video to be used for the test.
+   */
   public async createTest(name: string, exportID: string, videoID: string): Promise<void> {
     const id = name; //will be the random idv4 when in sequalize
     const model = this.project.exports[exportID];
@@ -37,6 +44,9 @@ export default class Tester {
     };
   }
 
+  /**
+   * Copy the export to the container's mounted directory to be tested.
+   */
   public async mountModel(): Promise<string> {
     const FULL_TAR_PATH = path.posix.join(this.test.model.directory, this.test.model.tarfileName);
     const MOUNTED_MODEL_PATH = path.posix.join(
@@ -57,6 +67,9 @@ export default class Tester {
     return Promise.resolve(CONTAINER_MODEL_PATH);
   }
 
+  /**
+   * Copy the video to the container's mounted directory to be used for the test.
+   */
   public async mountVideo(): Promise<string> {
     const MOUNTED_VIDEO_PATH = path.posix.join(this.project.directory, "videos", this.test.video.filename);
     const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", this.test.video.filename);
@@ -70,6 +83,12 @@ export default class Tester {
     return Promise.resolve(CONTAINER_VIDEO_PATH);
   }
 
+  /**
+   * Create the testing parameter file to control the testing container.
+   *
+   * @param modelPath the path to the mounted export tarfile
+   * @param videoPath the path to the mounted video to be used in the test
+   */
   public async writeParameterFile(modelPath: string, videoPath: string): Promise<void> {
     const testparameters = {
       "test-video": videoPath,
@@ -78,11 +97,17 @@ export default class Tester {
     fs.writeFileSync(path.posix.join(this.project.directory, "testparameters.json"), JSON.stringify(testparameters));
   }
 
+  /**
+   * Test the model. Requires the test parameter file, the export, and the video to be in the container's mounted directory.
+   */
   public async testModel(): Promise<void> {
     const container: Container = await this.docker.createContainer(this.project, Tester.images.test, ["5000"]);
     await this.docker.runContainer(container);
   }
 
+  /**
+   * Save the output vid from the container to the path stored in the test object, with the desired name.
+   */
   public async saveOutputVid(): Promise<void> {
     const OUTPUT_VID_PATH = path.posix.join(this.project.directory, "inference.mp4");
     if (!fs.existsSync(OUTPUT_VID_PATH)) Promise.reject("cant find output video");
@@ -92,6 +117,9 @@ export default class Tester {
     await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
   }
 
+  /**
+   * Save the Test object in the Tester instance to the database.
+   */
   public async saveTest(): Promise<void> {
     this.project.tests[this.test.id] = this.test;
     PseudoDatabase.pushProject(this.project);
