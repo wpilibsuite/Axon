@@ -8,14 +8,6 @@ import Exporter from "./Exporter";
 import Tester from "./Tester";
 import Docker from "./Docker";
 
-//training status enumeration
-export enum TrainingStatus {
-  NOT_TRAINING,
-  PREPARING,
-  TRAINING,
-  PAUSED
-}
-
 export enum DockerState {
   NO_DOCKER,
   SCANNING_FOR_DOCKER,
@@ -25,36 +17,26 @@ export enum DockerState {
   READY
 }
 
-type ProjectStati = {
-  [id: string]: ProjectStatus;
-};
-
 export default class MLService {
   readonly docker: Docker;
   private dockerState: DockerState;
-  private status: ProjectStati;
+  private exportJobs: Exporter[];
+  private trainJobs: Trainer[];
+  private testJobs: Tester[];
 
   constructor(docker: Docker) {
     this.docker = docker;
-    this.status = {};
+    this.exportJobs = [];
+    this.trainJobs = [];
+    this.testJobs = [];
     this.initialize();
   }
 
   /**
-   * Create status objects for monitoring existing projects,
    * check if docker is connected,
    * pull docker images.
    */
   async initialize(): Promise<void> {
-    const database = await PseudoDatabase.retrieveDatabase();
-    for (const id in database) {
-      this.status[id] = {
-        trainingStatus: TrainingStatus.NOT_TRAINING,
-        currentEpoch: 0,
-        lastEpoch: 0
-      };
-    }
-
     this.dockerState = DockerState.SCANNING_FOR_DOCKER;
     if (!(await this.docker.isConnected())) {
       this.dockerState = DockerState.NO_DOCKER;
@@ -80,12 +62,9 @@ export default class MLService {
    */
   async start(iproject: Project): Promise<void> {
     console.info(`${iproject.id}: Starting training`);
-    const project = await PseudoDatabase.retrieveProject(iproject.id);
-
+    const project: ProjectData = await PseudoDatabase.retrieveProject(iproject.id);
     const trainer = new Trainer(this.docker, project);
-
-    this.updateLastStep(project.id, project.hyperparameters.epochs);
-    this.updateState(project.id, TrainingStatus.PREPARING);
+    this.trainJobs.push(trainer);
 
     await trainer.writeParameterFile();
 
@@ -95,17 +74,12 @@ export default class MLService {
 
     await trainer.extractDataset();
 
-    this.updateState(project.id, TrainingStatus.TRAINING);
-    this.updateStep(project.id, 0);
-
     await trainer.trainModel();
 
-    await Trainer.updateCheckpoints(project.id);
+    await trainer.updateCheckpoints();
 
-    this.updateState(project.id, TrainingStatus.NOT_TRAINING);
-    project.containerIDs.train = null;
     PseudoDatabase.pushProject(project);
-
+    this.trainJobs = this.trainJobs.filter((job) => job !== trainer);
     console.info(`${iproject.id}: Training complete`);
   }
 
@@ -175,10 +149,9 @@ export default class MLService {
    * @param id The id of the project.
    */
   async halt(id: string): Promise<void> {
-    // const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-    // if (project.containerIDs.train) await Docker.killContainer(project.containerIDs.train);
-    // else return Promise.reject("no trainjob found");
-    // this.status[project.id].trainingStatus = TrainingStatus.NOT_TRAINING;
+    const job = this.trainJobs.find((job) => job.project.id === id);
+    if (job === undefined) Promise.reject("no trainjob found");
+    await job.stop();
   }
 
   /**
@@ -188,11 +161,9 @@ export default class MLService {
    * @param id The id of the project.
    */
   async pauseTraining(id: string): Promise<void> {
-    // const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-    // if (this.status[id].trainingStatus == TrainingStatus.PAUSED) return Promise.reject("training is already paused");
-    // if (project.containerIDs.train == null) return Promise.reject("no trainjob found");
-    // await Docker.pauseContainer(project.containerIDs.train);
-    // this.status[project.id].trainingStatus = TrainingStatus.PAUSED;
+    const job = this.trainJobs.find((job) => job.project.id === id);
+    if (job === undefined) Promise.reject("no trainjob found");
+    await job.pause();
   }
 
   /**
@@ -201,15 +172,20 @@ export default class MLService {
    * @param id The id of the project.
    */
   async resumeTraining(id: string): Promise<void> {
-    // const project: ProjectData = await PseudoDatabase.retrieveProject(id);
-    // if (this.status[id].trainingStatus != TrainingStatus.PAUSED) return Promise.reject("training is not paused");
-    // if (project.containerIDs.train == null) return Promise.reject("no trainjob found");
-    // await Docker.resumeContainer(project.containerIDs.train);
-    // this.status[project.id].trainingStatus = TrainingStatus.TRAINING;
+    const job = this.trainJobs.find((job) => job.project.id === id);
+    if (job === undefined) Promise.reject("no trainjob found");
+    await job.resume();
   }
 
   public async getStatus(id: string): Promise<ProjectStatus> {
-    return this.status[id];
+    const job = this.trainJobs.find((job) => job.project.id === id);
+    if (job) return job.getStatus();
+    else
+      return {
+        trainingStatus: 0,
+        currentEpoch: 0,
+        lastEpoch: 0
+      };
   }
 
   public getDockerState(): DockerState {
@@ -217,9 +193,8 @@ export default class MLService {
   }
 
   public async updateCheckpoints(id: string): Promise<void> {
-    const currentStep = await Trainer.updateCheckpoints(id);
-    if (currentStep) this.updateStep(id, currentStep);
-    Promise.resolve();
+    const job = this.trainJobs.find((job) => job.project.id === id);
+    if (job) await job.updateCheckpoints();
   }
 
   public async getCheckpoints(id: string): Promise<Checkpoint[]> {
@@ -237,20 +212,8 @@ export default class MLService {
     return Object.values(project.videos);
   }
 
-  public addStatus(project: ProjectData): void {
-    this.status[project.id] = {
-      trainingStatus: TrainingStatus.NOT_TRAINING,
-      currentEpoch: 0,
-      lastEpoch: project.hyperparameters.epochs
-    };
-  }
-  public updateState(id: string, newState: TrainingStatus): void {
-    this.status[id].trainingStatus = newState;
-  }
-  public updateStep(id: string, newStep: number): void {
-    this.status[id].currentEpoch = newStep;
-  }
-  public updateLastStep(id: string, newLast: number): void {
-    this.status[id].lastEpoch = newLast;
+  public printTrainJobs(): void {
+    if (this.trainJobs.length === 0) console.log("no jobs");
+    this.trainJobs.forEach(console.log);
   }
 }

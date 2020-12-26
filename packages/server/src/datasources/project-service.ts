@@ -102,10 +102,7 @@ export class ProjectService extends DataSource {
 
   async createProject(name: string): Promise<Project> {
     const project = await Project.create({ name });
-    // this.trainer.addProjectData(project);
     await PseudoDatabase.addProjectData(project);
-    this.mLService.addStatus(await PseudoDatabase.retrieveProject(project.id));
-
     return project;
   }
 
@@ -185,7 +182,7 @@ export class ProjectService extends DataSource {
 
   async databaseTest(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    console.log(project);
+    this.mLService.printTrainJobs();
     return project;
   }
 }

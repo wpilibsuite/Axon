@@ -3,7 +3,6 @@ import { Project } from "../store";
 import { Dataset } from "../store";
 import { DATA_DIR } from "../constants";
 import { PROJECT_DATA_DIR } from "../constants";
-import { TrainingStatus } from "../mL";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
@@ -71,11 +70,6 @@ export default class PseudoDatabase {
         metrics: null,
         export: null,
         test: null
-      },
-      status: {
-        trainingStatus: TrainingStatus.NOT_TRAINING,
-        currentEpoch: 0,
-        lastEpoch: project.epochs
       }
     };
 

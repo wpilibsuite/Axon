@@ -6,8 +6,19 @@ import * as rimraf from "rimraf";
 import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
-import { DockerImage } from "../schema/__generated__/graphql";
+import { DockerImage, ProjectStatus } from "../schema/__generated__/graphql";
 import { Container } from "dockerode";
+
+export enum Status {
+  IDLE,
+  PAUSED,
+  WRITING,
+  CLEANING,
+  MOVING,
+  EXTRACTING,
+  TRAINING,
+  STOPPED
+}
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -27,17 +38,28 @@ export default class Trainer {
   };
 
   readonly project: ProjectData;
+  private container: Container;
   readonly docker: Docker;
+  private paused: boolean;
+  private status: Status;
+  private epoch: number;
 
   public constructor(docker: Docker, project: ProjectData) {
+    this.status = Status.IDLE;
     this.project = project;
     this.docker = docker;
+    this.epoch = 0;
   }
 
   /**
    * Create the training parameter file in the container's mounted directory to control the container.
    */
   public async writeParameterFile(): Promise<void> {
+    do if (this.status == Status.STOPPED) return;
+    while (this.paused);
+
+    this.status = Status.WRITING;
+
     const DATASETPATHS = this.project.datasets.map((dataset) =>
       path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
     );
@@ -65,6 +87,11 @@ export default class Trainer {
    * Clean the container's mounted directory if a training has already taken place.
    */
   public async handleOldData(): Promise<void> {
+    do if (this.status == Status.STOPPED) return;
+    while (this.paused);
+
+    this.status = Status.CLEANING;
+
     const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
       try {
@@ -92,6 +119,11 @@ export default class Trainer {
    * Move datasets and custom initial checkpoints to the mounted directory.
    */
   public async moveDataToMount(): Promise<void> {
+    do if (this.status == Status.STOPPED) return;
+    while (this.paused);
+
+    this.status = Status.MOVING;
+
     this.project.datasets.forEach((dataset) => {
       fs.copyFileSync(
         path.posix.join("data", dataset.path),
@@ -124,9 +156,14 @@ export default class Trainer {
    * Extracts the dataset file so that the dataset can be used by the training container.
    */
   public async extractDataset(): Promise<void> {
+    do if (this.status == Status.STOPPED) return;
+    while (this.paused);
+
+    this.status = Status.EXTRACTING;
+
     console.info(`${this.project.id}: Trainer extracting dataset`);
-    const container: Container = await this.docker.createContainer(this.project, Trainer.images.dataset);
-    await this.docker.runContainer(container);
+    this.container = await this.docker.createContainer(this.project, Trainer.images.dataset);
+    await this.docker.runContainer(this.container);
     console.info(`${this.project.id}: Trainer extracted dataset`);
   }
 
@@ -134,10 +171,15 @@ export default class Trainer {
    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
    */
   public async trainModel(): Promise<void> {
+    do if (this.status == Status.STOPPED) return;
+    while (this.paused);
+
+    this.status = Status.TRAINING;
+
     const metricsContainer = await this.docker.createContainer(this.project, Trainer.images.metrics, ["6006/tcp"]);
-    const trainContainer = await this.docker.createContainer(this.project, Trainer.images.train);
+    this.container = await this.docker.createContainer(this.project, Trainer.images.train);
     await metricsContainer.start();
-    await this.docker.runContainer(trainContainer);
+    await this.docker.runContainer(this.container);
     await metricsContainer.stop();
     await metricsContainer.remove();
   }
@@ -145,20 +187,15 @@ export default class Trainer {
   /**
    * Read the training metrics file and save the metrics in checkpoint objects in the project.
    * Updates the database with the latest checkpoints.
-   *
-   * @param id The id of the project.
    */
-  public static async updateCheckpoints(id: string): Promise<number> {
-    const project = await PseudoDatabase.retrieveProject(id);
-    let currentEpoch: number;
-
-    const METRICSPATH = path.posix.join(project.directory, "metrics.json");
+  public async updateCheckpoints(): Promise<void> {
+    const METRICSPATH = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(METRICSPATH)) {
       const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
-      while (Object.keys(metrics.precision).length > Object.keys(project.checkpoints).length) {
-        const CURRENT_CKPT = Object.keys(project.checkpoints).length;
+      while (Object.keys(metrics.precision).length > Object.keys(this.project.checkpoints).length) {
+        const CURRENT_CKPT = Object.keys(this.project.checkpoints).length;
         const step = Object.keys(metrics.precision)[CURRENT_CKPT];
-        project.checkpoints[step] = {
+        this.project.checkpoints[step] = {
           step: parseInt(step, 10),
           metrics: [
             {
@@ -171,12 +208,38 @@ export default class Trainer {
             downloadPaths: []
           }
         };
-        currentEpoch = parseInt(step, 10);
+        this.epoch = parseInt(step, 10);
 
-        await PseudoDatabase.pushProject(project);
+        await PseudoDatabase.pushProject(this.project);
       }
-    } else currentEpoch = 0;
+    } else this.epoch = 0;
+  }
 
-    return currentEpoch;
+  public async stop(): Promise<void> {
+    if (this.container && (await this.container.inspect()).State.Running) await this.container.kill({ force: true });
+    this.status = Status.STOPPED;
+  }
+
+  public async pause(): Promise<void> {
+    if (this.container && (await this.container.inspect()).State.Running) this.container.pause();
+    this.paused = true;
+  }
+
+  public async resume(): Promise<void> {
+    if (this.container) if ((await this.container.inspect()).State.Paused) this.container.unpause();
+    this.paused = false;
+  }
+
+  public getStatus(): ProjectStatus {
+    const state = this.paused ? Status.PAUSED : this.status;
+    return {
+      trainingStatus: state,
+      currentEpoch: this.epoch,
+      lastEpoch: this.project.hyperparameters.epochs
+    };
+  }
+
+  public toString(): string {
+    return `${this.project.id}: Trainjob \n epoch: ${this.epoch}`;
   }
 }
