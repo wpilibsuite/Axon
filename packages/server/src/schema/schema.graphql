@@ -69,10 +69,9 @@ type Dataset {
   images: [LabeledImage!]!
 }
 
-type TrainingMetrics {
-  loss: Float!
-  precision: Float!
-  intersectionOverUnion: Float!
+type TrainingMetric {
+  name: String!
+  value: Float!
 }
 
 type CheckpointStatus {
@@ -83,7 +82,7 @@ type CheckpointStatus {
 type Checkpoint {
   step: Int!
   status: CheckpointStatus!
-  metrics: TrainingMetrics!
+  metrics: [TrainingMetric!]!
 }
 
 type Export {

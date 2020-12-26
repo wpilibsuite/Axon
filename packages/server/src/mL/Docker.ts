@@ -3,7 +3,6 @@ import { Container, ContainerCreateOptions } from "dockerode";
 import { PROJECT_DATA_DIR } from "../constants";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import { DockerImage } from "../schema/__generated__/graphql";
-import { Project } from "../store";
 
 export const CONTAINER_MOUNT_PATH = "/opt/ml/model";
 

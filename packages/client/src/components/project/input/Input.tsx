@@ -2,12 +2,13 @@ import { Button, Container, Divider } from "@material-ui/core";
 import Datasets from "./Datasets";
 import Parameters from "./Parameters";
 import React, { ReactElement, useState } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { StartTraining, StartTrainingVariables } from "./__generated__/StartTraining";
 import { HaltTraining, HaltTrainingVariables } from "./__generated__/HaltTraining";
 import { PauseTraining, PauseTrainingVariables } from "./__generated__/PauseTraining";
 import { ResumeTraining, ResumeTrainingVariables } from "./__generated__/ResumeTraining";
 import { GetProjectData_project_status } from "../__generated__/GetProjectData";
+import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
 
 const START_TRAINING = gql`
   mutation StartTraining($id: ID!) {
@@ -41,11 +42,7 @@ const RESUME_TRAINING = gql`
   }
 `;
 
-export default function Input(props: {
-  id: string;
-  status: GetProjectData_project_status;
-  dockerState: number;
-}): ReactElement {
+export default function Input(props: { id: string; status: GetProjectData_project_status }): ReactElement {
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [haltTraining] = useMutation<HaltTraining, HaltTrainingVariables>(HALT_TRAINING);
   const [pauseTraining] = useMutation<PauseTraining, PauseTrainingVariables>(PAUSE_TRAINING);
@@ -68,7 +65,7 @@ export default function Input(props: {
             <Divider />
             <Parameters id={props.id} />
             <Divider />
-            <StartButton dockerState={props.dockerState} starting={starting} handleStart={handleStart} />
+            <StartButton starting={starting} handleStart={handleStart} />
           </>,
           <>
             <h1>Preparing</h1>
@@ -103,12 +100,12 @@ function ProgressBar(props: { status: GetProjectData_project_status }): ReactEle
   );
 }
 
-function StartButton(props: {
-  dockerState: number;
-  starting: boolean;
-  handleStart: (para: void) => void;
-}): ReactElement {
-  if (props.dockerState < 3) return <p>training images not available yet</p>;
-  else if (props.starting) return <Button>Starting...</Button>;
-  else return <Button onClick={() => props.handleStart()}>Start</Button>;
+function StartButton(props: { starting: boolean; handleStart: (para: void) => void }): ReactElement {
+  const { data, loading, error } = useQuery(GET_DOCKER_STATE, { pollInterval: 5000 });
+  if (loading) return <p>connecting to trainer</p>;
+  if (error) return <p>cant connect to trainer</p>;
+  if (data.dockerState < 3) return <p>no train image yet</p>;
+  if (props.starting) return <Button>Starting...</Button>;
+
+  return <Button onClick={() => props.handleStart()}>Start</Button>;
 }

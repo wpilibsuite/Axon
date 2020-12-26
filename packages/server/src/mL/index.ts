@@ -1,4 +1,4 @@
-import { Test, Video, Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
+import { Video, Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";

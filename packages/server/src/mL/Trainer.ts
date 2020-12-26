@@ -7,7 +7,6 @@ import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
 import { DockerImage } from "../schema/__generated__/graphql";
-import { Project } from "../store";
 import { Container } from "dockerode";
 
 type TrainParameters = {
@@ -143,11 +142,12 @@ export default class Trainer {
         const step = Object.keys(metrics.precision)[CURRENT_CKPT];
         project.checkpoints[step] = {
           step: parseInt(step, 10),
-          metrics: {
-            precision: metrics.precision[step],
-            loss: null,
-            intersectionOverUnion: null //i will probably push an edit to the metrics container soon to make this easier
-          },
+          metrics: [
+            {
+              name: "precision",
+              value: metrics.precision[step] //only one metric supported now
+            }
+          ],
           status: {
             exporting: false,
             downloadPaths: []

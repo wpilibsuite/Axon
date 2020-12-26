@@ -1,7 +1,6 @@
 import { DataSource } from "apollo-datasource";
 import { Checkpoint, Export, Video, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
 import { Project } from "../store";
-import Trainer from "../mL/Trainer";
 import { Sequelize } from "sequelize";
 import MLService from "../mL";
 import * as mkdirp from "mkdirp";

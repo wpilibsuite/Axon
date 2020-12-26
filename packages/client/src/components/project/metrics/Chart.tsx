@@ -4,21 +4,21 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectData";
 
 type Datapoint = {
-  // I know this doesnt help but this could have the metrics soon
-  [attribute: string]: string | number;
+  [key: string]: number;
 };
 
 export default function Chart(props: {
-  checkpoints: GetProjectData_project_checkpoints[] | undefined;
+  checkpoints: GetProjectData_project_checkpoints[];
   onClick: (para: number) => void;
 }): ReactElement {
-  const data: Datapoint[] = props.checkpoints
-    ? props.checkpoints.map((checkpoint) => {
-        const point = { name: checkpoint.step };
-        Object.assign(point, checkpoint.metrics);
-        return point;
-      })
-    : [];
+  const data: Datapoint[] = props.checkpoints.map((checkpoint) => {
+    const point: Datapoint = {};
+    point.name = checkpoint.step;
+    checkpoint.metrics.forEach((metric) => {
+      point[metric.name] = metric.value;
+    });
+    return point;
+  });
 
   function handleClick(step: number) {
     props.onClick(step);

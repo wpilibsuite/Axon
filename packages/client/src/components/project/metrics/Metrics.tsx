@@ -1,4 +1,4 @@
-import { IconButton, Dialog, DialogActions, DialogContent, DialogTitle, Container } from "@material-ui/core";
+import { Typography, IconButton, Container } from "@material-ui/core";
 import React, { ReactElement } from "react";
 import Chart from "./Chart";
 import ExportButton from "./ExportButton";
@@ -8,66 +8,41 @@ import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectD
 export default function Metrics(props: {
   id: string;
   checkpoints: GetProjectData_project_checkpoints[];
-  dockerState: number;
 }): ReactElement {
-  const [open, setOpen] = React.useState(false);
-  const [selectedEpoch, setSelectedEpoch] = React.useState(0);
+  const [selectedCheckpoint, setSelectedCheckpoint] = React.useState<GetProjectData_project_checkpoints>();
 
   function onClick(stepNumber: number): void {
-    setSelectedEpoch(stepNumber);
-    setOpen(true);
-  }
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  //if this function still exists by next week scold me
-  function getCheckpointFromStep(
-    checkpoints: GetProjectData_project_checkpoints[] | undefined,
-    stepNumber: number
-  ): GetProjectData_project_checkpoints | null {
-    let index = 0;
-    if (checkpoints) {
-      while (index < checkpoints.length) {
-        if (checkpoints[index].step === stepNumber) {
-          return checkpoints[index];
-        }
-        index = index + 1;
-      }
-    }
-    return null;
+    const checkpoint = props.checkpoints.find((checkpoint) => checkpoint.step === stepNumber);
+    setSelectedCheckpoint(checkpoint);
   }
 
   return (
     <>
       <Chart checkpoints={props.checkpoints} onClick={onClick} />
-      <Dialog onClose={handleClose} open={open}>
-        <DialogTitle>{`Epoch ${selectedEpoch}`}</DialogTitle>
-        <DialogContent dividers>
-          <CheckpointInfo checkpoint={getCheckpointFromStep(props.checkpoints, selectedEpoch)} />
-        </DialogContent>
-        <DialogActions>
-          {props.dockerState > 4 ? (
-            <ExportButton id={props.id} ckptNumber={selectedEpoch} />
-          ) : (
-            <p> export image not available yet </p>
-          )}
-        </DialogActions>
-      </Dialog>
+      <CheckpointInfo checkpoint={selectedCheckpoint} id={props.id} />
     </>
   );
 }
 
-function CheckpointInfo(props: { checkpoint: GetProjectData_project_checkpoints | null }): JSX.Element {
+function CheckpointInfo(props: {
+  checkpoint: GetProjectData_project_checkpoints | undefined;
+  id: string;
+}): JSX.Element {
   if (props.checkpoint) {
-    const metrics = props.checkpoint.metrics;
     return (
       <>
+        <Typography>{`Epoch ${props.checkpoint.step}`}</Typography>
+
         <Container>
-          {Object.keys(metrics).map((key: string) =>
-            key !== "__typename" ? <p key={key}>{`${key}:  ${props.checkpoint?.metrics.precision}`}</p> : null
-          )}
+          {props.checkpoint.metrics.map((metric) => (
+            <p key={metric.name}>{`${metric.name}:  ${metric.value}`}</p>
+          ))}
         </Container>
+
+        <Container>
+          <ExportButton id={props.id} checkpoint={props.checkpoint} />
+        </Container>
+
         <Container>
           {props.checkpoint.status.exporting ? (
             <p>Checkpoint is being exported</p>
@@ -75,6 +50,7 @@ function CheckpointInfo(props: { checkpoint: GetProjectData_project_checkpoints 
             <p>Checkpoint available for export</p>
           )}
         </Container>
+
         <Container>
           {props.checkpoint.status.downloadPaths.length > 0 ? (
             <>

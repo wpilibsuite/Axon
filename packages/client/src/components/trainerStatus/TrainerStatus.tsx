@@ -11,7 +11,7 @@ export enum DockerState {
   READY
 }
 
-const GET_DOCKER_STATE = gql`
+export const GET_DOCKER_STATE = gql`
   query GetDockerState {
     dockerState
   }
