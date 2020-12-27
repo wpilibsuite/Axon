@@ -10,7 +10,8 @@ import {
   DialogContent,
   IconButton,
   TextField,
-  Tooltip
+  Tooltip,
+  Collapse
 } from "@material-ui/core";
 import gql from "graphql-tag";
 import { useMutation, useQuery } from "@apollo/client";
@@ -27,6 +28,7 @@ const TEST_MODEL_MUTATION = gql`
 `;
 
 export default function TestButton(props: {
+  active: boolean;
   modelExport: GetProjectData_project_exports;
   videos: GetProjectData_project_videos[];
 }): ReactElement {
@@ -63,9 +65,11 @@ export default function TestButton(props: {
 
   return (
     <>
-      <Tooltip title="Test">
-        <IconButton onClick={handleClickPrepare}>Test</IconButton>
-      </Tooltip>
+      <Collapse in={!props.active}>
+        <Tooltip title="Test">
+          <IconButton onClick={handleClickPrepare}>Test</IconButton>
+        </Tooltip>
+      </Collapse>
       <Dialog onClose={handleClosePrepare} open={preparing}>
         <DialogContent dividers>
           <p>Video to test: </p>

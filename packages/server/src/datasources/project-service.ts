@@ -1,5 +1,5 @@
 import { DataSource } from "apollo-datasource";
-import { Checkpoint, Export, Video, ProjectUpdateInput, Trainjob } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, Video, ProjectUpdateInput, Trainjob, Testjob } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
 import MLService from "../mL";
@@ -110,6 +110,10 @@ export class ProjectService extends DataSource {
     return this.mLService.getTrainjobs();
   }
 
+  async getTestjobs(): Promise<Testjob[]> {
+    return this.mLService.getTestjobs();
+  }
+
   async startTraining(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
     this.mLService.start(project);
@@ -186,7 +190,7 @@ export class ProjectService extends DataSource {
 
   async databaseTest(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    this.mLService.printTrainJobs();
+    this.mLService.printJobs();
     return project;
   }
 }

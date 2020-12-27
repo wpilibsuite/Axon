@@ -1,4 +1,4 @@
-import { DockerImage, Test } from "../schema/__generated__/graphql";
+import { DockerImage, Test, Testjob } from "../schema/__generated__/graphql";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
@@ -14,12 +14,15 @@ export default class Tester {
   };
 
   readonly project: ProjectData;
+  private container: Container;
+  private streamPort: string;
   readonly docker: Docker;
   test: Test;
 
-  constructor(project: ProjectData, docker: Docker) {
+  constructor(project: ProjectData, docker: Docker, port: string) {
     this.project = project;
     this.docker = docker;
+    this.streamPort = port;
   }
 
   /**
@@ -40,6 +43,7 @@ export default class Tester {
       name: name,
       model: model,
       video: video,
+      exportID: exportID,
       directory: destinationDir
     };
   }
@@ -101,8 +105,8 @@ export default class Tester {
    * Test the model. Requires the test parameter file, the export, and the video to be in the container's mounted directory.
    */
   public async testModel(): Promise<void> {
-    const container: Container = await this.docker.createContainer(this.project, Tester.images.test, ["5000"]);
-    await this.docker.runContainer(container);
+    this.container = await this.docker.createContainer(this.project, Tester.images.test, [this.streamPort]);
+    await this.docker.runContainer(this.container);
   }
 
   /**
@@ -123,5 +127,19 @@ export default class Tester {
   public async saveTest(): Promise<void> {
     this.project.tests[this.test.id] = this.test;
     PseudoDatabase.pushProject(this.project);
+  }
+
+  public getJob(): Testjob {
+    const testID = this.test ? this.test.id : "";
+    return {
+      testID: testID,
+      exportID: this.test.exportID,
+      projectID: this.project.id,
+      streamPort: this.streamPort
+    };
+  }
+
+  public async print(): Promise<string> {
+    return `Testjob: ${this.test.id}`;
   }
 }

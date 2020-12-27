@@ -24,5 +24,8 @@ export const Query: QueryResolvers = {
   },
   trainjobs: (_, args, { dataSources }) => {
     return dataSources.projectService.getTrainjobs();
+  },
+  testjobs: (_, args, { dataSources }) => {
+    return dataSources.projectService.getTestjobs();
   }
 };

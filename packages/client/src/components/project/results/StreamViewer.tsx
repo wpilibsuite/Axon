@@ -3,7 +3,7 @@ import { CircularProgress } from "@material-ui/core";
 
 import { Container } from "@material-ui/core";
 
-export default function StreamViewer(): ReactElement {
+export default function StreamViewer(props: { port: string }): ReactElement {
   const [streamLoading, setStreamLoading] = React.useState(true);
   const [tempError, setTempError] = React.useState(false);
   const [streamTimeout, setStreamTimeout] = React.useState(0);
@@ -32,7 +32,7 @@ export default function StreamViewer(): ReactElement {
       )}
       {!tempError && !testError && (
         <img
-          src={`http://localhost:5000/stream.mjpg?dummy=${Math.round(new Date().getTime() / 1000)}`} //<-- so the images dont cache.
+          src={`http://localhost:${props.port}/stream.mjpg?dummy=${Math.round(new Date().getTime() / 1000)}`} //<-- so the images dont cache.
           alt="no stream"
           onError={() => handleStreamError()}
           onLoad={() => handleStreamLoaded()}

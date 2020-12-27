@@ -9,6 +9,7 @@ type Query {
   datasets: [Dataset!]!
   project(id: ID!): Project
   trainjobs: [Trainjob!]!
+  testjobs: [Testjob!]!
   projects: [Project!]!
   dockerState: Int!
 }
@@ -106,8 +107,9 @@ type Video {
 type Test {
   id: String!
   name: String!
-  model: Export!
   video: Video!
+  model: Export!
+  exportID: String!
   directory: String!
 }
 
@@ -135,6 +137,13 @@ type Trainjob {
   projectID: String!
   currentEpoch: Int
   lastEpoch: Int
+}
+
+type Testjob {
+  testID: String!
+  exportID: String!
+  projectID: String!
+  streamPort: String!
 }
 
 input ProjectUpdateInput {

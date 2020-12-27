@@ -1,4 +1,4 @@
-import { Trainjob } from "../schema/__generated__/graphql";
+import { Trainjob, Testjob } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";
@@ -123,7 +123,8 @@ export default class MLService {
    */
   async test(testName: string, projectID: string, exportID: string, videoID: string): Promise<string> {
     const project = await PseudoDatabase.retrieveProject(projectID);
-    const tester: Tester = new Tester(project, this.docker);
+    const tester: Tester = new Tester(project, this.docker, "5000");
+    this.testjobs.push(tester);
 
     await tester.createTest(testName, exportID, videoID);
 
@@ -139,6 +140,7 @@ export default class MLService {
 
     await tester.saveTest();
 
+    this.testjobs = this.testjobs.filter((job) => job !== tester);
     return "testing complete";
   }
 
@@ -186,12 +188,18 @@ export default class MLService {
     return this.trainjobs.map((job) => job.getJob());
   }
 
+  public async getTestjobs(): Promise<Testjob[]> {
+    return this.testjobs.map((job) => job.getJob());
+  }
+
   public getDockerState(): DockerState {
     return this.dockerState;
   }
 
-  public printTrainJobs(): void {
-    if (this.trainjobs.length === 0) console.log("no jobs");
+  public async printJobs(): Promise<void> {
+    if (this.trainjobs.length === 0) console.log("no train jobs");
     this.trainjobs.forEach((job) => console.log(job.print()));
+    if (this.testjobs.length === 0) console.log("no test jobs");
+    for (const job of this.testjobs) console.log(await job.print());
   }
 }
