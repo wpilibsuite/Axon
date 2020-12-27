@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "ml-react-app",
+  "name": "Axon",
   "version": "0.0.1",
   "description": "An application for creating ML models",
   "workspaces": [
