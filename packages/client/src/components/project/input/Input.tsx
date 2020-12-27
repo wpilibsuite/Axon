@@ -7,8 +7,19 @@ import { StartTraining, StartTrainingVariables } from "./__generated__/StartTrai
 import { HaltTraining, HaltTrainingVariables } from "./__generated__/HaltTraining";
 import { PauseTraining, PauseTrainingVariables } from "./__generated__/PauseTraining";
 import { ResumeTraining, ResumeTrainingVariables } from "./__generated__/ResumeTraining";
-import { GetProjectData_project_status } from "../__generated__/GetProjectData";
+import { GetTrainjobs } from "./__generated__/GetTrainjobs";
 import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
+
+const GET_TRAINJOBS = gql`
+  query GetTrainjobs {
+    trainjobs {
+      status
+      projectID
+      currentEpoch
+      lastEpoch
+    }
+  }
+`;
 
 const START_TRAINING = gql`
   mutation StartTraining($id: ID!) {
@@ -42,15 +53,22 @@ const RESUME_TRAINING = gql`
   }
 `;
 
-export default function Input(props: { id: string; status: GetProjectData_project_status }): ReactElement {
-  const lastEpoch = props.status.lastEpoch;
-  const currentEpoch = props.status.currentEpoch;
-  const status = props.status;
+export default function Input(props: { id: string; }): ReactElement {
   const id = props.id;
   //^^ this is only to get around a props validation error when using
   //   the props in the function components defined within this function component. need help with this.
 
-  if (props.status.trainingStatus === 0)
+  const { data, loading, error } = useQuery<GetTrainjobs>(GET_TRAINJOBS, {
+    pollInterval: 2000
+  });
+
+  if (loading) return <p>LOADING</p>;
+  if (error) return <p>{error.message}</p>;
+  if (data === undefined) return <p>NO DATA</p>
+
+  const trainjob = data.trainjobs.find((job) => job.projectID === props.id);
+
+  if (trainjob === undefined)
     return (
       <>
         <Datasets id={props.id} />
@@ -61,17 +79,34 @@ export default function Input(props: { id: string; status: GetProjectData_projec
       </>
     );
 
-  const statusMessage = [
-    "not training",
-    "training paused",
-    "writing parameter file",
-    "cleaning old data",
-    "moving data",
-    "extracting dataset",
-    "training model",
-    "training finished, wrapping up"
-  ][props.status.trainingStatus];
-
+  let statusMessage;
+  switch(trainjob.status){
+    case "IDLE": 
+      statusMessage = "not training";
+      break;
+    case "PAUSED":
+      statusMessage = "training paused";
+      break;
+    case "WRITING":
+      statusMessage = "writing parameter file";
+      break;
+    case "CLEANING":
+      statusMessage = "cleaning old data";
+      break;
+    case "MOVING":
+      statusMessage = "moving data";
+      break;
+    case "EXTRACTING":
+      statusMessage = "extracting dataset";
+      break;
+    case "TRAINING":
+      statusMessage = "training model";
+      break;
+    case "STOPPED":
+      statusMessage = "training finished, wrapping up";
+      break;
+  }
+  
   return (
     <Container>
       <h1>{statusMessage}</h1>
@@ -129,8 +164,8 @@ export default function Input(props: { id: string; status: GetProjectData_projec
       setResuming(true);
     };
 
-    if (status.trainingStatus === 1) {
-      if (pausing) setPausing(false);
+    if (trainjob?.status === "PAUSED") {
+    if (pausing) setPausing(false);
       if (resuming) return <Button>Resuming...</Button>;
       return <Button onClick={handleResume}>Resume</Button>;
     } else {
@@ -141,11 +176,9 @@ export default function Input(props: { id: string; status: GetProjectData_projec
   }
 
   function ProgressBar(): ReactElement {
-    const CURRENT_EPOCH = typeof currentEpoch === "number" ? currentEpoch : "?";
-    const LAST_EPOCH = typeof lastEpoch === "number" ? lastEpoch : "?";
     return (
       <Container>
-        <p>{`Epoch ${CURRENT_EPOCH} / ${LAST_EPOCH}`}</p>
+        <p>{`Epoch ${trainjob?.currentEpoch} / ${trainjob?.lastEpoch}`}</p>
       </Container>
     );
   }

@@ -8,6 +8,7 @@ type Query {
   dataset(id: ID!): Dataset
   datasets: [Dataset!]!
   project(id: ID!): Project
+  trainjobs: [Trainjob!]!
   projects: [Project!]!
   dockerState: Int!
 }
@@ -127,11 +128,11 @@ type Project {
   exports: [Export!]!
   videos: [Video!]!
   tests: [Test!]!
-  status: ProjectStatus!
 }
 
-type ProjectStatus {
-  trainingStatus: Int!
+type Trainjob {
+  status: String!
+  projectID: String!
   currentEpoch: Int
   lastEpoch: Int
 }

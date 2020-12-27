@@ -21,5 +21,8 @@ export const Query: QueryResolvers = {
   },
   dockerState: (_, args, { dataSources }) => {
     return dataSources.projectService.getDockerState();
+  },
+  trainjobs: (_, args, { dataSources }) => {
+    return dataSources.projectService.getTrainjobs();
   }
 };

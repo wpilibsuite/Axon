@@ -1,4 +1,4 @@
-import { Video, Checkpoint, Export, ProjectStatus } from "../schema/__generated__/graphql";
+import { Video, Checkpoint, Export, Trainjob } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";
@@ -20,15 +20,15 @@ export enum DockerState {
 export default class MLService {
   readonly docker: Docker;
   private dockerState: DockerState;
-  private exportJobs: Exporter[];
-  private trainJobs: Trainer[];
-  private testJobs: Tester[];
+  private exportjobs: Exporter[];
+  private trainjobs: Trainer[];
+  private testjobs: Tester[];
 
   constructor(docker: Docker) {
     this.docker = docker;
-    this.exportJobs = [];
-    this.trainJobs = [];
-    this.testJobs = [];
+    this.exportjobs = [];
+    this.trainjobs = [];
+    this.testjobs = [];
     this.initialize();
   }
 
@@ -64,7 +64,7 @@ export default class MLService {
     console.info(`${iproject.id}: Starting training`);
     const project: ProjectData = await PseudoDatabase.retrieveProject(iproject.id);
     const trainer = new Trainer(this.docker, project);
-    this.trainJobs.push(trainer);
+    this.trainjobs.push(trainer);
 
     await trainer.writeParameterFile();
 
@@ -79,7 +79,7 @@ export default class MLService {
     await trainer.updateCheckpoints();
 
     PseudoDatabase.pushProject(project);
-    this.trainJobs = this.trainJobs.filter((job) => job !== trainer);
+    this.trainjobs = this.trainjobs.filter((job) => job !== trainer);
     console.info(`${iproject.id}: Training complete`);
   }
 
@@ -149,7 +149,7 @@ export default class MLService {
    * @param id The id of the project.
    */
   async halt(id: string): Promise<void> {
-    const job = this.trainJobs.find((job) => job.project.id === id);
+    const job = this.trainjobs.find((job) => job.project.id === id);
     if (job === undefined) Promise.reject("no trainjob found");
     await job.stop();
   }
@@ -161,7 +161,7 @@ export default class MLService {
    * @param id The id of the project.
    */
   async pauseTraining(id: string): Promise<void> {
-    const job = this.trainJobs.find((job) => job.project.id === id);
+    const job = this.trainjobs.find((job) => job.project.id === id);
     if (job === undefined) Promise.reject("no trainjob found");
     await job.pause();
   }
@@ -172,48 +172,26 @@ export default class MLService {
    * @param id The id of the project.
    */
   async resumeTraining(id: string): Promise<void> {
-    const job = this.trainJobs.find((job) => job.project.id === id);
+    const job = this.trainjobs.find((job) => job.project.id === id);
     if (job === undefined) Promise.reject("no trainjob found");
     await job.resume();
   }
 
-  public async getStatus(id: string): Promise<ProjectStatus> {
-    const job = this.trainJobs.find((job) => job.project.id === id);
-    if (job) return job.getStatus();
-    else
-      return {
-        trainingStatus: 0,
-        currentEpoch: 0,
-        lastEpoch: 0
-      };
+  public async updateCheckpoints(id: string): Promise<void> {
+    const job = this.trainjobs.find((job) => job.project.id === id);
+    if (job) await job.updateCheckpoints();
+  }
+
+  public async getTrainjobs(): Promise<Trainjob[]> {
+    return this.trainjobs.map((job) => job.getJob());
   }
 
   public getDockerState(): DockerState {
     return this.dockerState;
   }
 
-  public async updateCheckpoints(id: string): Promise<void> {
-    const job = this.trainJobs.find((job) => job.project.id === id);
-    if (job) await job.updateCheckpoints();
-  }
-
-  public async getCheckpoints(id: string): Promise<Checkpoint[]> {
-    const project = await PseudoDatabase.retrieveProject(id);
-    return Object.values(project.checkpoints);
-  }
-
-  public async getExports(id: string): Promise<Export[]> {
-    const project = await PseudoDatabase.retrieveProject(id);
-    return Object.values(project.exports);
-  }
-
-  public async getVideos(id: string): Promise<Video[]> {
-    const project = await PseudoDatabase.retrieveProject(id);
-    return Object.values(project.videos);
-  }
-
   public printTrainJobs(): void {
-    if (this.trainJobs.length === 0) console.log("no jobs");
-    this.trainJobs.forEach(console.log);
+    if (this.trainjobs.length === 0) console.log("no jobs");
+    this.trainjobs.forEach((job) => console.log(job.print()));
   }
 }

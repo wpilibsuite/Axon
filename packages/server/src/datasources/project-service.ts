@@ -1,5 +1,5 @@
 import { DataSource } from "apollo-datasource";
-import { Checkpoint, Export, Video, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
+import { Checkpoint, Export, Video, ProjectUpdateInput, Trainjob } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
 import MLService from "../mL";
@@ -37,16 +37,16 @@ export class ProjectService extends DataSource {
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
     await this.mLService.updateCheckpoints(id);
-    return this.mLService.getCheckpoints(id);
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.checkpoints);
   }
   async getExports(id: string): Promise<Export[]> {
-    return this.mLService.getExports(id);
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.exports);
   }
   async getVideos(id: string): Promise<Video[]> {
-    return this.mLService.getVideos(id);
-  }
-  async getStatus(id: string): Promise<ProjectStatus> {
-    return this.mLService.getStatus(id);
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.videos);
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -104,6 +104,10 @@ export class ProjectService extends DataSource {
     const project = await Project.create({ name });
     await PseudoDatabase.addProjectData(project);
     return project;
+  }
+
+  async getTrainjobs(): Promise<Trainjob[]> {
+    return this.mLService.getTrainjobs();
   }
 
   async startTraining(id: string): Promise<Project> {

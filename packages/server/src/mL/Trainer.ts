@@ -6,18 +6,18 @@ import * as rimraf from "rimraf";
 import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
-import { DockerImage, ProjectStatus } from "../schema/__generated__/graphql";
+import { DockerImage, Trainjob } from "../schema/__generated__/graphql";
 import { Container } from "dockerode";
 
-export enum Status {
-  IDLE,
-  PAUSED,
-  WRITING,
-  CLEANING,
-  MOVING,
-  EXTRACTING,
-  TRAINING,
-  STOPPED
+enum TrainStatus { //need help using graphql enums so for now im making ts enums that behave like gql enums
+  Idle = "IDLE",
+  Paused = "PAUSED",
+  Writing = "WRITING",
+  Cleaning = "CLEANING",
+  Moving = "MOVING",
+  Extracting = "EXTRACTING",
+  Training = "TRAINING",
+  Stopped = "STOPPED"
 }
 
 type TrainParameters = {
@@ -41,11 +41,11 @@ export default class Trainer {
   private container: Container;
   readonly docker: Docker;
   private paused: boolean;
-  private status: Status;
+  private status: TrainStatus;
   private epoch: number;
 
   public constructor(docker: Docker, project: ProjectData) {
-    this.status = Status.IDLE;
+    this.status = TrainStatus.Idle;
     this.project = project;
     this.docker = docker;
     this.epoch = 0;
@@ -55,10 +55,10 @@ export default class Trainer {
    * Create the training parameter file in the container's mounted directory to control the container.
    */
   public async writeParameterFile(): Promise<void> {
-    do if (this.status == Status.STOPPED) return;
+    do if (this.status == TrainStatus.Stopped) return;
     while (this.paused);
 
-    this.status = Status.WRITING;
+    this.status = TrainStatus.Writing;
 
     const DATASETPATHS = this.project.datasets.map((dataset) =>
       path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
@@ -87,10 +87,10 @@ export default class Trainer {
    * Clean the container's mounted directory if a training has already taken place.
    */
   public async handleOldData(): Promise<void> {
-    do if (this.status == Status.STOPPED) return;
+    do if (this.status == TrainStatus.Stopped) return;
     while (this.paused);
 
-    this.status = Status.CLEANING;
+    this.status = TrainStatus.Cleaning;
 
     const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
@@ -119,10 +119,10 @@ export default class Trainer {
    * Move datasets and custom initial checkpoints to the mounted directory.
    */
   public async moveDataToMount(): Promise<void> {
-    do if (this.status == Status.STOPPED) return;
+    do if (this.status == TrainStatus.Stopped) return;
     while (this.paused);
 
-    this.status = Status.MOVING;
+    this.status = TrainStatus.Moving;
 
     this.project.datasets.forEach((dataset) => {
       fs.copyFileSync(
@@ -156,10 +156,10 @@ export default class Trainer {
    * Extracts the dataset file so that the dataset can be used by the training container.
    */
   public async extractDataset(): Promise<void> {
-    do if (this.status == Status.STOPPED) return;
+    do if (this.status == TrainStatus.Stopped) return;
     while (this.paused);
 
-    this.status = Status.EXTRACTING;
+    this.status = TrainStatus.Extracting;
 
     console.info(`${this.project.id}: Trainer extracting dataset`);
     this.container = await this.docker.createContainer(this.project, Trainer.images.dataset);
@@ -171,10 +171,10 @@ export default class Trainer {
    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
    */
   public async trainModel(): Promise<void> {
-    do if (this.status == Status.STOPPED) return;
+    do if (this.status == TrainStatus.Stopped) return;
     while (this.paused);
 
-    this.status = Status.TRAINING;
+    this.status = TrainStatus.Training;
 
     const metricsContainer = await this.docker.createContainer(this.project, Trainer.images.metrics, ["6006/tcp"]);
     this.container = await this.docker.createContainer(this.project, Trainer.images.train);
@@ -217,7 +217,7 @@ export default class Trainer {
 
   public async stop(): Promise<void> {
     if (this.container && (await this.container.inspect()).State.Running) await this.container.kill({ force: true });
-    this.status = Status.STOPPED;
+    this.status = TrainStatus.Stopped;
   }
 
   public async pause(): Promise<void> {
@@ -230,16 +230,17 @@ export default class Trainer {
     this.paused = false;
   }
 
-  public getStatus(): ProjectStatus {
-    const state = this.paused ? Status.PAUSED : this.status;
+  public getJob(): Trainjob {
+    const state = this.paused ? TrainStatus.Paused : this.status;
     return {
-      trainingStatus: state,
+      status: state,
+      projectID: this.project.id,
       currentEpoch: this.epoch,
       lastEpoch: this.project.hyperparameters.epochs
     };
   }
 
-  public toString(): string {
+  public print(): string {
     return `${this.project.id}: Trainjob \n epoch: ${this.epoch}`;
   }
 }
