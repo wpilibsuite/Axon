@@ -95,7 +95,7 @@ export default class Trainer {
     const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
       try {
-        rimraf.sync(OLD_TRAIN_DIR);
+        await new Promise((resolve) => rimraf(OLD_TRAIN_DIR, resolve));
       } catch (e) {
         if (e.message.toLowerCase().includes("permission denied"))
           Promise.reject("permission denied when deleting old train directory");
@@ -124,12 +124,11 @@ export default class Trainer {
 
     this.status = TrainStatus.Moving;
 
-    this.project.datasets.forEach((dataset) => {
-      fs.copyFileSync(
+    for (const dataset of this.project.datasets)
+      await fs.promises.copyFile(
         path.posix.join("data", dataset.path),
         path.posix.join(this.project.directory, "dataset", path.basename(dataset.path))
       );
-    });
     console.log("datasets copied");
 
     //custom checkpoints not yet supported by gui

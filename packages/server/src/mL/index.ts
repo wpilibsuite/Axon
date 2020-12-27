@@ -1,4 +1,4 @@
-import { Video, Checkpoint, Export, Trainjob } from "../schema/__generated__/graphql";
+import { Trainjob } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";

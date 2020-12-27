@@ -53,7 +53,7 @@ const RESUME_TRAINING = gql`
   }
 `;
 
-export default function Input(props: { id: string; }): ReactElement {
+export default function Input(props: { id: string }): ReactElement {
   const id = props.id;
   //^^ this is only to get around a props validation error when using
   //   the props in the function components defined within this function component. need help with this.
@@ -64,7 +64,7 @@ export default function Input(props: { id: string; }): ReactElement {
 
   if (loading) return <p>LOADING</p>;
   if (error) return <p>{error.message}</p>;
-  if (data === undefined) return <p>NO DATA</p>
+  if (data === undefined) return <p>NO DATA</p>;
 
   const trainjob = data.trainjobs.find((job) => job.projectID === props.id);
 
@@ -80,8 +80,8 @@ export default function Input(props: { id: string; }): ReactElement {
     );
 
   let statusMessage;
-  switch(trainjob.status){
-    case "IDLE": 
+  switch (trainjob.status) {
+    case "IDLE":
       statusMessage = "not training";
       break;
     case "PAUSED":
@@ -106,7 +106,7 @@ export default function Input(props: { id: string; }): ReactElement {
       statusMessage = "training finished, wrapping up";
       break;
   }
-  
+
   return (
     <Container>
       <h1>{statusMessage}</h1>
@@ -165,7 +165,7 @@ export default function Input(props: { id: string; }): ReactElement {
     };
 
     if (trainjob?.status === "PAUSED") {
-    if (pausing) setPausing(false);
+      if (pausing) setPausing(false);
       if (resuming) return <Button>Resuming...</Button>;
       return <Button onClick={handleResume}>Resume</Button>;
     } else {
