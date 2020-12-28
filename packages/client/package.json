@@ -45,7 +45,7 @@
     "dev": "yarn start",
     "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "build": "yarn generate && react-scripts build",
-    "serve": "serve -s build",
+    "serve": "serve -s build -l 3000",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
