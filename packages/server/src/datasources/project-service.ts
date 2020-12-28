@@ -6,7 +6,8 @@ import {
   ProjectUpdateInput,
   Trainjob,
   Testjob,
-  Exportjob
+  Exportjob,
+  DockerState
 } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
@@ -17,7 +18,6 @@ import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
 import PseudoDatabase from "./PseudoDatabase";
 import { ProjectData } from "./PseudoDatabase";
-import { DockerState } from "../mL/index"; //need help with graphql enum type for the client query
 
 export class ProjectService extends DataSource {
   private store: Sequelize;

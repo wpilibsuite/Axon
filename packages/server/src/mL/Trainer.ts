@@ -6,19 +6,8 @@ import * as rimraf from "rimraf";
 import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
-import { DockerImage, Trainjob } from "../schema/__generated__/graphql";
+import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
 import { Container } from "dockerode";
-
-enum TrainStatus { //need help using graphql enums so for now im making ts enums that behave like gql enums
-  Idle = "IDLE",
-  Paused = "PAUSED",
-  Writing = "WRITING",
-  Cleaning = "CLEANING",
-  Moving = "MOVING",
-  Extracting = "EXTRACTING",
-  Training = "TRAINING",
-  Stopped = "STOPPED"
-}
 
 type TrainParameters = {
   "eval-frequency": number;

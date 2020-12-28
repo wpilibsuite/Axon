@@ -7,8 +7,9 @@ import { StartTraining, StartTrainingVariables } from "./__generated__/StartTrai
 import { HaltTraining, HaltTrainingVariables } from "./__generated__/HaltTraining";
 import { PauseTraining, PauseTrainingVariables } from "./__generated__/PauseTraining";
 import { ResumeTraining, ResumeTrainingVariables } from "./__generated__/ResumeTraining";
-import { GetTrainjobs } from "./__generated__/GetTrainjobs";
 import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
+import { GetTrainjobs } from "./__generated__/GetTrainjobs";
+import { TrainStatus } from "../../../__generated__/globalTypes";
 
 const GET_TRAINJOBS = gql`
   query GetTrainjobs {
@@ -81,28 +82,28 @@ export default function Input(props: { id: string }): ReactElement {
 
   let statusMessage;
   switch (trainjob.status) {
-    case "IDLE":
+    case TrainStatus.Idle:
       statusMessage = "not training";
       break;
-    case "PAUSED":
+    case TrainStatus.Paused:
       statusMessage = "training paused";
       break;
-    case "WRITING":
+    case TrainStatus.Writing:
       statusMessage = "writing parameter file";
       break;
-    case "CLEANING":
+    case TrainStatus.Cleaning:
       statusMessage = "cleaning old data";
       break;
-    case "MOVING":
+    case TrainStatus.Moving:
       statusMessage = "moving data";
       break;
-    case "EXTRACTING":
+    case TrainStatus.Extracting:
       statusMessage = "extracting dataset";
       break;
-    case "TRAINING":
+    case TrainStatus.Training:
       statusMessage = "training model";
       break;
-    case "STOPPED":
+    case TrainStatus.Stopped:
       statusMessage = "training finished, wrapping up";
       break;
   }
@@ -164,7 +165,7 @@ export default function Input(props: { id: string }): ReactElement {
       setResuming(true);
     };
 
-    if (trainjob?.status === "PAUSED") {
+    if (trainjob?.status === TrainStatus.Stopped) {
       if (pausing) setPausing(false);
       if (resuming) return <Button>Resuming...</Button>;
       return <Button onClick={handleResume}>Resume</Button>;

@@ -1,4 +1,4 @@
-import { Trainjob, Exportjob, Testjob } from "../schema/__generated__/graphql";
+import { Trainjob, Exportjob, Testjob, DockerState } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";
@@ -7,15 +7,6 @@ import Trainer from "./Trainer";
 import Exporter from "./Exporter";
 import Tester from "./Tester";
 import Docker from "./Docker";
-
-export enum DockerState {
-  NO_DOCKER,
-  SCANNING_FOR_DOCKER,
-  TRAIN_PULL,
-  EXPORT_PULL,
-  TEST_PULL,
-  READY
-}
 
 export default class MLService {
   readonly docker: Docker;
@@ -37,22 +28,22 @@ export default class MLService {
    * pull docker images.
    */
   async initialize(): Promise<void> {
-    this.dockerState = DockerState.SCANNING_FOR_DOCKER;
+    this.dockerState = DockerState.ScanningForDocker;
     if (!(await this.docker.isConnected())) {
-      this.dockerState = DockerState.NO_DOCKER;
+      this.dockerState = DockerState.NoDocker;
       return Promise.resolve();
     }
 
-    this.dockerState = DockerState.TRAIN_PULL;
+    this.dockerState = DockerState.TrainPull;
     await this.docker.pullImages(Object.values(Trainer.images));
 
-    this.dockerState = DockerState.EXPORT_PULL;
+    this.dockerState = DockerState.ExportPull;
     await this.docker.pullImages(Object.values(Exporter.images));
 
-    this.dockerState = DockerState.TEST_PULL;
+    this.dockerState = DockerState.TestPull;
     await this.docker.pullImages(Object.values(Tester.images));
 
-    this.dockerState = DockerState.READY;
+    this.dockerState = DockerState.Ready;
   }
 
   /**

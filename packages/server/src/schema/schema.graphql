@@ -12,7 +12,7 @@ type Query {
   trainjobs: [Trainjob!]!
   testjobs: [Testjob!]!
   projects: [Project!]!
-  dockerState: Int!
+  dockerState: DockerState!
 }
 
 type Mutation {
@@ -32,6 +32,15 @@ type Mutation {
   exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
   testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
   databaseTest(id: ID!): Project
+}
+
+enum DockerState {
+  NO_DOCKER
+  SCANNING_FOR_DOCKER
+  TRAIN_PULL
+  EXPORT_PULL
+  TEST_PULL
+  READY
 }
 
 type DockerImage {
@@ -133,8 +142,19 @@ type Project {
   tests: [Test!]!
 }
 
+enum TrainStatus {
+  Idle
+  Paused
+  Writing
+  Cleaning
+  Moving
+  Extracting
+  Training
+  Stopped
+}
+
 type Trainjob {
-  status: String!
+  status: TrainStatus!
   projectID: String!
   currentEpoch: Int
   lastEpoch: Int

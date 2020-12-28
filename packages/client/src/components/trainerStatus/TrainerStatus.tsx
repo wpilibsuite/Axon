@@ -2,15 +2,6 @@ import React, { ReactElement } from "react";
 import { Typography, Dialog, DialogTitle, DialogContent } from "@material-ui/core";
 import { gql, useQuery } from "@apollo/client";
 
-export enum DockerState {
-  NO_DOCKER,
-  SCANNING_FOR_DOCKER,
-  TRAIN_PULL,
-  EXPORT_PULL,
-  TEST_PULL,
-  READY
-}
-
 export const GET_DOCKER_STATE = gql`
   query GetDockerState {
     dockerState

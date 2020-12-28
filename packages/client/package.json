@@ -39,7 +39,7 @@
     "typescript": "^3.9.6"
   },
   "scripts": {
-    "generate": "apollo client:codegen --target=typescript",
+    "generate": "apollo client:codegen --target=typescript --globalTypesFile=src/__generated__/globalTypes.ts",
     "start": "concurrently \"yarn generate --watch\" \"react-scripts start\"",
     "dev": "yarn start",
     "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx",
