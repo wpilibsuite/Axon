@@ -1,4 +1,4 @@
-import { Trainjob, Testjob } from "../schema/__generated__/graphql";
+import { Trainjob, Exportjob, Testjob } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 
 import PseudoDatabase from "../datasources/PseudoDatabase";
@@ -92,24 +92,24 @@ export default class MLService {
    */
   async export(id: string, checkpointNumber: number, name: string): Promise<string> {
     const project = await PseudoDatabase.retrieveProject(id);
-    const exporter: Exporter = new Exporter(project, this.docker);
+    const exporter: Exporter = new Exporter(project, this.docker, checkpointNumber, name);
+    this.exportjobs.push(exporter);
 
-    await exporter.locateCheckpoint(checkpointNumber);
-
-    await exporter.createExport(name);
+    await exporter.locateCheckpoint();
 
     await exporter.createDestinationDirectory();
 
-    await exporter.updateCheckpointStatus(checkpointNumber, true);
+    await exporter.updateCheckpointStatus(true);
 
-    await exporter.writeParameterFile(checkpointNumber);
+    await exporter.writeParameterFile();
 
     await exporter.exportCheckpoint();
 
-    await exporter.saveExport(checkpointNumber);
+    await exporter.saveExport();
 
-    await exporter.updateCheckpointStatus(checkpointNumber, false);
+    await exporter.updateCheckpointStatus(false);
 
+    this.exportjobs = this.exportjobs.filter((job) => job !== exporter);
     return "exported";
   }
 
@@ -188,6 +188,10 @@ export default class MLService {
     return this.trainjobs.map((job) => job.getJob());
   }
 
+  public async getExportjobs(): Promise<Exportjob[]> {
+    return this.exportjobs.map((job) => job.getJob());
+  }
+
   public async getTestjobs(): Promise<Testjob[]> {
     return this.testjobs.map((job) => job.getJob());
   }
@@ -201,5 +205,7 @@ export default class MLService {
     this.trainjobs.forEach((job) => console.log(job.print()));
     if (this.testjobs.length === 0) console.log("no test jobs");
     for (const job of this.testjobs) console.log(await job.print());
+    if (this.exportjobs.length === 0) console.log("no export jobs");
+    for (const job of this.exportjobs) console.log(await job.print());
   }
 }

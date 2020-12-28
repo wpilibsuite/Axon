@@ -8,6 +8,7 @@ type Query {
   dataset(id: ID!): Dataset
   datasets: [Dataset!]!
   project(id: ID!): Project
+  exportjobs: [Exportjob!]!
   trainjobs: [Trainjob!]!
   testjobs: [Testjob!]!
   projects: [Project!]!
@@ -137,6 +138,12 @@ type Trainjob {
   projectID: String!
   currentEpoch: Int
   lastEpoch: Int
+}
+
+type Exportjob {
+  checkpointID: String!
+  projectID: String!
+  exportID: String!
 }
 
 type Testjob {

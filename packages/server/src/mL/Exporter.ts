@@ -1,4 +1,4 @@
-import { DockerImage, Export } from "../schema/__generated__/graphql";
+import { DockerImage, Export, Exportjob } from "../schema/__generated__/graphql";
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import { Container } from "dockerode";
@@ -14,11 +14,14 @@ export default class Exporter {
 
   readonly project: ProjectData;
   readonly docker: Docker;
+  ckptID: string;
   exp: Export;
 
-  public constructor(project: ProjectData, docker: Docker) {
+  public constructor(project: ProjectData, docker: Docker, ckptNum: number, exptName: string) {
+    this.ckptID = ckptNum.toString();
     this.project = project;
     this.docker = docker;
+    this.exp = this.createExport(exptName);
   }
 
   /**
@@ -26,8 +29,8 @@ export default class Exporter {
    *
    * @param ckptNum The epoch of the checkpoint to be exported
    */
-  public async locateCheckpoint(ckptNum: number): Promise<void> {
-    const ckptPath = path.posix.join(this.project.directory, "train", `model.ckpt-${ckptNum}.meta`);
+  public async locateCheckpoint(): Promise<void> {
+    const ckptPath = path.posix.join(this.project.directory, "train", `model.ckpt-${this.ckptID}.meta`);
     if (!fs.existsSync(ckptPath)) return Promise.reject("cannot find requested checkpoint");
   }
 
@@ -36,12 +39,12 @@ export default class Exporter {
    *
    * @param name The desired name of the exported tarfile.
    */
-  public async createExport(name: string): Promise<void> {
+  public createExport(name: string): Export {
     const TARFILE_NAME = `${name}.tar.gz`;
     const RELATIVE_DIR_PATH = path.posix.join("exports", name);
     const FULL_DIR_PATH = path.posix.join(this.project.directory, RELATIVE_DIR_PATH);
     const DOWNLOAD_PATH = path.posix.join(FULL_DIR_PATH, TARFILE_NAME).split("/server/data/")[1]; //<- need to do this better
-    this.exp = {
+    return {
       id: name, //<-- id should be the IDv4 when moved to sequelize
       name: name,
       projectId: this.project.id,
@@ -86,10 +89,10 @@ export default class Exporter {
    *
    * @param checkpointNumber The epoch of the exported checkpoint
    */
-  public async writeParameterFile(checkpointNumber: number): Promise<void> {
+  public async writeParameterFile(): Promise<void> {
     const exportparameters = {
       name: this.exp.name,
-      epochs: checkpointNumber,
+      epochs: this.ckptID,
       "export-dir": this.exp.relativeDirPath
     };
     fs.writeFileSync(
@@ -111,9 +114,9 @@ export default class Exporter {
    *
    * @param checkpointNumber The epoch of the exported checkpoint
    */
-  public async saveExport(checkpointNumber: number): Promise<void> {
+  public async saveExport(): Promise<void> {
     this.project.exports[this.exp.id] = this.exp;
-    this.project.checkpoints[checkpointNumber].status.downloadPaths.push(this.exp.downloadPath);
+    this.project.checkpoints[this.ckptID].status.downloadPaths.push(this.exp.downloadPath);
     await PseudoDatabase.pushProject(this.project);
   }
 
@@ -123,8 +126,20 @@ export default class Exporter {
    * @param checkpointNumber The epoch of the exported checkpoint
    * @param isExporting True if the checkpoint is currently being executed
    */
-  public async updateCheckpointStatus(checkpointNum: number, isExporting: boolean): Promise<void> {
-    this.project.checkpoints[checkpointNum].status.exporting = isExporting;
+  public async updateCheckpointStatus(isExporting: boolean): Promise<void> {
+    this.project.checkpoints[this.ckptID].status.exporting = isExporting;
     await PseudoDatabase.pushProject(this.project);
+  }
+
+  public getJob(): Exportjob {
+    return {
+      projectID: this.project.id,
+      checkpointID: this.ckptID,
+      exportID: this.exp.id
+    };
+  }
+
+  public async print(): Promise<string> {
+    return `Exportjob: ${this.exp.id}`;
   }
 }
