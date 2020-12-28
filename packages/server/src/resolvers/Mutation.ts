@@ -1,6 +1,9 @@
 import { MutationResolvers } from "../schema/__generated__/graphql";
 
 export const Mutation: MutationResolvers = {
+  resetDocker: async (parent, args, { docker }) => {
+    return await docker.reset();
+  },
   createDataset: async (parent, { upload }, { dataSources }) => {
     const { createReadStream, filename } = await upload;
     return dataSources.datasetService.createDataset(filename, createReadStream());
@@ -26,12 +29,18 @@ export const Mutation: MutationResolvers = {
   resumeTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.resumeTraining(id);
   },
+  saveVideo: async (parent, { projectId, videoName, video }, { dataSources }) => {
+    const { createReadStream, filename } = await video;
+    console.log(filename);
+    return dataSources.projectService.saveVideo(projectId, videoName, filename, createReadStream());
+  },
   exportCheckpoint: async (parent, { id, checkpointNumber, name }, { dataSources }) => {
     return dataSources.projectService.exportCheckpoint(id, checkpointNumber, name);
   },
-  testModel: async (parent, { modelExport, videoName, video }, { dataSources }) => {
-    const { createReadStream, filename } = await video;
-    console.log(filename);
-    return dataSources.projectService.testModel(modelExport, videoName, filename, createReadStream());
+  testModel: async (parent, { testName, projectID, exportID, videoID }, { dataSources }) => {
+    return dataSources.projectService.testModel(testName, projectID, exportID, videoID);
+  },
+  databaseTest: async (parent, { id }, { dataSources }) => {
+    return dataSources.projectService.databaseTest(id);
   }
 };

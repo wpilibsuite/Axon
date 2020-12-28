@@ -1,27 +1,38 @@
 import { DataSource } from "apollo-datasource";
-import { Checkpoint, Export, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
+import {
+  Checkpoint,
+  Export,
+  Video,
+  ProjectUpdateInput,
+  Trainjob,
+  Testjob,
+  Exportjob,
+  DockerState
+} from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Sequelize } from "sequelize";
-import Trainer from "../training";
+import MLService from "../mL";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
+import PseudoDatabase from "./PseudoDatabase";
+import { ProjectData } from "./PseudoDatabase";
 
 export class ProjectService extends DataSource {
   private store: Sequelize;
-  private trainer: Trainer;
+  private mLService: MLService;
   private readonly path: string;
 
-  constructor(store: Sequelize, trainer: Trainer, path: string) {
+  constructor(store: Sequelize, mLService: MLService, path: string) {
     super();
     this.store = store;
-    this.trainer = trainer;
+    this.mLService = mLService;
     this.path = path;
   }
 
-  async getTrainerState(): Promise<number> {
-    return this.trainer.trainer_state;
+  async getDockerState(): Promise<DockerState> {
+    return this.mLService.getDockerState();
   }
 
   async getProjects(): Promise<Project[]> {
@@ -33,39 +44,54 @@ export class ProjectService extends DataSource {
   }
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
-    await this.trainer.UpdateCheckpoints(id);
-    return Object.values(this.trainer.projects[id].checkpoints);
+    await this.mLService.updateCheckpoints(id);
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.checkpoints);
   }
   async getExports(id: string): Promise<Export[]> {
-    return Object.values(this.trainer.projects[id].exports);
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.exports);
   }
-  async getStatus(id: string): Promise<ProjectStatus> {
-    return this.trainer.projects[id].status;
+  async getVideos(id: string): Promise<Video[]> {
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.videos);
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
     const project = await Project.findByPk(id);
+
+    const pDBproject = await PseudoDatabase.retrieveProject(id);
+
     if (updates.name !== undefined) {
       project.name = updates.name;
+      pDBproject.name = updates.name;
     }
     if (updates.datasets !== undefined) {
       await project.setDatasets(updates.datasets);
     }
     if (updates.epochs !== undefined) {
       project.epochs = updates.epochs;
+      pDBproject.hyperparameters.epochs = updates.epochs;
     }
     if (updates.batchSize !== undefined) {
       project.batchSize = updates.batchSize;
+      pDBproject.hyperparameters.batchSize = updates.batchSize;
     }
     if (updates.evalFrequency !== undefined) {
       project.evalFrequency = updates.evalFrequency;
+      pDBproject.hyperparameters.evalFrequency = updates.evalFrequency;
     }
     if (updates.percentEval !== undefined) {
       project.percentEval = updates.percentEval;
+      pDBproject.hyperparameters.percentEval = updates.percentEval;
     }
     if (updates.initialCheckpoint !== undefined) {
       project.initialCheckpoint = updates.initialCheckpoint;
+      pDBproject.initialCheckpoint = updates.initialCheckpoint;
     }
+
+    PseudoDatabase.pushProject(pDBproject);
+
     return await project.save();
   }
 
@@ -76,79 +102,107 @@ export class ProjectService extends DataSource {
     } else {
       await project.removeDataset(datasetId);
     }
+    const pDBproject = await PseudoDatabase.retrieveProject(projectId);
+    pDBproject.datasets = await project.getDatasets();
+    PseudoDatabase.pushProject(pDBproject);
     return project;
   }
 
   async createProject(name: string): Promise<Project> {
     const project = await Project.create({ name });
-    this.trainer.addProjectData(project);
+    await PseudoDatabase.addProjectData(project);
     return project;
+  }
+
+  async getTrainjobs(): Promise<Trainjob[]> {
+    return this.mLService.getTrainjobs();
+  }
+
+  async getExportjobs(): Promise<Exportjob[]> {
+    return this.mLService.getExportjobs();
+  }
+
+  async getTestjobs(): Promise<Testjob[]> {
+    return this.mLService.getTestjobs();
   }
 
   async startTraining(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    this.trainer.start(project);
+    this.mLService.start(project);
     console.log(`STARTED Training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async haltTraining(id: string): Promise<Project> {
-    this.trainer.halt(id);
     const project = await Project.findByPk(id);
-    console.log(`HALTED Training on project: ${JSON.stringify(project)}`);
+    console.log(`stopping training on project: ${JSON.stringify(project)}`);
+    this.mLService.halt(id);
     return project;
   }
 
   async pauseTraining(id: string): Promise<Project> {
-    this.trainer.toggleContainer(id, true);
+    this.mLService.pauseTraining(id);
     const project = await Project.findByPk(id);
-    console.log(`PAUSED Training on project: ${JSON.stringify(project)}`);
+    console.log(`pausing training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async resumeTraining(id: string): Promise<Project> {
-    this.trainer.toggleContainer(id, false);
+    this.mLService.resumeTraining(id);
     const project = await Project.findByPk(id);
-    console.log(`RESUMED Training on project: ${JSON.stringify(project)}`);
+    console.log(`resuming training on project: ${JSON.stringify(project)}`);
     return project;
   }
 
   async exportCheckpoint(id: string, checkpointNumber: number, name: string): Promise<Project> {
-    this.trainer.export(id, checkpointNumber, name).catch((err) => console.log(err));
+    this.mLService.export(id, checkpointNumber, name).catch((err) => console.log(err));
     const project = await Project.findByPk(id);
     console.log(`Started export on project: ${JSON.stringify(project)}`);
     return project;
   }
 
-  async testModel(
-    modelExport: Export,
-    videoCustomName: string,
-    filename: string,
-    stream: fs.ReadStream
-  ): Promise<Project> {
-    const videoPath = await this.upload(filename, modelExport.projectId, stream);
-    this.trainer.test(modelExport, videoPath, filename, videoCustomName).catch((err) => console.log(err));
-    const project = await Project.findByPk(modelExport.projectId);
-    console.log(`Started test: \nModel: ${modelExport} \nVideo: ${filename}`);
+  async testModel(testName: string, projectId: string, exportId: string, videoId: string): Promise<Project> {
+    const project = await Project.findByPk(projectId);
+    console.log(`Started test: \nModel: ${exportId} \nVideo: ${videoId}`);
+    this.mLService.test(testName, projectId, exportId, videoId).catch((err) => console.log(err));
     return project;
   }
 
-  private async upload(name: string, id: string, stream: fs.ReadStream): Promise<string> {
-    const extractPath = `${this.path}/${id}/videos`; // <-- make this better
-    const savePath = path.join(extractPath, name);
-    await mkdirp(extractPath);
+  async saveVideo(id: string, videoName: string, filename: string, stream: fs.ReadStream): Promise<Video> {
+    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+
+    const videoId: string = videoName; // <-- fix
+    const videoDir: string = path.posix.join(project.directory, "videos", videoId);
+    const videoPath: string = path.posix.join(videoDir, filename);
+    await mkdirp(videoDir);
 
     await new Promise((resolve, reject) => {
-      const writeStream = createWriteStream(savePath);
+      const writeStream = createWriteStream(videoPath);
       writeStream.on("finish", resolve);
       writeStream.on("error", (error) => {
-        unlink(extractPath, () => {
+        unlink(videoDir, () => {
           reject(error);
         });
       });
       stream.on("error", (error) => writeStream.destroy(error));
       stream.pipe(writeStream);
     });
-    return savePath;
+
+    const video: Video = {
+      id: videoName,
+      name: videoName,
+      filename: filename,
+      fullPath: videoPath
+    };
+    project.videos[videoId] = video;
+    PseudoDatabase.pushProject(project);
+
+    return Promise.resolve(video);
+  }
+
+  async databaseTest(id: string): Promise<Project> {
+    const project = await Project.findByPk(id);
+    this.mLService.printJobs();
+    return project;
   }
 }

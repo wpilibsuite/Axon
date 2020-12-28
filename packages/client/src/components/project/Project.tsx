@@ -7,6 +7,8 @@ import Results from "./results/Results";
 import { gql, useQuery } from "@apollo/client";
 import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
 
+import DatabaseTestButton from "./DatabaseTestButton";
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -36,27 +38,28 @@ const GET_PROJECT_DATA = gql`
       checkpoints {
         step
         metrics {
-          precision
+          name
+          value
         }
         status {
           exporting
-          exportPaths
+          downloadPaths
         }
       }
       exports {
+        id
         projectId
         name
         directory
-        tarPath
-        testingInProgress
+        downloadPath
       }
-      status {
-        trainingStatus
-        currentEpoch
-        lastEpoch
+      videos {
+        id
+        name
+        filename
+        fullPath
       }
     }
-    trainerState
   }
 `;
 
@@ -76,7 +79,7 @@ export default function Project(props: { id: string }): ReactElement {
   };
 
   if (loading) return <p>LOADING</p>;
-  if (error) return <p>ERROR</p>;
+  if (error) return <p>{error.message}</p>;
 
   if (data?.project) {
     return (
@@ -89,14 +92,15 @@ export default function Project(props: { id: string }): ReactElement {
           </Tabs>
         </AppBar>
         <TabPanel value={value} index={0}>
-          <Input id={props.id} status={data.project.status} trainerState={data.trainerState} />
+          <Input id={props.id} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Metrics id={props.id} checkpoints={data.project.checkpoints} trainerState={data.trainerState} />
+          <Metrics id={props.id} checkpoints={data.project.checkpoints} />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          <Results id={props.id} exports={data.project.exports} trainerState={data.trainerState} />
+          <Results id={props.id} exports={data.project.exports} videos={data.project.videos} />
         </TabPanel>
+        <DatabaseTestButton id={props.id} />
       </div>
     );
   } else {

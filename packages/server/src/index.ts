@@ -1,7 +1,7 @@
 import * as Koa from "koa";
 import { ApolloServer, PubSub } from "apollo-server-koa";
 import { schema } from "./schema";
-import Trainer from "./training";
+import MLService from "./mL";
 import * as serve from "koa-static";
 import * as mount from "koa-mount";
 import { ProjectService } from "./datasources/project-service";
@@ -10,19 +10,24 @@ import { PROJECT_DATA_DIR } from "./constants";
 import { Context } from "./context";
 import { DatasetService } from "./datasources/dataset-service";
 import { sequelize } from "./store";
+import Docker from "./mL/Docker";
+import * as Dockerode from "dockerode";
 
 const pubsub = new PubSub();
-const trainer = new Trainer();
+const dockerode = new Dockerode();
+const docker = new Docker(dockerode);
+const mLService = new MLService(docker);
 
 const app = new Koa();
 const server = new ApolloServer({
   schema: schema,
   dataSources: () => ({
     datasetService: new DatasetService(sequelize, DATASET_DATA_DIR),
-    projectService: new ProjectService(sequelize, trainer, PROJECT_DATA_DIR)
+    projectService: new ProjectService(sequelize, mLService, PROJECT_DATA_DIR)
   }),
   context: {
-    pubsub
+    pubsub,
+    docker
   } as Context,
   uploads: {
     // Limits here should be stricter than config for surrounding

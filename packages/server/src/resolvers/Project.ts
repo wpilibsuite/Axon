@@ -11,7 +11,7 @@ export const Project: ProjectResolvers = {
   exports(parent, _, { dataSources }: Context) {
     return dataSources.projectService.getExports(parent.id);
   },
-  status(parent, _, { dataSources }: Context) {
-    return dataSources.projectService.getStatus(parent.id);
+  videos(parent, _, { dataSources }: Context) {
+    return dataSources.projectService.getVideos(parent.id);
   }
 };

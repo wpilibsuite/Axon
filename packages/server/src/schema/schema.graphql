@@ -3,15 +3,21 @@ scalar Upload
 
 type Query {
   isDockerConnected: Boolean!
+  dockerVersion: String!
 
   dataset(id: ID!): Dataset
   datasets: [Dataset!]!
   project(id: ID!): Project
+  exportjobs: [Exportjob!]!
+  trainjobs: [Trainjob!]!
+  testjobs: [Testjob!]!
   projects: [Project!]!
-  trainerState: Int!
+  dockerState: DockerState!
 }
 
 type Mutation {
+  resetDocker: Boolean!
+
   createDataset(upload: Upload!): Dataset
 
   createProject(name: String!): Project
@@ -22,8 +28,24 @@ type Mutation {
   haltTraining(id: ID!): Project
   pauseTraining(id: ID!): Project
   resumeTraining(id: ID!): Project
+  saveVideo(projectId: ID!, videoName: String!, video: Upload!): Video
   exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
-  testModel(modelExport: ExportInput!, videoName: String!, video: Upload!): Project
+  testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
+  databaseTest(id: ID!): Project
+}
+
+enum DockerState {
+  NO_DOCKER
+  SCANNING_FOR_DOCKER
+  TRAIN_PULL
+  EXPORT_PULL
+  TEST_PULL
+  READY
+}
+
+type DockerImage {
+  name: String!
+  tag: String!
 }
 
 type Size {
@@ -59,36 +81,46 @@ type Dataset {
   images: [LabeledImage!]!
 }
 
-type TrainingMetrics {
-  loss: Float!
-  precision: Float!
-  intersectionOverUnion: Float!
+type TrainingMetric {
+  name: String!
+  value: Float!
 }
 
 type CheckpointStatus {
   exporting: Boolean!
-  exportPaths: [String!]!
+  downloadPaths: [String!]!
 }
 
 type Checkpoint {
   step: Int!
   status: CheckpointStatus!
-  metrics: TrainingMetrics!
-}
-
-input ExportInput {
-  projectId: ID!
-  name: String!
-  directory: String!
-  tarPath: String!
+  metrics: [TrainingMetric!]!
 }
 
 type Export {
+  id: String!
   projectId: ID!
   name: String!
   directory: String!
-  tarPath: String!
-  testingInProgress: Boolean
+  tarfileName: String!
+  downloadPath: String!
+  relativeDirPath: String!
+}
+
+type Video {
+  id: String!
+  name: String!
+  filename: String!
+  fullPath: String!
+}
+
+type Test {
+  id: String!
+  name: String!
+  video: Video!
+  model: Export!
+  exportID: String!
+  directory: String!
 }
 
 type Project {
@@ -97,6 +129,8 @@ type Project {
   initialCheckpoint: String!
   datasets: [Dataset!]!
 
+  directory: String!
+
   epochs: Int!
   batchSize: Int!
   evalFrequency: Int!
@@ -104,13 +138,39 @@ type Project {
 
   checkpoints: [Checkpoint!]!
   exports: [Export!]!
-  status: ProjectStatus!
+  videos: [Video!]!
+  tests: [Test!]!
 }
 
-type ProjectStatus {
-  trainingStatus: Int!
+enum TrainStatus {
+  Idle
+  Paused
+  Writing
+  Cleaning
+  Moving
+  Extracting
+  Training
+  Stopped
+}
+
+type Trainjob {
+  status: TrainStatus!
+  projectID: String!
   currentEpoch: Int
   lastEpoch: Int
+}
+
+type Exportjob {
+  checkpointID: String!
+  projectID: String!
+  exportID: String!
+}
+
+type Testjob {
+  testID: String!
+  exportID: String!
+  projectID: String!
+  streamPort: String!
 }
 
 input ProjectUpdateInput {

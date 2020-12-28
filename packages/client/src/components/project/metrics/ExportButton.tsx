@@ -10,7 +10,13 @@ import {
   Tooltip
 } from "@material-ui/core";
 import gql from "graphql-tag";
+import { useQuery } from "@apollo/client";
 import { useMutation } from "@apollo/client";
+import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectData";
+import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
+import { GetExportjobs_exportjobs } from "./__generated__/GetExportjobs";
+import { CircularProgress } from "@material-ui/core";
+
 const EXPORT_CHECKPOINT_BUTTON_MUTATION = gql`
   mutation exportCheckpointButton($id: ID!, $checkpointNumber: Int!, $name: String!) {
     exportCheckpoint(id: $id, checkpointNumber: $checkpointNumber, name: $name) {
@@ -19,7 +25,11 @@ const EXPORT_CHECKPOINT_BUTTON_MUTATION = gql`
   }
 `;
 
-export default function ExportButton(props: { id: string; ckptNumber: number }): ReactElement {
+export default function ExportButton(props: {
+  id: string;
+  checkpoint: GetProjectData_project_checkpoints;
+  job: GetExportjobs_exportjobs | undefined;
+}): ReactElement {
   const [exportCheckpoint] = useMutation(EXPORT_CHECKPOINT_BUTTON_MUTATION);
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
@@ -32,12 +42,18 @@ export default function ExportButton(props: { id: string; ckptNumber: number }):
   };
   const handleExport = () => {
     const id = props.id;
-    const checkpointNumber = props.ckptNumber;
+    const checkpointNumber = props.checkpoint.step;
     exportCheckpoint({ variables: { id, checkpointNumber, name } }).catch((err) => {
       console.log(err);
     });
     handleClose();
   };
+
+  const { data, loading, error } = useQuery(GET_DOCKER_STATE, { pollInterval: 5000 });
+  if (loading) return <p>connecting to exporter</p>;
+  if (error) return <p>cant connect to exporter</p>;
+  if (data.dockerState < 4) return <p>no export image yet</p>;
+  if (props.job !== undefined) return <CircularProgress />;
 
   return (
     <>
