@@ -11,6 +11,8 @@ RUN yarn install --pure-lockfile --non-interactive
 
 COPY . .
 
+RUN yarn generate
+
 EXPOSE 3000
 EXPOSE 4000
 
