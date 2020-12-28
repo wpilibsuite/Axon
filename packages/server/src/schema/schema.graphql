@@ -3,15 +3,21 @@ scalar Upload
 
 type Query {
   isDockerConnected: Boolean!
+  dockerVersion: String!
 
   dataset(id: ID!): Dataset
   datasets: [Dataset!]!
   project(id: ID!): Project
+  exportjobs: [Exportjob!]!
+  trainjobs: [Trainjob!]!
+  testjobs: [Testjob!]!
   projects: [Project!]!
-  trainerState: Int!
+  dockerState: DockerState!
 }
 
 type Mutation {
+  resetDocker: Boolean!
+
   createDataset(upload: Upload!): Dataset
 
   createProject(name: String!): Project
@@ -26,6 +32,20 @@ type Mutation {
   exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
   testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
   databaseTest(id: ID!): Project
+}
+
+enum DockerState {
+  NO_DOCKER
+  SCANNING_FOR_DOCKER
+  TRAIN_PULL
+  EXPORT_PULL
+  TEST_PULL
+  READY
+}
+
+type DockerImage {
+  name: String!
+  tag: String!
 }
 
 type Size {
@@ -61,10 +81,9 @@ type Dataset {
   images: [LabeledImage!]!
 }
 
-type TrainingMetrics {
-  loss: Float!
-  precision: Float!
-  intersectionOverUnion: Float!
+type TrainingMetric {
+  name: String!
+  value: Float!
 }
 
 type CheckpointStatus {
@@ -75,7 +94,7 @@ type CheckpointStatus {
 type Checkpoint {
   step: Int!
   status: CheckpointStatus!
-  metrics: TrainingMetrics!
+  metrics: [TrainingMetric!]!
 }
 
 type Export {
@@ -98,8 +117,9 @@ type Video {
 type Test {
   id: String!
   name: String!
-  model: Export!
   video: Video!
+  model: Export!
+  exportID: String!
   directory: String!
 }
 
@@ -120,13 +140,37 @@ type Project {
   exports: [Export!]!
   videos: [Video!]!
   tests: [Test!]!
-  status: ProjectStatus!
 }
 
-type ProjectStatus {
-  trainingStatus: Int!
+enum TrainStatus {
+  Idle
+  Paused
+  Writing
+  Cleaning
+  Moving
+  Extracting
+  Training
+  Stopped
+}
+
+type Trainjob {
+  status: TrainStatus!
+  projectID: String!
   currentEpoch: Int
   lastEpoch: Int
+}
+
+type Exportjob {
+  checkpointID: String!
+  projectID: String!
+  exportID: String!
+}
+
+type Testjob {
+  testID: String!
+  exportID: String!
+  projectID: String!
+  streamPort: String!
 }
 
 input ProjectUpdateInput {

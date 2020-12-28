@@ -1,6 +1,9 @@
 import { MutationResolvers } from "../schema/__generated__/graphql";
 
 export const Mutation: MutationResolvers = {
+  resetDocker: async (parent, args, { docker }) => {
+    return await docker.reset();
+  },
   createDataset: async (parent, { upload }, { dataSources }) => {
     const { createReadStream, filename } = await upload;
     return dataSources.datasetService.createDataset(filename, createReadStream());

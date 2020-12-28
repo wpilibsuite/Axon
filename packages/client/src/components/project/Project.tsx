@@ -38,7 +38,8 @@ const GET_PROJECT_DATA = gql`
       checkpoints {
         step
         metrics {
-          precision
+          name
+          value
         }
         status {
           exporting
@@ -58,13 +59,7 @@ const GET_PROJECT_DATA = gql`
         filename
         fullPath
       }
-      status {
-        trainingStatus
-        currentEpoch
-        lastEpoch
-      }
     }
-    trainerState
   }
 `;
 
@@ -97,18 +92,13 @@ export default function Project(props: { id: string }): ReactElement {
           </Tabs>
         </AppBar>
         <TabPanel value={value} index={0}>
-          <Input id={props.id} status={data.project.status} trainerState={data.trainerState} />
+          <Input id={props.id} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Metrics id={props.id} checkpoints={data.project.checkpoints} trainerState={data.trainerState} />
+          <Metrics id={props.id} checkpoints={data.project.checkpoints} />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          <Results
-            id={props.id}
-            exports={data.project.exports}
-            trainerState={data.trainerState}
-            videos={data.project.videos}
-          />
+          <Results id={props.id} exports={data.project.exports} videos={data.project.videos} />
         </TabPanel>
         <DatabaseTestButton id={props.id} />
       </div>

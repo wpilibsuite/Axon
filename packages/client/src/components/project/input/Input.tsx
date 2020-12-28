@@ -2,12 +2,25 @@ import { Button, Container, Divider } from "@material-ui/core";
 import Datasets from "./Datasets";
 import Parameters from "./Parameters";
 import React, { ReactElement, useState } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { StartTraining, StartTrainingVariables } from "./__generated__/StartTraining";
 import { HaltTraining, HaltTrainingVariables } from "./__generated__/HaltTraining";
 import { PauseTraining, PauseTrainingVariables } from "./__generated__/PauseTraining";
 import { ResumeTraining, ResumeTrainingVariables } from "./__generated__/ResumeTraining";
-import { GetProjectData_project_status } from "../__generated__/GetProjectData";
+import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
+import { GetTrainjobs } from "./__generated__/GetTrainjobs";
+import { TrainStatus } from "../../../__generated__/globalTypes";
+
+const GET_TRAINJOBS = gql`
+  query GetTrainjobs {
+    trainjobs {
+      status
+      projectID
+      currentEpoch
+      lastEpoch
+    }
+  }
+`;
 
 const START_TRAINING = gql`
   mutation StartTraining($id: ID!) {
@@ -41,74 +54,133 @@ const RESUME_TRAINING = gql`
   }
 `;
 
-export default function Input(props: {
-  id: string;
-  status: GetProjectData_project_status;
-  trainerState: number;
-}): ReactElement {
-  const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
-  const [haltTraining] = useMutation<HaltTraining, HaltTrainingVariables>(HALT_TRAINING);
-  const [pauseTraining] = useMutation<PauseTraining, PauseTrainingVariables>(PAUSE_TRAINING);
-  const [resumeTraining] = useMutation<ResumeTraining, ResumeTrainingVariables>(RESUME_TRAINING);
-  const [starting, setStarting] = useState(false); //<- purely to provide instant feedback.
+export default function Input(props: { id: string }): ReactElement {
+  const id = props.id;
+  //^^ this is only to get around a props validation error when using
+  //   the props in the function components defined within this function component. need help with this.
 
-  const handleStart = () => {
-    setStarting(true);
-    startTraining({ variables: { id: props.id } });
-  };
+  const { data, loading, error } = useQuery<GetTrainjobs>(GET_TRAINJOBS, {
+    pollInterval: 2000
+  });
 
-  if (starting && props.status.trainingStatus > 0) setStarting(false);
+  if (loading) return <p>LOADING</p>;
+  if (error) return <p>{error.message}</p>;
+  if (data === undefined) return <p>NO DATA</p>;
+
+  const trainjob = data.trainjobs.find((job) => job.projectID === props.id);
+
+  if (trainjob === undefined)
+    return (
+      <>
+        <Datasets id={props.id} />
+        <Divider />
+        <Parameters id={props.id} />
+        <Divider />
+        <StartButton />
+      </>
+    );
+
+  let statusMessage;
+  switch (trainjob.status) {
+    case TrainStatus.Idle:
+      statusMessage = "not training";
+      break;
+    case TrainStatus.Paused:
+      statusMessage = "training paused";
+      break;
+    case TrainStatus.Writing:
+      statusMessage = "writing parameter file";
+      break;
+    case TrainStatus.Cleaning:
+      statusMessage = "cleaning old data";
+      break;
+    case TrainStatus.Moving:
+      statusMessage = "moving data";
+      break;
+    case TrainStatus.Extracting:
+      statusMessage = "extracting dataset";
+      break;
+    case TrainStatus.Training:
+      statusMessage = "training model";
+      break;
+    case TrainStatus.Stopped:
+      statusMessage = "training finished, wrapping up";
+      break;
+  }
 
   return (
     <Container>
-      {
-        [
-          <>
-            <Datasets id={props.id} />
-            <Divider />
-            <Parameters id={props.id} />
-            <Divider />
-            <StartButton trainerState={props.trainerState} starting={starting} handleStart={handleStart} />
-          </>,
-          <>
-            <h1>Preparing</h1>
-            <ProgressBar status={props.status} />
-            {/* <Button onClick={() => haltTraining({ variables: { id: props.id } })}>Halt</Button> temporarilly suppressed until status management improves (: */}
-          </>,
-          <>
-            <h1>Training</h1>
-            <ProgressBar status={props.status} />
-            <Button onClick={() => haltTraining({ variables: { id: props.id } })}>Halt</Button>
-            <Button onClick={() => pauseTraining({ variables: { id: props.id } })}>Pause</Button>
-          </>,
-          <>
-            <h1>Paused</h1>
-            <ProgressBar status={props.status} />
-            <Button onClick={() => haltTraining({ variables: { id: props.id } })}>Halt</Button>
-            <Button onClick={() => resumeTraining({ variables: { id: props.id } })}>Resume</Button>
-          </>
-        ][props.status.trainingStatus]
-      }
+      <h1>{statusMessage}</h1>
+      <ProgressBar />
+      <StopButton />
+      <PauseButton />
     </Container>
   );
-}
 
-function ProgressBar(props: { status: GetProjectData_project_status }): ReactElement {
-  const CURRENT_EPOCH = typeof props.status.currentEpoch === "number" ? props.status.currentEpoch : "?";
-  const LAST_EPOCH = typeof props.status.lastEpoch === "number" ? props.status.lastEpoch : "?";
-  return (
-    <Container>
-      <p>{`Epoch ${CURRENT_EPOCH} / ${LAST_EPOCH}`}</p>
-    </Container>
-  );
-}
+  function StartButton(): ReactElement {
+    const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
+    const [starting, setStarting] = useState(false);
 
-function StartButton(props: {
-  trainerState: number;
-  starting: boolean;
-  handleStart: (para: void) => void;
-}): ReactElement {
-  if (props.trainerState < 5) return <p>training images not available yet</p>;
-  else if (props.starting) return <Button>Starting...</Button>;
-  else return <Button onClick={() => props.handleStart()}>Start</Button>;
+    const handleClick = () => {
+      startTraining({ variables: { id: id } });
+      setStarting(true);
+    };
+
+    const { data, loading, error } = useQuery(GET_DOCKER_STATE, { pollInterval: 5000 });
+    if (loading) return <p>connecting to trainer</p>;
+    if (error) return <p>cant connect to trainer</p>;
+    if (data.dockerState < 3) return <p>no train image yet</p>;
+    if (starting) return <Button>Starting...</Button>;
+
+    return <Button onClick={handleClick}>Start</Button>;
+  }
+
+  function StopButton(): ReactElement {
+    const [haltTraining] = useMutation<HaltTraining, HaltTrainingVariables>(HALT_TRAINING);
+    const [stopping, setStopping] = useState(false);
+
+    const handleClick = () => {
+      haltTraining({ variables: { id: id } });
+      setStopping(true);
+    };
+    if (stopping) return <Button>Stopping...</Button>;
+
+    return <Button onClick={handleClick}>Halt</Button>;
+  }
+
+  function PauseButton(): ReactElement {
+    const [pauseTraining] = useMutation<PauseTraining, PauseTrainingVariables>(PAUSE_TRAINING);
+    const [resumeTraining] = useMutation<ResumeTraining, ResumeTrainingVariables>(RESUME_TRAINING);
+
+    const [pausing, setPausing] = useState(false);
+    const [resuming, setResuming] = useState(false);
+
+    const handlePause = () => {
+      pauseTraining({ variables: { id: id } });
+      setPausing(true);
+    };
+
+    const handleResume = () => {
+      resumeTraining({ variables: { id: id } });
+      setResuming(true);
+    };
+
+    if (trainjob?.status === TrainStatus.Stopped) {
+      if (pausing) setPausing(false);
+      if (resuming) return <Button>Resuming...</Button>;
+      return <Button onClick={handleResume}>Resume</Button>;
+    } else {
+      if (resuming) setResuming(false);
+      if (pausing) return <Button>Pausing...</Button>;
+      return <Button onClick={handlePause}>Pause</Button>;
+    }
+  }
+
+  function ProgressBar(): ReactElement {
+    return (
+      <Container>
+        <p>{`Epoch ${trainjob?.currentEpoch} / ${trainjob?.lastEpoch}`}</p>
+      </Container>
+    );
+  }
 }

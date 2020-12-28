@@ -1,7 +1,15 @@
 import { DataSource } from "apollo-datasource";
-import { Checkpoint, Export, Video, ProjectStatus, ProjectUpdateInput } from "../schema/__generated__/graphql";
+import {
+  Checkpoint,
+  Export,
+  Video,
+  ProjectUpdateInput,
+  Trainjob,
+  Testjob,
+  Exportjob,
+  DockerState
+} from "../schema/__generated__/graphql";
 import { Project } from "../store";
-import Trainer from "../mL/Trainer";
 import { Sequelize } from "sequelize";
 import MLService from "../mL";
 import * as mkdirp from "mkdirp";
@@ -23,8 +31,8 @@ export class ProjectService extends DataSource {
     this.path = path;
   }
 
-  async getTrainerState(): Promise<number> {
-    return this.mLService.trainer_state;
+  async getDockerState(): Promise<DockerState> {
+    return this.mLService.getDockerState();
   }
 
   async getProjects(): Promise<Project[]> {
@@ -37,16 +45,16 @@ export class ProjectService extends DataSource {
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
     await this.mLService.updateCheckpoints(id);
-    return this.mLService.getCheckpoints(id);
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.checkpoints);
   }
   async getExports(id: string): Promise<Export[]> {
-    return this.mLService.getExports(id);
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.exports);
   }
   async getVideos(id: string): Promise<Video[]> {
-    return this.mLService.getVideos(id);
-  }
-  async getStatus(id: string): Promise<ProjectStatus> {
-    return this.mLService.getStatus(id);
+    const project = await PseudoDatabase.retrieveProject(id);
+    return Object.values(project.videos);
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -102,11 +110,20 @@ export class ProjectService extends DataSource {
 
   async createProject(name: string): Promise<Project> {
     const project = await Project.create({ name });
-    // this.trainer.addProjectData(project);
     await PseudoDatabase.addProjectData(project);
-    this.mLService.addStatus(await PseudoDatabase.retrieveProject(project.id));
-
     return project;
+  }
+
+  async getTrainjobs(): Promise<Trainjob[]> {
+    return this.mLService.getTrainjobs();
+  }
+
+  async getExportjobs(): Promise<Exportjob[]> {
+    return this.mLService.getExportjobs();
+  }
+
+  async getTestjobs(): Promise<Testjob[]> {
+    return this.mLService.getTestjobs();
   }
 
   async startTraining(id: string): Promise<Project> {
@@ -185,10 +202,7 @@ export class ProjectService extends DataSource {
 
   async databaseTest(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    console.log(project);
-
-    Trainer.handleOldData(id);
-
+    this.mLService.printJobs();
     return project;
   }
 }
