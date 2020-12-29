@@ -13,12 +13,12 @@ import gql from "graphql-tag";
 import { useApolloClient, useMutation } from "@apollo/client";
 
 const RENAME_DATASET_MUTATION = gql`
-  mutation RenameDataset($id: ID!, $newName: String!) {
-    renameDataset(id: $id, newName: $newName) {
-        id
-        name
+    mutation RenameDataset($id: ID!, $newName: String!) {
+        renameDataset(id: $id, newName: $newName) {
+            id
+            name
+        }
     }
-  }
 `;
 
 export default function RenameDatasetDialog(props: { id: string }): ReactElement {
@@ -38,28 +38,30 @@ export default function RenameDatasetDialog(props: { id: string }): ReactElement
   };
 
   return (
-    <MenuItem onClick={handleClickOpen}>
-      Rename
-      <Dialog onClose={handleClose} open={open}>
-        <DialogTitle>Rename Datset</DialogTitle>
-        <DialogContent dividers>
-          <TextField
-            onChange={(event) => setNewName(event.target.value)}
-            autoFocus
-            margin="dense"
-            label="New Dataset Name"
-            fullWidth
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button autoFocus onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button autoFocus onClick={handleRename} color="primary">
-            Rename
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </MenuItem>
+    <>
+      <MenuItem onClick={handleClickOpen}>
+        Rename
+        <Dialog onClose={handleClose} open={open}>
+          <DialogTitle>Rename Datset</DialogTitle>
+          <DialogContent dividers>
+            <TextField
+              onChange={(event) => setNewName(event.target.value)}
+              autoFocus
+              margin="dense"
+              label="New Dataset Name"
+              fullWidth
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button autoFocus onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button autoFocus onClick={handleRename} color="primary">
+              Rename
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </MenuItem>
+    </>
   );
 }

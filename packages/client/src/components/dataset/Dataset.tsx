@@ -6,6 +6,7 @@ import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-loa
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
 import RenameDatasetDialog from "./RenameDatasetDialog";
+import { ClickAwayListener} from "@material-ui/core";
 
 const GET_DATASET = gql`
   query GetDataset($id: ID!) {
@@ -72,6 +73,7 @@ export default function Dataset(props: { id: string }): ReactElement {
 
   return (
     <Container>
+
       <Toolbar>
         <Typography variant="h6" style={{ flexGrow: 1 }}>
           {data.dataset?.name}
