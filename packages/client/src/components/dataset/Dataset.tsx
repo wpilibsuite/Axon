@@ -1,10 +1,11 @@
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
-import { Container, GridList, GridListTile, IconButton, Toolbar, Typography } from "@material-ui/core";
+import { Container, GridList, GridListTile, IconButton, MenuItem, Menu, Toolbar, Typography } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
+import RenameDatasetDialog from "./RenameDatasetDialog";
 
 const GET_DATASET = gql`
   query GetDataset($id: ID!) {
@@ -49,6 +50,23 @@ export default function Dataset(props: { id: string }): ReactElement {
     }
   });
 
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleRename = () => {
+
+    handleClose();
+  };
+
+
   if (loading) return <p>LOADING</p>;
   if (error || !data) return <p>ERROR</p>;
 
@@ -58,9 +76,30 @@ export default function Dataset(props: { id: string }): ReactElement {
         <Typography variant="h6" style={{ flexGrow: 1 }}>
           {data.dataset?.name}
         </Typography>
-        <IconButton color="inherit">
+        <IconButton
+          onClick={handleMenu}
+          color="inherit"
+        >
           <MoreVertIcon />
         </IconButton>
+        <Menu
+          id="menu-appbar"
+          anchorEl={anchorEl}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          keepMounted
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          open={open}
+          onClose={handleClose}
+        >
+          {/*<MenuItem onClick={handleRename}>Rename</MenuItem>*/}
+          <RenameDatasetDialog id={props.id}/>
+        </Menu>
       </Toolbar>
       <Container>
         <Typography variant="h6">{data.dataset?.images.length} Image Samples</Typography>
