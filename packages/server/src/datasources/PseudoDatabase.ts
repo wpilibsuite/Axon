@@ -1,4 +1,3 @@
-import { Test } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Dataset } from "../store";
 import { DATA_DIR } from "../constants";
@@ -19,7 +18,6 @@ export type ProjectData = {
     evalFrequency: number;
     percentEval: number;
   };
-  tests: { [id: string]: Test };
   containerIDs: {
     tflite: string;
     train: string;
@@ -57,7 +55,6 @@ export default class PseudoDatabase {
         evalFrequency: project.evalFrequency,
         percentEval: project.percentEval
       },
-      tests: {},
       containerIDs: {
         tflite: null,
         train: null,

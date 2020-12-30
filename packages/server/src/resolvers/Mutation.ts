@@ -37,8 +37,8 @@ export const Mutation: MutationResolvers = {
   exportCheckpoint: async (parent, { id, checkpointID, name }, { dataSources }) => {
     return dataSources.projectService.exportCheckpoint(id, checkpointID, name);
   },
-  testModel: async (parent, { testName, projectID, exportID, videoID }, { dataSources }) => {
-    return dataSources.projectService.testModel(testName, projectID, exportID, videoID);
+  testModel: async (parent, { name, projectID, exportID, videoID }, { dataSources }) => {
+    return dataSources.projectService.testModel(name, projectID, exportID, videoID);
   },
   databaseTest: async (parent, { id }, { dataSources }) => {
     return dataSources.projectService.databaseTest(id);

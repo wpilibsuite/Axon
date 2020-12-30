@@ -103,17 +103,15 @@ export default class MLService {
   /**
    * Test an exported model on a provided video.
    *
-   * @param testName Desired name of the test.
+   * @param name Desired name of the test.
    * @param projectID The test project's id.
    * @param exportID The id of the export to be tested.
    * @param videoID The id of the video to be used in the test
    */
-  async test(testName: string, projectID: string, exportID: string, videoID: string): Promise<string> {
+  async test(name: string, projectID: string, exportID: string, videoID: string): Promise<string> {
     const project = await PseudoDatabase.retrieveProject(projectID);
-    const tester: Tester = new Tester(project, this.docker, "5000");
+    const tester: Tester = new Tester(project, this.docker, "5000", name, exportID, videoID);
     this.testjobs.push(tester);
-
-    await tester.createTest(testName, exportID, videoID);
 
     const mountedModelPath = await tester.mountModel();
 

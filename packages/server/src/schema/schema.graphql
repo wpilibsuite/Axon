@@ -30,7 +30,7 @@ type Mutation {
   resumeTraining(id: ID!): Project
   saveVideo(projectID: ID!, name: String!, video: Upload!): Video
   exportCheckpoint(id: ID!, checkpointID: String!, name: String!): Project
-  testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
+  testModel(name: String!, projectID: String!, exportID: String!, videoID: String!): Project
   databaseTest(id: ID!): Project
 }
 
@@ -108,11 +108,10 @@ type Video {
 }
 
 type Test {
-  id: String!
+  id: ID!
+  videoID: ID!
+  exportID: ID!
   name: String!
-  video: Video!
-  model: Export!
-  exportID: String!
   directory: String!
 }
 

@@ -22,8 +22,8 @@ import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState
 import { DockerState } from "../../../__generated__/globalTypes";
 
 const TEST_MODEL_MUTATION = gql`
-  mutation testModel($testName: String!, $projectID: String!, $exportID: String!, $videoID: String!) {
-    testModel(testName: $testName, projectID: $projectID, exportID: $exportID, videoID: $videoID) {
+  mutation testModel($name: String!, $projectID: String!, $exportID: String!, $videoID: String!) {
+    testModel(name: $name, projectID: $projectID, exportID: $exportID, videoID: $videoID) {
       id
     }
   }
@@ -37,12 +37,12 @@ export default function TestButton(props: {
   const [testModel] = useMutation(TEST_MODEL_MUTATION);
   const [preparing, setPreparing] = React.useState(false);
   const [videoID, setVideoID] = React.useState<string>();
-  const [testName, setTestName] = React.useState<string>();
+  const [name, setName] = React.useState<string>();
 
   const handleTest = async () => {
     const projectID = props.modelExport.projectID;
     const exportID = props.modelExport.id;
-    await testModel({ variables: { testName, projectID, exportID, videoID } }).catch((err) => {
+    await testModel({ variables: { name, projectID, exportID, videoID } }).catch((err) => {
       console.log(err);
     });
     handleClosePrepare();
@@ -57,7 +57,7 @@ export default function TestButton(props: {
     setVideoID(event.target.value);
   };
   const handleTestNameChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setTestName(event.target.value);
+    setName(event.target.value);
   };
 
   const { data, loading, error } = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });

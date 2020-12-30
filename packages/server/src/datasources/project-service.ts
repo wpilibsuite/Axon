@@ -151,10 +151,10 @@ export class ProjectService extends DataSource {
     return project;
   }
 
-  async testModel(testName: string, projectID: string, exportID: string, videoID: string): Promise<Project> {
+  async testModel(name: string, projectID: string, exportID: string, videoID: string): Promise<Project> {
     const project = await Project.findByPk(projectID);
     console.log(`Started test: \nModel: ${exportID} \nVideo: ${videoID}`);
-    this.mLService.test(testName, projectID, exportID, videoID).catch((err) => console.log(err));
+    this.mLService.test(name, projectID, exportID, videoID).catch((err) => console.log(err));
     return project;
   }
 

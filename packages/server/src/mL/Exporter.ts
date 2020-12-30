@@ -58,19 +58,16 @@ export default class Exporter {
    * @param name The desired name of the exported tarfile.
    */
   private createExport(name: string): Export {
-    const TARFILE_NAME = `${name}.tar.gz`;
-    const RELATIVE_DIR_PATH = path.posix.join("exports", name);
-    const FULL_DIR_PATH = path.posix.join(this.project.directory, RELATIVE_DIR_PATH);
-    const DOWNLOAD_PATH = path.posix.join(FULL_DIR_PATH, TARFILE_NAME).split("/server/data/")[1]; //<- need to do this better
-    return Export.build({
+    const exp = Export.build({
       name: name,
       projectID: this.project.id,
       checkpointID: this.ckptID,
-      directory: FULL_DIR_PATH,
-      tarfileName: TARFILE_NAME,
-      downloadPath: DOWNLOAD_PATH,
-      relativeDirPath: RELATIVE_DIR_PATH
+      tarfileName: `${name}.tar.gz`,
     });
+    exp.relativeDirPath = path.posix.join("exports", exp.id);
+    exp.directory = path.posix.join(this.project.directory, exp.relativeDirPath);
+    exp.downloadPath = path.posix.join(exp.directory, exp.tarfileName).split("/server/data/")[1]; //<- need to do this better
+    return exp;
   }
 
   /**

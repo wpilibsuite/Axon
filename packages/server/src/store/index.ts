@@ -102,6 +102,27 @@ export class Video extends Model<VideoAttributes, VideoCreationAttributes> imple
   public readonly updatedAt!: Date;
 }
 
+interface TestAttributes {
+  id: string;
+  videoID: string;
+  exportID: string;
+  name: string;
+  directory: string;
+}
+
+type TestCreationAttributes = Optional<TestAttributes, keyof TestAttributes>;
+
+export class Test extends Model<TestAttributes, TestCreationAttributes> implements TestAttributes {
+  videoID: string;
+  exportID: string;
+  name: string;
+  directory: string;
+
+  public readonly id!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
 interface ProjectAttributes {
   id: string;
   name: string;
@@ -145,6 +166,10 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   public getVideos!: HasManyGetAssociationsMixin<Video>;
   public addVideo!: HasManyAddAssociationMixin<Video, string>;
   public removeVideo!: HasManyRemoveAssociationMixin<Video, string>;
+
+  public getTests!: HasManyGetAssociationsMixin<Test>;
+  public addTest!: HasManyAddAssociationMixin<Test, string>;
+  public removeTest!: HasManyRemoveAssociationMixin<Test, string>;
 
   public readonly id!: string;
   public readonly createdAt!: Date;
@@ -218,11 +243,11 @@ Export.init(
       primaryKey: true
     },
     projectID: {
-      type: new DataTypes.STRING(),
+      type: DataTypes.UUID,
       allowNull: false
     },
     checkpointID: {
-      type: new DataTypes.STRING(),
+      type: DataTypes.UUID,
       allowNull: false
     },
     name: {
@@ -277,6 +302,36 @@ Video.init(
   }
 );
 
+Test.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    videoID: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
+    exportID: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
+    directory: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    }
+  },
+  {
+    sequelize
+  }
+)
+
 Project.init(
   {
     id: {
@@ -325,5 +380,6 @@ Dataset.belongsToMany(Project, { through: "DatasetProject" });
 Project.belongsToMany(Checkpoint, { through: "ProjectCheckpoint" });
 Project.belongsToMany(Export, { through: "ProjectExport" });
 Project.belongsToMany(Video, { through: "ProjectVideo" });
+Project.belongsToMany(Test, { through: "ProjectTest" });
 
 sequelize.sync({ force: false });

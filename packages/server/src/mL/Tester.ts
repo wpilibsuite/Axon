@@ -1,8 +1,8 @@
-import { DockerImage, Test, Testjob } from "../schema/__generated__/graphql";
+import { DockerImage, Testjob } from "../schema/__generated__/graphql";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
-import { Export, Video } from "../store";
+import { Project, Export, Video, Test } from "../store";
 import { Container } from "dockerode";
 import * as mkdirp from "mkdirp";
 import Docker from "./Docker";
@@ -20,10 +20,11 @@ export default class Tester {
   readonly docker: Docker;
   test: Test;
 
-  constructor(project: ProjectData, docker: Docker, port: string) {
+  constructor(project: ProjectData, docker: Docker, port: string, name: string, exportID: string, videoID: string) {
     this.project = project;
     this.docker = docker;
     this.streamPort = port;
+    this.test = this.createTest(name, exportID, videoID)
   }
 
   /**
@@ -33,36 +34,32 @@ export default class Tester {
    * @param exportID the id of the export to be tested.
    * @param videoID the id of the video to be used for the test.
    */
-  public async createTest(name: string, exportID: string, videoID: string): Promise<void> {
-    const id = name; //will be the random idv4 when in sequalize
-    const model = await Export.findByPk(exportID);
-    const video = await Video.findByPk(videoID);
-    const destinationDir = path.posix.join(this.project.directory, "tests", id);
-
-    this.test = {
-      id: id,
-      name: name,
-      model: model,
-      video: video,
+  public createTest(name: string, exportID: string, videoID: string): Test {
+    const test = Test.build({
       exportID: exportID,
-      directory: destinationDir
-    };
+      videoID: videoID,
+      name: name
+    });
+    test.directory = path.posix.join(this.project.directory, "tests", test.id);
+    return test;
   }
 
   /**
    * Copy the export to the container's mounted directory to be tested.
    */
   public async mountModel(): Promise<string> {
-    const FULL_TAR_PATH = path.posix.join(this.test.model.directory, this.test.model.tarfileName);
+    const model = await Export.findByPk(this.test.exportID);
+
+    const FULL_TAR_PATH = path.posix.join(model.directory, model.tarfileName);
     const MOUNTED_MODEL_PATH = path.posix.join(
       this.project.directory,
-      this.test.model.relativeDirPath,
-      this.test.model.tarfileName
+      model.relativeDirPath,
+      model.tarfileName
     );
     const CONTAINER_MODEL_PATH = path.posix.join(
       CONTAINER_MOUNT_PATH,
-      this.test.model.relativeDirPath,
-      this.test.model.tarfileName
+      model.relativeDirPath,
+      model.tarfileName
     );
 
     if (!fs.existsSync(FULL_TAR_PATH)) return Promise.reject("model not found");
@@ -76,14 +73,16 @@ export default class Tester {
    * Copy the video to the container's mounted directory to be used for the test.
    */
   public async mountVideo(): Promise<string> {
-    const MOUNTED_VIDEO_PATH = path.posix.join(this.project.directory, "videos", this.test.video.filename);
-    const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", this.test.video.filename);
+    const video = await Video.findByPk(this.test.videoID);
 
-    if (!fs.existsSync(this.test.video.fullPath)) {
+    const MOUNTED_VIDEO_PATH = path.posix.join(this.project.directory, "videos", video.filename);
+    const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", video.filename);
+
+    if (!fs.existsSync(video.fullPath)) {
       Promise.reject("video not found");
       return;
     }
-    if (!fs.existsSync(MOUNTED_VIDEO_PATH)) await fs.promises.copyFile(this.test.video.fullPath, MOUNTED_VIDEO_PATH);
+    if (!fs.existsSync(MOUNTED_VIDEO_PATH)) await fs.promises.copyFile(video.fullPath, MOUNTED_VIDEO_PATH);
 
     return Promise.resolve(CONTAINER_VIDEO_PATH);
   }
@@ -126,8 +125,9 @@ export default class Tester {
    * Save the Test object in the Tester instance to the database.
    */
   public async saveTest(): Promise<void> {
-    this.project.tests[this.test.id] = this.test;
-    PseudoDatabase.pushProject(this.project);
+    const project = await Project.findByPk(this.project.id);
+    await this.test.save();
+    await project.addTest(this.test);
   }
 
   public getJob(): Testjob {
