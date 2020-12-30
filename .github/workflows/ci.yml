@@ -62,4 +62,6 @@ jobs:
         if: |
           github.repository_owner == 'wpilibsuite' &&
           github.ref == 'refs/heads/master'
-        run: docker push wpilib/axon:latest
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push wpilib/axon:latest
