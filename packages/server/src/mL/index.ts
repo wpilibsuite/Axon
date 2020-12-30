@@ -81,24 +81,20 @@ export default class MLService {
    * @param checkpointNumber The epoch of the checkpoint to be exported.
    * @param name The desired name of the exported file.
    */
-  async export(id: string, checkpointNumber: number, name: string): Promise<string> {
+  async export(id: string, checkpointID: string, name: string): Promise<string> {
     const project = await PseudoDatabase.retrieveProject(id);
-    const exporter: Exporter = new Exporter(project, this.docker, checkpointNumber, name);
+    const exporter: Exporter = new Exporter(project, this.docker, checkpointID, name);
     this.exportjobs.push(exporter);
 
-    await exporter.locateCheckpoint();
+    await exporter.mountCheckpoint();
 
     await exporter.createDestinationDirectory();
-
-    await exporter.updateCheckpointStatus(true);
 
     await exporter.writeParameterFile();
 
     await exporter.exportCheckpoint();
 
     await exporter.saveExport();
-
-    await exporter.updateCheckpointStatus(false);
 
     this.exportjobs = this.exportjobs.filter((job) => job !== exporter);
     return "exported";

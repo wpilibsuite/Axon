@@ -8,6 +8,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
 import { Container } from "dockerode";
+import { Project, Checkpoint } from "../store";
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -83,14 +84,7 @@ export default class Trainer {
 
     const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
-      try {
-        await new Promise((resolve) => rimraf(OLD_TRAIN_DIR, resolve));
-      } catch (e) {
-        if (e.message.toLowerCase().includes("permission denied"))
-          Promise.reject("permission denied when deleting old train directory");
-        else throw e;
-      }
-
+      await new Promise((resolve) => rimraf(OLD_TRAIN_DIR, resolve));
       console.log(`old train dir ${OLD_TRAIN_DIR} removed`);
     } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
 
@@ -99,7 +93,11 @@ export default class Trainer {
       fs.unlinkSync(OLD_METRICS_FILE);
     } //must clear old checkpoints in order for new ones to be saved by trainer
 
-    this.project.checkpoints = {}; //must add a way to preserve existing checkpoints somehow
+    const project = await Project.findByPk(this.project.id);
+    await project.setCheckpoints([]);
+    await project.save();
+
+    //must add a way to preserve existing checkpoints somehow
 
     await PseudoDatabase.pushProject(this.project);
   }
@@ -125,18 +123,9 @@ export default class Trainer {
       if (!fs.existsSync(path.posix.join(this.project.directory, "checkpoints")))
         await mkdirp(path.posix.join(this.project.directory, "checkpoints"));
 
-      await Promise.all([
-        copyCheckpointFile(".data-00000-of-00001"),
-        copyCheckpointFile(".index"),
-        copyCheckpointFile(".meta")
-      ]);
-    }
-
-    async function copyCheckpointFile(extention: string): Promise<void> {
-      return fs.promises.copyFile(
-        path.posix.join("data", "checkpoints", this.project.initialCheckpoint.concat(extention)),
-        path.posix.join(this.project.directory, "checkpoints", this.project.initialCheckpoint.concat(extention))
-      );
+      const ckptPath = path.posix.join("data", "checkpoints", this.project.initialCheckpoint);
+      const ckptMount = path.posix.join(this.project.directory, "checkpoints", this.project.initialCheckpoint);
+      await Trainer.copyCheckpoint(ckptPath, ckptMount);
     }
   }
 
@@ -179,28 +168,50 @@ export default class Trainer {
   public async updateCheckpoints(): Promise<void> {
     const METRICSPATH = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(METRICSPATH)) {
-      const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
-      while (Object.keys(metrics.precision).length > Object.keys(this.project.checkpoints).length) {
-        const CURRENT_CKPT = Object.keys(this.project.checkpoints).length;
-        const step = Object.keys(metrics.precision)[CURRENT_CKPT];
-        this.project.checkpoints[step] = {
-          step: parseInt(step, 10),
-          metrics: [
-            {
-              name: "precision",
-              value: metrics.precision[step] //only one metric supported now
-            }
-          ],
-          status: {
-            exporting: false,
-            downloadPaths: []
-          }
-        };
-        this.epoch = parseInt(step, 10);
+      const project = await Project.findByPk(this.project.id);
 
-        await PseudoDatabase.pushProject(this.project);
+      const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
+      while (Object.keys(metrics.precision).length > (await project.getCheckpoints()).length) {
+        const CURRENT_CKPT = (await project.getCheckpoints()).length;
+        const step = parseInt(Object.keys(metrics.precision)[CURRENT_CKPT]);
+        this.epoch = step;
+        console.log(step);
+
+        const checkpoint = Checkpoint.build({
+          step: step,
+          name: `ckpt${step}`,
+          precision: metrics.precision[step]
+        });
+
+        const ckptDir = `${this.project.directory}/checkpoints/${checkpoint.id}/`;
+        checkpoint.path = path.posix.join(ckptDir, `model.ckpt-${step}`);
+        await mkdirp(ckptDir);
+
+        const ckptSrcPath = path.posix.join(this.project.directory, "train", `model.ckpt-${step}`);
+        await Trainer.copyCheckpoint(ckptSrcPath, checkpoint.path);
+
+        await checkpoint.save();
+        await project.addCheckpoint(checkpoint);
       }
     } else this.epoch = 0;
+  }
+
+  /**
+   * Copies a checkpoint's three files to the desired directory.
+   *
+   * @param sourcePath The full path to the checkpoint, without the file extention. This is because the checkpoint files have 3 different file extentions, with the same basename.
+   * @param destPath The full path to the checpoints destination, without the file extentions.
+   */
+  public static async copyCheckpoint(sourcePath: string, destPath: string): Promise<void> {
+    async function copyCheckpointFile(extention: string): Promise<void> {
+      return fs.promises.copyFile(sourcePath.concat(extention), destPath.concat(extention));
+    }
+
+    await Promise.all([
+      copyCheckpointFile(".data-00000-of-00001"),
+      copyCheckpointFile(".index"),
+      copyCheckpointFile(".meta")
+    ]);
   }
 
   public async stop(): Promise<void> {

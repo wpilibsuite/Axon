@@ -14,12 +14,14 @@ import { useQuery } from "@apollo/client";
 import { useMutation } from "@apollo/client";
 import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectData";
 import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
+import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState";
+import { DockerState } from "../../../__generated__/globalTypes";
 import { GetExportjobs_exportjobs } from "./__generated__/GetExportjobs";
 import { CircularProgress } from "@material-ui/core";
 
 const EXPORT_CHECKPOINT_BUTTON_MUTATION = gql`
-  mutation exportCheckpointButton($id: ID!, $checkpointNumber: Int!, $name: String!) {
-    exportCheckpoint(id: $id, checkpointNumber: $checkpointNumber, name: $name) {
+  mutation exportCheckpointButton($id: ID!, $checkpointID: String!, $name: String!) {
+    exportCheckpoint(id: $id, checkpointID: $checkpointID, name: $name) {
       id
     }
   }
@@ -41,18 +43,23 @@ export default function ExportButton(props: {
     setOpen(false);
   };
   const handleExport = () => {
-    const id = props.id;
-    const checkpointNumber = props.checkpoint.step;
-    exportCheckpoint({ variables: { id, checkpointNumber, name } }).catch((err) => {
+    exportCheckpoint({
+      variables: {
+        id: props.id,
+        checkpointID: props.checkpoint.id,
+        name
+      }
+    }).catch((err) => {
       console.log(err);
     });
     handleClose();
   };
 
-  const { data, loading, error } = useQuery(GET_DOCKER_STATE, { pollInterval: 5000 });
+  const { data, loading, error } = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
   if (loading) return <p>connecting to exporter</p>;
   if (error) return <p>cant connect to exporter</p>;
-  if (data.dockerState < 4) return <p>no export image yet</p>;
+  if (data?.dockerState !== DockerState.READY && data?.dockerState !== DockerState.TEST_PULL)
+    return <p>no export image yet</p>;
   if (props.job !== undefined) return <CircularProgress />;
 
   return (

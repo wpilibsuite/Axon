@@ -12,11 +12,10 @@ export default function Chart(props: {
   onClick: (para: number) => void;
 }): ReactElement {
   const data: Datapoint[] = props.checkpoints.map((checkpoint) => {
-    const point: Datapoint = {};
-    point.name = checkpoint.step;
-    checkpoint.metrics.forEach((metric) => {
-      point[metric.name] = metric.value;
-    });
+    const point: Datapoint = { name: checkpoint.step };
+
+    if (checkpoint.precision !== null) point["precision"] = checkpoint.precision;
+
     return point;
   });
 

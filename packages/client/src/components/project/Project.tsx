@@ -36,15 +36,11 @@ const GET_PROJECT_DATA = gql`
     project(id: $id) {
       id
       checkpoints {
+        id
+        name
         step
-        metrics {
-          name
-          value
-        }
-        status {
-          exporting
-          downloadPaths
-        }
+        path
+        precision
       }
       exports {
         id

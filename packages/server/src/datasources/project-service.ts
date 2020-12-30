@@ -1,6 +1,5 @@
 import { DataSource } from "apollo-datasource";
 import {
-  Checkpoint,
   Export,
   Video,
   ProjectUpdateInput,
@@ -9,7 +8,7 @@ import {
   Exportjob,
   DockerState
 } from "../schema/__generated__/graphql";
-import { Project } from "../store";
+import { Project, Checkpoint } from "../store";
 import { Sequelize } from "sequelize";
 import MLService from "../mL";
 import * as mkdirp from "mkdirp";
@@ -45,8 +44,8 @@ export class ProjectService extends DataSource {
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
     await this.mLService.updateCheckpoints(id);
-    const project = await PseudoDatabase.retrieveProject(id);
-    return Object.values(project.checkpoints);
+    const project = await this.getProject(id);
+    return project.getCheckpoints({ order: [["step", "ASC"]] });
   }
   async getExports(id: string): Promise<Export[]> {
     const project = await PseudoDatabase.retrieveProject(id);
@@ -154,8 +153,8 @@ export class ProjectService extends DataSource {
     return project;
   }
 
-  async exportCheckpoint(id: string, checkpointNumber: number, name: string): Promise<Project> {
-    this.mLService.export(id, checkpointNumber, name).catch((err) => console.log(err));
+  async exportCheckpoint(id: string, checkpointID: string, name: string): Promise<Project> {
+    this.mLService.export(id, checkpointID, name).catch((err) => console.log(err));
     const project = await Project.findByPk(id);
     console.log(`Started export on project: ${JSON.stringify(project)}`);
     return project;
@@ -202,7 +201,14 @@ export class ProjectService extends DataSource {
 
   async databaseTest(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    this.mLService.printJobs();
+
+    const ckpts: Checkpoint[] = await project.getCheckpoints();
+
+    ckpts.forEach((checkpoint) => {
+      console.log(`Checkpoint: ${checkpoint.step}\n\t${checkpoint.name}\n\t${checkpoint.precision}\n`);
+    });
+
+    // this.mLService.printJobs();
     return project;
   }
 }

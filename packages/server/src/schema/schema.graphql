@@ -29,7 +29,7 @@ type Mutation {
   pauseTraining(id: ID!): Project
   resumeTraining(id: ID!): Project
   saveVideo(projectId: ID!, videoName: String!, video: Upload!): Video
-  exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
+  exportCheckpoint(id: ID!, checkpointID: String!, name: String!): Project
   testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
   databaseTest(id: ID!): Project
 }
@@ -81,20 +81,12 @@ type Dataset {
   images: [LabeledImage!]!
 }
 
-type TrainingMetric {
-  name: String!
-  value: Float!
-}
-
-type CheckpointStatus {
-  exporting: Boolean!
-  downloadPaths: [String!]!
-}
-
 type Checkpoint {
+  id: String!
+  name: String!
   step: Int!
-  status: CheckpointStatus!
-  metrics: [TrainingMetric!]!
+  path: String!
+  precision: Float
 }
 
 type Export {

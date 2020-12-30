@@ -20,10 +20,7 @@ import React, { ReactElement } from "react";
 import Chart from "./Chart";
 import ExportButton from "./ExportButton";
 import * as path from "path";
-import {
-  GetProjectData_project_checkpoints,
-  GetProjectData_project_checkpoints_metrics
-} from "../__generated__/GetProjectData";
+import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectData";
 import { gql, useQuery } from "@apollo/client";
 import { GetExportjobs_exportjobs } from "./__generated__/GetExportjobs";
 import { CircularProgress } from "@material-ui/core";
@@ -85,7 +82,7 @@ function CheckpointInfo(props: {
           </Grid>
           <Grid>
             <Grid item>
-              <MetricsList metrics={props.checkpoint.metrics} />
+              <MetricsList checkpoint={props.checkpoint} />
             </Grid>
             <Grid item>
               <ExportButton id={props.id} checkpoint={props.checkpoint} job={job} />
@@ -106,7 +103,11 @@ function CheckpointInfo(props: {
   return <></>;
 }
 
-function MetricsList(props: { metrics: GetProjectData_project_checkpoints_metrics[] }): JSX.Element {
+function MetricsList(props: { checkpoint: GetProjectData_project_checkpoints }): JSX.Element {
+  const metrics: { name: string; value: number }[] = [];
+
+  if (props.checkpoint.precision) metrics.push({ name: "precision", value: props.checkpoint.precision });
+
   return (
     <TableContainer component={Paper}>
       <Table>
@@ -117,7 +118,7 @@ function MetricsList(props: { metrics: GetProjectData_project_checkpoints_metric
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.metrics.map((metric) => (
+          {metrics.map((metric) => (
             <TableRow key={metric.name}>
               <TableCell component="th" scope="row">
                 {metric.name}
@@ -134,7 +135,7 @@ function MetricsList(props: { metrics: GetProjectData_project_checkpoints_metric
 function ExportsList(props: { checkpoint: GetProjectData_project_checkpoints | undefined }): JSX.Element {
   return (
     <List dense={true}>
-      {props.checkpoint?.status.downloadPaths.map((downloadPath) => (
+      {/* {props.checkpoint?.status.downloadPaths.map((downloadPath) => (
         <ListItem>
           <ListItemIcon>
             <IconButton>
@@ -145,7 +146,7 @@ function ExportsList(props: { checkpoint: GetProjectData_project_checkpoints | u
           </ListItemIcon>
           <ListItemText primary={path.basename(downloadPath)} />
         </ListItem>
-      ))}
+      ))} */}
     </List>
   );
 }

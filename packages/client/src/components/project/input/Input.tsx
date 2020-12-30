@@ -8,8 +8,10 @@ import { HaltTraining, HaltTrainingVariables } from "./__generated__/HaltTrainin
 import { PauseTraining, PauseTrainingVariables } from "./__generated__/PauseTraining";
 import { ResumeTraining, ResumeTrainingVariables } from "./__generated__/ResumeTraining";
 import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
+import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState";
 import { GetTrainjobs } from "./__generated__/GetTrainjobs";
 import { TrainStatus } from "../../../__generated__/globalTypes";
+import { DockerState } from "../../../__generated__/globalTypes";
 
 const GET_TRAINJOBS = gql`
   query GetTrainjobs {
@@ -126,10 +128,10 @@ export default function Input(props: { id: string }): ReactElement {
       setStarting(true);
     };
 
-    const { data, loading, error } = useQuery(GET_DOCKER_STATE, { pollInterval: 5000 });
+    const { data, loading, error } = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
     if (loading) return <p>connecting to trainer</p>;
     if (error) return <p>cant connect to trainer</p>;
-    if (data.dockerState < 3) return <p>no train image yet</p>;
+    if (data?.dockerState === DockerState.TRAIN_PULL) return <p>no train image yet</p>;
     if (starting) return <Button>Starting...</Button>;
 
     return <Button onClick={handleClick}>Start</Button>;
@@ -165,7 +167,7 @@ export default function Input(props: { id: string }): ReactElement {
       setResuming(true);
     };
 
-    if (trainjob?.status === TrainStatus.Stopped) {
+    if (trainjob?.status === TrainStatus.Paused) {
       if (pausing) setPausing(false);
       if (resuming) return <Button>Resuming...</Button>;
       return <Button onClick={handleResume}>Resume</Button>;

@@ -18,6 +18,8 @@ import { useMutation, useQuery } from "@apollo/client";
 import VideoUploadButton from "./VideoUploadButton";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
+import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState";
+import { DockerState } from "../../../__generated__/globalTypes";
 
 const TEST_MODEL_MUTATION = gql`
   mutation testModel($testName: String!, $projectID: String!, $exportID: String!, $videoID: String!) {
@@ -58,10 +60,10 @@ export default function TestButton(props: {
     setTestName(event.target.value);
   };
 
-  const { data, loading, error } = useQuery(GET_DOCKER_STATE, { pollInterval: 5000 });
+  const { data, loading, error } = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
   if (loading) return <p>connecting to tester</p>;
   if (error) return <p>cant connect to tester</p>;
-  if (data.dockerState !== 5) return <p>no test image yet</p>;
+  if (data?.dockerState !== DockerState.READY) return <p>no test image yet</p>;
 
   return (
     <>

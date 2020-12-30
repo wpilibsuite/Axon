@@ -1,4 +1,4 @@
-import { Checkpoint, Export, Test, Video } from "../schema/__generated__/graphql";
+import { Export, Test, Video } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Dataset } from "../store";
 import { DATA_DIR } from "../constants";
@@ -19,7 +19,6 @@ export type ProjectData = {
     evalFrequency: number;
     percentEval: number;
   };
-  checkpoints: { [step: string]: Checkpoint };
   exports: { [id: string]: Export };
   videos: { [id: string]: Video };
   tests: { [id: string]: Test };
@@ -60,7 +59,6 @@ export default class PseudoDatabase {
         evalFrequency: project.evalFrequency,
         percentEval: project.percentEval
       },
-      checkpoints: {},
       exports: {},
       videos: {},
       tests: {},

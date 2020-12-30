@@ -49,6 +49,28 @@ interface ProjectAttributes {
 
 type ProjectCreationAttributes = Optional<ProjectAttributes, keyof ProjectAttributes>;
 
+interface CheckpointAttributes {
+  id: string;
+  name: string;
+  step: number;
+  path: string;
+  precision: number;
+}
+
+type CheckpointCreationAttributes = Optional<CheckpointAttributes, keyof CheckpointAttributes>;
+
+export class Checkpoint extends Model<CheckpointAttributes, CheckpointCreationAttributes>
+  implements CheckpointAttributes {
+  public name: string;
+  public step: number;
+  public path: string;
+  public precision: number;
+
+  public readonly id!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
 export class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implements ProjectAttributes {
   name: string;
   initialCheckpoint: string;
@@ -65,11 +87,17 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   public addDataset!: HasManyAddAssociationMixin<Dataset, string>;
   public removeDataset!: HasManyRemoveAssociationMixin<Dataset, string>;
 
+  public getCheckpoints!: HasManyGetAssociationsMixin<Checkpoint>;
+  public setCheckpoints!: HasManySetAssociationsMixin<Checkpoint, string>;
+  public addCheckpoint!: HasManyAddAssociationMixin<Checkpoint, string>;
+  public removeCheckpoint!: HasManyRemoveAssociationMixin<Checkpoint, string>;
+
   public readonly id!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
   public static associations: {
+    checkpoints: Association<Project, Checkpoint>;
     datasets: Association<Project, Dataset>;
   };
 }
@@ -88,6 +116,36 @@ Dataset.init(
     },
     path: {
       type: new DataTypes.STRING(),
+      allowNull: true
+    }
+  },
+  {
+    sequelize
+  }
+);
+
+Checkpoint.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    step: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false
+    },
+    path: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    precision: {
+      type: DataTypes.FLOAT,
       allowNull: true
     }
   },
@@ -140,5 +198,7 @@ Project.init(
 
 Project.belongsToMany(Dataset, { through: "DatasetProject" });
 Dataset.belongsToMany(Project, { through: "DatasetProject" });
+
+Project.belongsToMany(Checkpoint, { through: "ProjectCheckpoint" });
 
 sequelize.sync({ force: false });
