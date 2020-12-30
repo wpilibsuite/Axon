@@ -1,6 +1,4 @@
 import { DockerImage, Testjob } from "../schema/__generated__/graphql";
-import { ProjectData } from "../datasources/PseudoDatabase";
-import PseudoDatabase from "../datasources/PseudoDatabase";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
 import { Project, Export, Video, Test } from "../store";
 import { Container } from "dockerode";
@@ -14,17 +12,17 @@ export default class Tester {
     test: { name: "gcperkins/wpilib-ml-test", tag: "latest" }
   };
 
-  readonly project: ProjectData;
+  readonly project: Project;
   private container: Container;
   private streamPort: string;
   readonly docker: Docker;
   test: Test;
 
-  constructor(project: ProjectData, docker: Docker, port: string, name: string, exportID: string, videoID: string) {
+  constructor(project: Project, docker: Docker, port: string, name: string, exportID: string, videoID: string) {
     this.project = project;
     this.docker = docker;
     this.streamPort = port;
-    this.test = this.createTest(name, exportID, videoID)
+    this.test = this.createTest(name, exportID, videoID);
   }
 
   /**
@@ -51,16 +49,8 @@ export default class Tester {
     const model = await Export.findByPk(this.test.exportID);
 
     const FULL_TAR_PATH = path.posix.join(model.directory, model.tarfileName);
-    const MOUNTED_MODEL_PATH = path.posix.join(
-      this.project.directory,
-      model.relativeDirPath,
-      model.tarfileName
-    );
-    const CONTAINER_MODEL_PATH = path.posix.join(
-      CONTAINER_MOUNT_PATH,
-      model.relativeDirPath,
-      model.tarfileName
-    );
+    const MOUNTED_MODEL_PATH = path.posix.join(this.project.directory, model.relativeDirPath, model.tarfileName);
+    const CONTAINER_MODEL_PATH = path.posix.join(CONTAINER_MOUNT_PATH, model.relativeDirPath, model.tarfileName);
 
     if (!fs.existsSync(FULL_TAR_PATH)) return Promise.reject("model not found");
 

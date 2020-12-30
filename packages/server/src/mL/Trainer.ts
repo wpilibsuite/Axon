@@ -1,5 +1,3 @@
-import { ProjectData } from "../datasources/PseudoDatabase";
-import PseudoDatabase from "../datasources/PseudoDatabase";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
 import * as mkdirp from "mkdirp";
 import * as rimraf from "rimraf";
@@ -27,14 +25,16 @@ export default class Trainer {
     train: { name: "gcperkins/wpilib-ml-train", tag: "latest" }
   };
 
-  readonly project: ProjectData;
   private container: Container;
+  private status: TrainStatus;
+  private lastEpoch: number;
+  readonly project: Project;
   readonly docker: Docker;
   private paused: boolean;
-  private status: TrainStatus;
   private epoch: number;
 
-  public constructor(docker: Docker, project: ProjectData) {
+  public constructor(docker: Docker, project: Project) {
+    this.lastEpoch = project.epochs;
     this.status = TrainStatus.Idle;
     this.project = project;
     this.docker = docker;
@@ -50,7 +50,7 @@ export default class Trainer {
 
     this.status = TrainStatus.Writing;
 
-    const DATASETPATHS = this.project.datasets.map((dataset) =>
+    const DATASETPATHS = (await this.project.getDatasets()).map((dataset) =>
       path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
     );
 
@@ -60,13 +60,13 @@ export default class Trainer {
         : this.project.initialCheckpoint;
 
     const trainParameters: TrainParameters = {
-      "eval-frequency": this.project.hyperparameters.evalFrequency,
-      "percent-eval": this.project.hyperparameters.percentEval,
-      "batch-size": this.project.hyperparameters.batchSize,
+      "eval-frequency": this.project.evalFrequency,
+      "percent-eval": this.project.percentEval,
+      "batch-size": this.project.batchSize,
       "dataset-path": DATASETPATHS,
-      epochs: this.project.hyperparameters.epochs,
-      checkpoint: INITCKPT,
-      name: this.project.name
+      name: this.project.name,
+      epochs: this.lastEpoch,
+      checkpoint: INITCKPT
     };
 
     const HYPERPARAMETER_FILE_PATH = path.posix.join(this.project.directory, "hyperparameters.json");
@@ -98,8 +98,6 @@ export default class Trainer {
     await project.save();
 
     //must add a way to preserve existing checkpoints somehow
-
-    await PseudoDatabase.pushProject(this.project);
   }
 
   /**
@@ -111,7 +109,7 @@ export default class Trainer {
 
     this.status = TrainStatus.Moving;
 
-    for (const dataset of this.project.datasets)
+    for (const dataset of await this.project.getDatasets())
       await fs.promises.copyFile(
         path.posix.join("data", dataset.path),
         path.posix.join(this.project.directory, "dataset", path.basename(dataset.path))
@@ -235,7 +233,7 @@ export default class Trainer {
       status: state,
       projectID: this.project.id,
       currentEpoch: this.epoch,
-      lastEpoch: this.project.hyperparameters.epochs
+      lastEpoch: this.lastEpoch
     };
   }
 

@@ -1,8 +1,6 @@
 import { Trainjob, Exportjob, Testjob, DockerState } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 
-import PseudoDatabase from "../datasources/PseudoDatabase";
-import { ProjectData } from "../datasources/PseudoDatabase";
 import Trainer from "./Trainer";
 import Exporter from "./Exporter";
 import Tester from "./Tester";
@@ -51,9 +49,8 @@ export default class MLService {
    *
    * @param iproject The model's project.
    */
-  async start(iproject: Project): Promise<void> {
-    console.info(`${iproject.id}: Starting training`);
-    const project: ProjectData = await PseudoDatabase.retrieveProject(iproject.id);
+  async start(project: Project): Promise<void> {
+    console.info(`${project.id}: Starting training`);
     const trainer = new Trainer(this.docker, project);
     this.trainjobs.push(trainer);
 
@@ -69,20 +66,18 @@ export default class MLService {
 
     await trainer.updateCheckpoints();
 
-    PseudoDatabase.pushProject(project);
     this.trainjobs = this.trainjobs.filter((job) => job !== trainer);
-    console.info(`${iproject.id}: Training complete`);
+    console.info(`${project.id}: Training complete`);
   }
 
   /**
    * Export a checkpoint to a tflite model.
    *
-   * @param id The id of the checkpoint's project.
-   * @param checkpointNumber The epoch of the checkpoint to be exported.
+   * @param project The checkpoint's project
+   * @param checkpointID The ID of the checkpoint to be exported.
    * @param name The desired name of the exported file.
    */
-  async export(id: string, checkpointID: string, name: string): Promise<string> {
-    const project = await PseudoDatabase.retrieveProject(id);
+  async export(project: Project, checkpointID: string, name: string): Promise<string> {
     const exporter: Exporter = new Exporter(project, this.docker, checkpointID, name);
     this.exportjobs.push(exporter);
 
@@ -108,8 +103,7 @@ export default class MLService {
    * @param exportID The id of the export to be tested.
    * @param videoID The id of the video to be used in the test
    */
-  async test(name: string, projectID: string, exportID: string, videoID: string): Promise<string> {
-    const project = await PseudoDatabase.retrieveProject(projectID);
+  async test(name: string, project: Project, exportID: string, videoID: string): Promise<string> {
     const tester: Tester = new Tester(project, this.docker, "5000", name, exportID, videoID);
     this.testjobs.push(tester);
 

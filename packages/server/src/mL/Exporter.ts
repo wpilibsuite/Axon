@@ -1,6 +1,5 @@
 import { DockerImage, Exportjob } from "../schema/__generated__/graphql";
 import Trainer from "./Trainer";
-import { ProjectData } from "../datasources/PseudoDatabase";
 import { Project, Checkpoint, Export } from "../store";
 import { Container } from "dockerode";
 import Docker from "./Docker";
@@ -13,15 +12,15 @@ export default class Exporter {
     export: { name: "gcperkins/wpilib-ml-tflite", tag: "latest" }
   };
 
-  readonly project: ProjectData;
+  readonly project: Project;
   readonly docker: Docker;
   ckptID: string;
   exp: Export;
 
-  public constructor(project: ProjectData, docker: Docker, ckptID: string, exptName: string) {
-    this.ckptID = ckptID;
+  public constructor(project: Project, docker: Docker, ckptID: string, exptName: string) {
     this.project = project;
     this.docker = docker;
+    this.ckptID = ckptID;
     this.exp = this.createExport(exptName);
   }
 
@@ -62,7 +61,7 @@ export default class Exporter {
       name: name,
       projectID: this.project.id,
       checkpointID: this.ckptID,
-      tarfileName: `${name}.tar.gz`,
+      tarfileName: `${name}.tar.gz`
     });
     exp.relativeDirPath = path.posix.join("exports", exp.id);
     exp.directory = path.posix.join(this.project.directory, exp.relativeDirPath);

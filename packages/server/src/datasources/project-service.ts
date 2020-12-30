@@ -7,7 +7,7 @@ import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
-import PseudoDatabase from "./PseudoDatabase";
+import { PROJECT_DATA_DIR } from "../constants";
 
 export class ProjectService extends DataSource {
   private readonly store: Sequelize;
@@ -50,38 +50,27 @@ export class ProjectService extends DataSource {
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
     const project = await Project.findByPk(id);
 
-    const pDBproject = await PseudoDatabase.retrieveProject(id);
-
     if (updates.name !== undefined) {
       project.name = updates.name;
-      pDBproject.name = updates.name;
     }
     if (updates.datasets !== undefined) {
       await project.setDatasets(updates.datasets);
     }
     if (updates.epochs !== undefined) {
       project.epochs = updates.epochs;
-      pDBproject.hyperparameters.epochs = updates.epochs;
     }
     if (updates.batchSize !== undefined) {
       project.batchSize = updates.batchSize;
-      pDBproject.hyperparameters.batchSize = updates.batchSize;
     }
     if (updates.evalFrequency !== undefined) {
       project.evalFrequency = updates.evalFrequency;
-      pDBproject.hyperparameters.evalFrequency = updates.evalFrequency;
     }
     if (updates.percentEval !== undefined) {
       project.percentEval = updates.percentEval;
-      pDBproject.hyperparameters.percentEval = updates.percentEval;
     }
     if (updates.initialCheckpoint !== undefined) {
       project.initialCheckpoint = updates.initialCheckpoint;
-      pDBproject.initialCheckpoint = updates.initialCheckpoint;
     }
-
-    PseudoDatabase.pushProject(pDBproject);
-
     return await project.save();
   }
 
@@ -92,16 +81,21 @@ export class ProjectService extends DataSource {
     } else {
       await project.removeDataset(datasetId);
     }
-    const pDBproject = await PseudoDatabase.retrieveProject(projectId);
-    pDBproject.datasets = await project.getDatasets();
-    PseudoDatabase.pushProject(pDBproject);
     return project;
   }
 
   async createProject(name: string): Promise<Project> {
-    const project = await Project.create({ name });
-    await PseudoDatabase.addProjectData(project);
-    return project;
+    const project = Project.build({ name });
+
+    const mkProjDir = async (folder: string) => mkdirp(path.posix.join(project.directory, folder));
+    project.directory = `/${PROJECT_DATA_DIR}/${project.id}`;
+    await mkdirp(project.directory);
+    await mkProjDir("checkpoints");
+    await mkProjDir("exports");
+    await mkProjDir("dataset");
+    await mkProjDir("tests");
+
+    return project.save();
   }
 
   async getTrainjobs(): Promise<Trainjob[]> {
@@ -145,8 +139,8 @@ export class ProjectService extends DataSource {
   }
 
   async exportCheckpoint(id: string, checkpointID: string, name: string): Promise<Project> {
-    this.mLService.export(id, checkpointID, name).catch((err) => console.log(err));
     const project = await Project.findByPk(id);
+    this.mLService.export(project, checkpointID, name).catch((err) => console.log(err));
     console.log(`Started export on project: ${JSON.stringify(project)}`);
     return project;
   }
@@ -154,17 +148,16 @@ export class ProjectService extends DataSource {
   async testModel(name: string, projectID: string, exportID: string, videoID: string): Promise<Project> {
     const project = await Project.findByPk(projectID);
     console.log(`Started test: \nModel: ${exportID} \nVideo: ${videoID}`);
-    this.mLService.test(name, projectID, exportID, videoID).catch((err) => console.log(err));
+    this.mLService.test(name, project, exportID, videoID).catch((err) => console.log(err));
     return project;
   }
 
   async saveVideo(id: string, name: string, filename: string, stream: fs.ReadStream): Promise<Video> {
     const project: Project = await Project.findByPk(id);
-    const directory: string = (await PseudoDatabase.retrieveProject(id)).directory;
 
     const video = Video.build({ name, filename });
 
-    const videoDir: string = path.posix.join(directory, "videos", video.id);
+    const videoDir: string = path.posix.join(project.directory, "videos", video.id);
     await mkdirp(videoDir);
 
     video.fullPath = path.posix.join(videoDir, filename);

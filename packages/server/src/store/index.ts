@@ -126,6 +126,7 @@ export class Test extends Model<TestAttributes, TestCreationAttributes> implemen
 interface ProjectAttributes {
   id: string;
   name: string;
+  directory: string;
   initialCheckpoint: string;
 
   epochs: number;
@@ -140,6 +141,7 @@ type ProjectCreationAttributes = Optional<ProjectAttributes, keyof ProjectAttrib
 
 export class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implements ProjectAttributes {
   name: string;
+  directory: string;
   initialCheckpoint: string;
 
   epochs: number;
@@ -330,7 +332,7 @@ Test.init(
   {
     sequelize
   }
-)
+);
 
 Project.init(
   {
@@ -341,6 +343,10 @@ Project.init(
       primaryKey: true
     },
     name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    directory: {
       type: new DataTypes.STRING(),
       allowNull: false
     },
