@@ -53,11 +53,11 @@ jobs:
       - name: Build Docker Image
         run: docker build -t wpilib/axon:latest .
       - name: Save Docker Image
-        run: docker save -o ml-app.tar ml-app
+        run: docker save -o wpilib_axon.latest.tar wpilib/axon:latest
       - uses: actions/upload-artifact@v2
         with:
           name: Docker Container
-          path: ml-app.tar
+          path: wpilib_axon.latest.tar
       - name: Publish Docker Image
         if: |
           github.repository_owner == 'wpilibsuite' &&
