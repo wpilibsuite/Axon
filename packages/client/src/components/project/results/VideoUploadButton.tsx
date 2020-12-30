@@ -6,8 +6,8 @@ import { DropzoneArea } from "material-ui-dropzone";
 import AddIcon from "@material-ui/icons/Add";
 
 const SAVE_VID_MUTATION = gql`
-  mutation saveVideo($projectId: ID!, $videoName: String!, $video: Upload!) {
-    saveVideo(projectId: $projectId, videoName: $videoName, video: $video) {
+  mutation saveVideo($projectID: ID!, $name: String!, $video: Upload!) {
+    saveVideo(projectID: $projectID, name: $name, video: $video) {
       id
     }
   }
@@ -16,7 +16,7 @@ const SAVE_VID_MUTATION = gql`
 export default function VideoUploadButton(props: { id: string }): ReactElement {
   const [saveVideoMutation] = useMutation(SAVE_VID_MUTATION);
   const [video, setVideo] = React.useState<File>();
-  const [videoName, setVideoName] = React.useState<string>();
+  const [name, setName] = React.useState<string>();
   const [open, setOpen] = React.useState(false);
 
   const handleClick = () => {
@@ -28,8 +28,8 @@ export default function VideoUploadButton(props: { id: string }): ReactElement {
   };
 
   const handleSave = async () => {
-    const projectId = props.id;
-    saveVideoMutation({ variables: { projectId, videoName, video } }).catch((err) => {
+    const projectID = props.id;
+    saveVideoMutation({ variables: { projectID, name, video } }).catch((err) => {
       console.log(err);
     });
     handleClose();
@@ -51,7 +51,7 @@ export default function VideoUploadButton(props: { id: string }): ReactElement {
             showPreviewsInDropzone={true}
           />
           <TextField
-            onChange={(event) => setVideoName(event.target.value)}
+            onChange={(event) => setName(event.target.value)}
             autoFocus
             margin="dense"
             label="Video Name"

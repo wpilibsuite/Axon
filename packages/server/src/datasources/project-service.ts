@@ -1,6 +1,6 @@
 import { DataSource } from "apollo-datasource";
-import { Video, ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState } from "../schema/__generated__/graphql";
-import { Project, Export, Checkpoint } from "../store";
+import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState } from "../schema/__generated__/graphql";
+import { Project, Export, Checkpoint, Video } from "../store";
 import { Sequelize } from "sequelize";
 import MLService from "../mL";
 import * as mkdirp from "mkdirp";
@@ -8,7 +8,6 @@ import * as path from "path";
 import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
 import PseudoDatabase from "./PseudoDatabase";
-import { ProjectData } from "./PseudoDatabase";
 
 export class ProjectService extends DataSource {
   private readonly store: Sequelize;
@@ -44,8 +43,8 @@ export class ProjectService extends DataSource {
     return project.getExports({ order: [["createdAt", "ASC"]] });
   }
   async getVideos(id: string): Promise<Video[]> {
-    const project = await PseudoDatabase.retrieveProject(id);
-    return Object.values(project.videos);
+    const project = await Project.findByPk(id);
+    return project.getVideos({ order: [["createdAt", "ASC"]] });
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {
@@ -152,23 +151,26 @@ export class ProjectService extends DataSource {
     return project;
   }
 
-  async testModel(testName: string, projectId: string, exportId: string, videoId: string): Promise<Project> {
-    const project = await Project.findByPk(projectId);
-    console.log(`Started test: \nModel: ${exportId} \nVideo: ${videoId}`);
-    this.mLService.test(testName, projectId, exportId, videoId).catch((err) => console.log(err));
+  async testModel(testName: string, projectID: string, exportID: string, videoID: string): Promise<Project> {
+    const project = await Project.findByPk(projectID);
+    console.log(`Started test: \nModel: ${exportID} \nVideo: ${videoID}`);
+    this.mLService.test(testName, projectID, exportID, videoID).catch((err) => console.log(err));
     return project;
   }
 
-  async saveVideo(id: string, videoName: string, filename: string, stream: fs.ReadStream): Promise<Video> {
-    const project: ProjectData = await PseudoDatabase.retrieveProject(id);
+  async saveVideo(id: string, name: string, filename: string, stream: fs.ReadStream): Promise<Video> {
+    const project: Project = await Project.findByPk(id);
+    const directory: string = (await PseudoDatabase.retrieveProject(id)).directory;
 
-    const videoId: string = videoName; // <-- fix
-    const videoDir: string = path.posix.join(project.directory, "videos", videoId);
-    const videoPath: string = path.posix.join(videoDir, filename);
+    const video = Video.build({ name, filename });
+
+    const videoDir: string = path.posix.join(directory, "videos", video.id);
     await mkdirp(videoDir);
 
+    video.fullPath = path.posix.join(videoDir, filename);
+
     await new Promise((resolve, reject) => {
-      const writeStream = createWriteStream(videoPath);
+      const writeStream = createWriteStream(video.fullPath);
       writeStream.on("finish", resolve);
       writeStream.on("error", (error) => {
         unlink(videoDir, () => {
@@ -179,15 +181,8 @@ export class ProjectService extends DataSource {
       stream.pipe(writeStream);
     });
 
-    const video: Video = {
-      id: videoName,
-      name: videoName,
-      filename: filename,
-      fullPath: videoPath
-    };
-    project.videos[videoId] = video;
-    PseudoDatabase.pushProject(project);
-
+    video.save();
+    project.addVideo(video);
     return Promise.resolve(video);
   }
 

@@ -28,7 +28,7 @@ type Mutation {
   haltTraining(id: ID!): Project
   pauseTraining(id: ID!): Project
   resumeTraining(id: ID!): Project
-  saveVideo(projectId: ID!, videoName: String!, video: Upload!): Video
+  saveVideo(projectID: ID!, name: String!, video: Upload!): Video
   exportCheckpoint(id: ID!, checkpointID: String!, name: String!): Project
   testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
   databaseTest(id: ID!): Project
@@ -101,7 +101,7 @@ type Export {
 }
 
 type Video {
-  id: String!
+  id: ID!
   name: String!
   filename: String!
   fullPath: String!

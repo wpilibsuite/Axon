@@ -2,7 +2,7 @@ import { DockerImage, Test, Testjob } from "../schema/__generated__/graphql";
 import { ProjectData } from "../datasources/PseudoDatabase";
 import PseudoDatabase from "../datasources/PseudoDatabase";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
-import { Export } from "../store";
+import { Export, Video } from "../store";
 import { Container } from "dockerode";
 import * as mkdirp from "mkdirp";
 import Docker from "./Docker";
@@ -36,7 +36,7 @@ export default class Tester {
   public async createTest(name: string, exportID: string, videoID: string): Promise<void> {
     const id = name; //will be the random idv4 when in sequalize
     const model = await Export.findByPk(exportID);
-    const video = this.project.videos[videoID];
+    const video = await Video.findByPk(videoID);
     const destinationDir = path.posix.join(this.project.directory, "tests", id);
 
     this.test = {

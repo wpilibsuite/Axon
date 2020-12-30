@@ -29,10 +29,10 @@ export const Mutation: MutationResolvers = {
   resumeTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.resumeTraining(id);
   },
-  saveVideo: async (parent, { projectId, videoName, video }, { dataSources }) => {
+  saveVideo: async (parent, { projectID, name, video }, { dataSources }) => {
     const { createReadStream, filename } = await video;
     console.log(filename);
-    return dataSources.projectService.saveVideo(projectId, videoName, filename, createReadStream());
+    return dataSources.projectService.saveVideo(projectID, name, filename, createReadStream());
   },
   exportCheckpoint: async (parent, { id, checkpointID, name }, { dataSources }) => {
     return dataSources.projectService.exportCheckpoint(id, checkpointID, name);

@@ -83,6 +83,25 @@ export class Export extends Model<ExportAttributes, ExportCreationAttributes> im
   public readonly updatedAt!: Date;
 }
 
+interface VideoAttributes {
+  id: string;
+  name: string;
+  filename: string;
+  fullPath: string;
+}
+
+type VideoCreationAttributes = Optional<VideoAttributes, keyof VideoAttributes>;
+
+export class Video extends Model<VideoAttributes, VideoCreationAttributes> implements VideoAttributes {
+  name: string;
+  filename: string;
+  fullPath: string;
+
+  public readonly id!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
 interface ProjectAttributes {
   id: string;
   name: string;
@@ -122,6 +141,10 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   public getExports!: HasManyGetAssociationsMixin<Export>;
   public addExport!: HasManyAddAssociationMixin<Export, string>;
   public removeExport!: HasManyRemoveAssociationMixin<Export, string>;
+
+  public getVideos!: HasManyGetAssociationsMixin<Video>;
+  public addVideo!: HasManyAddAssociationMixin<Video, string>;
+  public removeVideo!: HasManyRemoveAssociationMixin<Video, string>;
 
   public readonly id!: string;
   public readonly createdAt!: Date;
@@ -228,6 +251,32 @@ Export.init(
   }
 );
 
+Video.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    filename: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    fullPath: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    }
+  },
+  {
+    sequelize
+  }
+);
+
 Project.init(
   {
     id: {
@@ -275,5 +324,6 @@ Dataset.belongsToMany(Project, { through: "DatasetProject" });
 
 Project.belongsToMany(Checkpoint, { through: "ProjectCheckpoint" });
 Project.belongsToMany(Export, { through: "ProjectExport" });
+Project.belongsToMany(Video, { through: "ProjectVideo" });
 
 sequelize.sync({ force: false });
