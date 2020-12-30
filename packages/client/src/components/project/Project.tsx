@@ -44,7 +44,8 @@ const GET_PROJECT_DATA = gql`
       }
       exports {
         id
-        projectId
+        projectID
+        checkpointID
         name
         directory
         downloadPath
@@ -91,7 +92,7 @@ export default function Project(props: { id: string }): ReactElement {
           <Input id={props.id} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Metrics id={props.id} checkpoints={data.project.checkpoints} />
+          <Metrics id={props.id} checkpoints={data.project.checkpoints} exports={data.project.exports} />
         </TabPanel>
         <TabPanel value={value} index={2}>
           <Results id={props.id} exports={data.project.exports} videos={data.project.videos} />

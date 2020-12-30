@@ -40,7 +40,7 @@ export default function TestButton(props: {
   const [testName, setTestName] = React.useState<string>();
 
   const handleTest = async () => {
-    const projectID = props.modelExport.projectId;
+    const projectID = props.modelExport.projectID;
     const exportID = props.modelExport.id;
     await testModel({ variables: { testName, projectID, exportID, videoID } }).catch((err) => {
       console.log(err);
@@ -82,7 +82,7 @@ export default function TestButton(props: {
             ))}
           </RadioGroup>
 
-          <VideoUploadButton id={props.modelExport.projectId} />
+          <VideoUploadButton id={props.modelExport.projectID} />
 
           <TextField onChange={handleTestNameChange} autoFocus margin="dense" label="Test Name" fullWidth />
         </DialogContent>

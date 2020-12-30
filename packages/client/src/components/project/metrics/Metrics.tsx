@@ -21,6 +21,7 @@ import Chart from "./Chart";
 import ExportButton from "./ExportButton";
 import * as path from "path";
 import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectData";
+import { GetProjectData_project_exports } from "../__generated__/GetProjectData";
 import { gql, useQuery } from "@apollo/client";
 import { GetExportjobs_exportjobs } from "./__generated__/GetExportjobs";
 import { CircularProgress } from "@material-ui/core";
@@ -29,6 +30,7 @@ import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 const GET_EXPORTJOBS = gql`
   query GetExportjobs {
     exportjobs {
+      name
       checkpointID
       projectID
       exportID
@@ -39,6 +41,7 @@ const GET_EXPORTJOBS = gql`
 export default function Metrics(props: {
   id: string;
   checkpoints: GetProjectData_project_checkpoints[];
+  exports: GetProjectData_project_exports[];
 }): ReactElement {
   const [selectedCheckpoint, setSelectedCheckpoint] = React.useState<GetProjectData_project_checkpoints>();
 
@@ -58,7 +61,7 @@ export default function Metrics(props: {
     <>
       <Chart checkpoints={props.checkpoints} onClick={onSet} />
       <Collapse in={selectedCheckpoint !== undefined} timeout="auto" unmountOnExit>
-        <CheckpointInfo checkpoint={selectedCheckpoint} jobs={data.exportjobs} id={props.id} />
+        <CheckpointInfo checkpoint={selectedCheckpoint} exports={props.exports} jobs={data.exportjobs} id={props.id} />
       </Collapse>
       <Exportjobs jobs={data.exportjobs} id={props.id} />
     </>
@@ -67,13 +70,12 @@ export default function Metrics(props: {
 
 function CheckpointInfo(props: {
   checkpoint: GetProjectData_project_checkpoints | undefined;
+  exports: GetProjectData_project_exports[] | undefined;
   jobs: GetExportjobs_exportjobs[];
   id: string;
 }): JSX.Element {
   if (props.checkpoint) {
-    const job = props.jobs.find(
-      (job) => job.projectID === props.id && job.checkpointID === props.checkpoint?.step.toString()
-    );
+    const job = props.jobs.find((job) => job.projectID === props.id && job.checkpointID === props.checkpoint?.id);
     return (
       <Card variant="outlined">
         <Grid spacing={5} container direction="row" justify="center" alignItems="center">
@@ -93,7 +95,7 @@ function CheckpointInfo(props: {
               <Typography variant="body1">Exported Models:</Typography>
             </Grid>
             <Grid item xs={12}>
-              <ExportsList checkpoint={props.checkpoint} />
+              <ExportsList checkpoint={props.checkpoint} exports={props.exports} />
             </Grid>
           </Grid>
         </Grid>
@@ -132,21 +134,26 @@ function MetricsList(props: { checkpoint: GetProjectData_project_checkpoints }):
   );
 }
 
-function ExportsList(props: { checkpoint: GetProjectData_project_checkpoints | undefined }): JSX.Element {
+function ExportsList(props: {
+  checkpoint: GetProjectData_project_checkpoints | undefined;
+  exports: GetProjectData_project_exports[] | undefined;
+}): JSX.Element {
+  const ckptExports = props.exports ? props.exports.filter((exprt) => exprt.checkpointID === props.checkpoint?.id) : [];
+
   return (
     <List dense={true}>
-      {/* {props.checkpoint?.status.downloadPaths.map((downloadPath) => (
-        <ListItem>
+      {ckptExports.map((exprt) => (
+        <ListItem key={exprt.id}>
           <ListItemIcon>
             <IconButton>
-              <a download href={`http://localhost:4000/${downloadPath}`}>
+              <a download href={`http://localhost:4000/${exprt.downloadPath}`}>
                 <CloudDownloadIcon />
               </a>
             </IconButton>
           </ListItemIcon>
-          <ListItemText primary={path.basename(downloadPath)} />
+          <ListItemText primary={path.basename(exprt.downloadPath)} />
         </ListItem>
-      ))} */}
+      ))}
     </List>
   );
 }
@@ -162,7 +169,7 @@ function Exportjobs(props: { jobs: GetExportjobs_exportjobs[]; id: string }): JS
             <ListItemIcon>
               <CircularProgress />
             </ListItemIcon>
-            <ListItemText primary={`exporting checkpoint ${job.checkpointID}`} secondary={job.exportID} />
+            <ListItemText primary={`exporting checkpoint "${job.name}"`} secondary={job.exportID} />
           </ListItem>
         ))}
       </List>

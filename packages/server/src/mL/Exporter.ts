@@ -1,8 +1,7 @@
-import { DockerImage, Export, Exportjob } from "../schema/__generated__/graphql";
+import { DockerImage, Exportjob } from "../schema/__generated__/graphql";
 import Trainer from "./Trainer";
-import PseudoDatabase from "../datasources/PseudoDatabase";
 import { ProjectData } from "../datasources/PseudoDatabase";
-import { Checkpoint } from "../store";
+import { Project, Checkpoint, Export } from "../store";
 import { Container } from "dockerode";
 import Docker from "./Docker";
 import * as path from "path";
@@ -63,15 +62,15 @@ export default class Exporter {
     const RELATIVE_DIR_PATH = path.posix.join("exports", name);
     const FULL_DIR_PATH = path.posix.join(this.project.directory, RELATIVE_DIR_PATH);
     const DOWNLOAD_PATH = path.posix.join(FULL_DIR_PATH, TARFILE_NAME).split("/server/data/")[1]; //<- need to do this better
-    return {
-      id: name, //<-- id should be the IDv4 when moved to sequelize
+    return Export.build({
       name: name,
-      projectId: this.project.id,
+      projectID: this.project.id,
+      checkpointID: this.ckptID,
       directory: FULL_DIR_PATH,
       tarfileName: TARFILE_NAME,
       downloadPath: DOWNLOAD_PATH,
       relativeDirPath: RELATIVE_DIR_PATH
-    };
+    });
   }
 
   /**
@@ -110,12 +109,14 @@ export default class Exporter {
    * Save the previously stored Export object to the database.
    */
   public async saveExport(): Promise<void> {
-    this.project.exports[this.exp.id] = this.exp;
-    await PseudoDatabase.pushProject(this.project);
+    const project = await Project.findByPk(this.project.id);
+    await this.exp.save();
+    await project.addExport(this.exp);
   }
 
   public getJob(): Exportjob {
     return {
+      name: this.exp.name,
       projectID: this.project.id,
       checkpointID: this.ckptID,
       exportID: this.exp.id

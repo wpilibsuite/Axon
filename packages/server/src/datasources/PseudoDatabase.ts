@@ -1,4 +1,4 @@
-import { Export, Test, Video } from "../schema/__generated__/graphql";
+import { Test, Video } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { Dataset } from "../store";
 import { DATA_DIR } from "../constants";
@@ -19,7 +19,6 @@ export type ProjectData = {
     evalFrequency: number;
     percentEval: number;
   };
-  exports: { [id: string]: Export };
   videos: { [id: string]: Video };
   tests: { [id: string]: Test };
   containerIDs: {
@@ -59,7 +58,6 @@ export default class PseudoDatabase {
         evalFrequency: project.evalFrequency,
         percentEval: project.percentEval
       },
-      exports: {},
       videos: {},
       tests: {},
       containerIDs: {

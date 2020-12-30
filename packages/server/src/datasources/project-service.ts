@@ -1,14 +1,6 @@
 import { DataSource } from "apollo-datasource";
-import {
-  Export,
-  Video,
-  ProjectUpdateInput,
-  Trainjob,
-  Testjob,
-  Exportjob,
-  DockerState
-} from "../schema/__generated__/graphql";
-import { Project, Checkpoint } from "../store";
+import { Video, ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState } from "../schema/__generated__/graphql";
+import { Project, Export, Checkpoint } from "../store";
 import { Sequelize } from "sequelize";
 import MLService from "../mL";
 import * as mkdirp from "mkdirp";
@@ -48,8 +40,8 @@ export class ProjectService extends DataSource {
     return project.getCheckpoints({ order: [["step", "ASC"]] });
   }
   async getExports(id: string): Promise<Export[]> {
-    const project = await PseudoDatabase.retrieveProject(id);
-    return Object.values(project.exports);
+    const project = await this.getProject(id);
+    return project.getExports({ order: [["createdAt", "ASC"]] });
   }
   async getVideos(id: string): Promise<Video[]> {
     const project = await PseudoDatabase.retrieveProject(id);

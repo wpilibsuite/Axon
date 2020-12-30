@@ -34,21 +34,6 @@ export class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes>
   public readonly updatedAt!: Date;
 }
 
-interface ProjectAttributes {
-  id: string;
-  name: string;
-  initialCheckpoint: string;
-
-  epochs: number;
-  batchSize: number;
-  evalFrequency: number;
-  percentEval: number;
-
-  inProgress: boolean;
-}
-
-type ProjectCreationAttributes = Optional<ProjectAttributes, keyof ProjectAttributes>;
-
 interface CheckpointAttributes {
   id: string;
   name: string;
@@ -71,6 +56,48 @@ export class Checkpoint extends Model<CheckpointAttributes, CheckpointCreationAt
   public readonly updatedAt!: Date;
 }
 
+interface ExportAttributes {
+  relativeDirPath: string;
+  downloadPath: string;
+  checkpointID: string;
+  tarfileName: string;
+  directory: string;
+  projectID: string;
+  name: string;
+  id: string;
+}
+
+type ExportCreationAttributes = Optional<ExportAttributes, keyof ExportAttributes>;
+
+export class Export extends Model<ExportAttributes, ExportCreationAttributes> implements ExportAttributes {
+  relativeDirPath: string;
+  downloadPath: string;
+  checkpointID: string;
+  tarfileName: string;
+  projectID: string;
+  directory: string;
+  name: string;
+
+  public readonly id!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+interface ProjectAttributes {
+  id: string;
+  name: string;
+  initialCheckpoint: string;
+
+  epochs: number;
+  batchSize: number;
+  evalFrequency: number;
+  percentEval: number;
+
+  inProgress: boolean;
+}
+
+type ProjectCreationAttributes = Optional<ProjectAttributes, keyof ProjectAttributes>;
+
 export class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implements ProjectAttributes {
   name: string;
   initialCheckpoint: string;
@@ -92,6 +119,10 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   public addCheckpoint!: HasManyAddAssociationMixin<Checkpoint, string>;
   public removeCheckpoint!: HasManyRemoveAssociationMixin<Checkpoint, string>;
 
+  public getExports!: HasManyGetAssociationsMixin<Export>;
+  public addExport!: HasManyAddAssociationMixin<Export, string>;
+  public removeExport!: HasManyRemoveAssociationMixin<Export, string>;
+
   public readonly id!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -99,6 +130,7 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   public static associations: {
     checkpoints: Association<Project, Checkpoint>;
     datasets: Association<Project, Dataset>;
+    exports: Association<Project, Export>;
   };
 }
 
@@ -154,6 +186,48 @@ Checkpoint.init(
   }
 );
 
+Export.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    projectID: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    checkpointID: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    tarfileName: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    downloadPath: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    directory: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    relativeDirPath: {
+      type: new DataTypes.STRING(),
+      allowNull: true
+    }
+  },
+  {
+    sequelize
+  }
+);
+
 Project.init(
   {
     id: {
@@ -200,5 +274,6 @@ Project.belongsToMany(Dataset, { through: "DatasetProject" });
 Dataset.belongsToMany(Project, { through: "DatasetProject" });
 
 Project.belongsToMany(Checkpoint, { through: "ProjectCheckpoint" });
+Project.belongsToMany(Export, { through: "ProjectExport" });
 
 sequelize.sync({ force: false });

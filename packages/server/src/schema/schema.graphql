@@ -82,7 +82,7 @@ type Dataset {
 }
 
 type Checkpoint {
-  id: String!
+  id: ID!
   name: String!
   step: Int!
   path: String!
@@ -90,8 +90,9 @@ type Checkpoint {
 }
 
 type Export {
-  id: String!
-  projectId: ID!
+  id: ID!
+  projectID: ID!
+  checkpointID: ID!
   name: String!
   directory: String!
   tarfileName: String!
@@ -153,6 +154,7 @@ type Trainjob {
 }
 
 type Exportjob {
+  name: String!
   checkpointID: String!
   projectID: String!
   exportID: String!
