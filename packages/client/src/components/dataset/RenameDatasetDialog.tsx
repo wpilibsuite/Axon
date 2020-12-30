@@ -41,6 +41,7 @@ export default function RenameDatasetDialog(props: { id: string }): ReactElement
     <>
       <MenuItem onClick={handleClickOpen}>
         Rename
+      </MenuItem>
         <Dialog onClose={handleClose} open={open}>
           <DialogTitle>Rename Datset</DialogTitle>
           <DialogContent dividers>
@@ -61,7 +62,7 @@ export default function RenameDatasetDialog(props: { id: string }): ReactElement
             </Button>
           </DialogActions>
         </Dialog>
-      </MenuItem>
+
     </>
   );
 }
