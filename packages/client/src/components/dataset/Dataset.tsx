@@ -1,12 +1,11 @@
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
-import { Container, GridList, GridListTile, IconButton, MenuItem, Menu, Toolbar, Typography } from "@material-ui/core";
+import { Container, GridList, GridListTile, IconButton, Menu, Toolbar, Typography } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
 import RenameDatasetDialog from "./RenameDatasetDialog";
-import { ClickAwayListener} from "@material-ui/core";
 
 const GET_DATASET = gql`
   query GetDataset($id: ID!) {

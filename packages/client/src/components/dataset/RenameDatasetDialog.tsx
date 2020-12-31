@@ -5,12 +5,11 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  IconButton, MenuItem,
-  TextField,
-  Tooltip
+  MenuItem,
+  TextField
 } from "@material-ui/core";
 import gql from "graphql-tag";
-import { useApolloClient, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 
 const RENAME_DATASET_MUTATION = gql`
     mutation RenameDataset($id: ID!, $newName: String!) {
