@@ -1,12 +1,12 @@
+import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
 import { CONTAINER_MOUNT_PATH } from "./Docker";
-import * as mkdirp from "mkdirp";
+import { Project, Checkpoint } from "../store";
+import { Container } from "dockerode";
 import * as rimraf from "rimraf";
+import * as mkdirp from "mkdirp";
 import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
-import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
-import { Container } from "dockerode";
-import { Project, Checkpoint } from "../store";
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -82,22 +82,21 @@ export default class Trainer {
 
     this.status = TrainStatus.Cleaning;
 
+    /* remove old train dir to clear eval files */
     const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
       await new Promise((resolve) => rimraf(OLD_TRAIN_DIR, resolve));
       console.log(`old train dir ${OLD_TRAIN_DIR} removed`);
-    } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
+    }
 
+    /* get rid of old metrics file so the old metrics are not read */
     const OLD_METRICS_FILE = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(OLD_METRICS_FILE)) {
       fs.unlinkSync(OLD_METRICS_FILE);
-    } //must clear old checkpoints in order for new ones to be saved by trainer
+    }
 
     const project = await Project.findByPk(this.project.id);
     await project.setCheckpoints([]);
-    await project.save();
-
-    //must add a way to preserve existing checkpoints somehow
   }
 
   /**
@@ -204,7 +203,6 @@ export default class Trainer {
     async function copyCheckpointFile(extention: string): Promise<void> {
       return fs.promises.copyFile(sourcePath.concat(extention), destPath.concat(extention));
     }
-
     await Promise.all([
       copyCheckpointFile(".data-00000-of-00001"),
       copyCheckpointFile(".index"),
@@ -235,9 +233,5 @@ export default class Trainer {
       currentEpoch: this.epoch,
       lastEpoch: this.lastEpoch
     };
-  }
-
-  public print(): string {
-    return `${this.project.id}: Trainjob \n epoch: ${this.epoch}`;
   }
 }

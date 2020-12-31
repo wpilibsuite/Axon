@@ -70,7 +70,7 @@ export class DatasetService extends DataSource {
   }
 
   async getDatasetImages(id: string): Promise<LabeledImage[]> {
-    // return this.listImages(id);
+    // return this.listImages(id); //<-- supressed due to "too many open files error"
     return [];
   }
 

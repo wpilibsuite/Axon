@@ -1,11 +1,11 @@
 import { DockerImage, Exportjob } from "../schema/__generated__/graphql";
-import Trainer from "./Trainer";
 import { Project, Checkpoint, Export } from "../store";
 import { Container } from "dockerode";
+import * as mkdirp from "mkdirp";
+import Trainer from "./Trainer";
 import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
-import * as mkdirp from "mkdirp";
 
 export default class Exporter {
   static readonly images: Record<string, DockerImage> = {
@@ -22,6 +22,24 @@ export default class Exporter {
     this.docker = docker;
     this.ckptID = ckptID;
     this.exp = this.createExport(exptName);
+  }
+
+  /**
+   * Create the Export object to be stored in the Exporter instance.
+   *
+   * @param name The desired name of the exported tarfile.
+   */
+  private createExport(name: string): Export {
+    const exp = Export.build({
+      name: name,
+      projectID: this.project.id,
+      checkpointID: this.ckptID,
+      tarfileName: `${name}.tar.gz`
+    });
+    exp.relativeDirPath = path.posix.join("exports", exp.id);
+    exp.directory = path.posix.join(this.project.directory, exp.relativeDirPath);
+    exp.downloadPath = path.posix.join(exp.directory, exp.tarfileName).split("/server/data/")[1]; //<- need to do this better
+    return exp;
   }
 
   /**
@@ -49,24 +67,6 @@ export default class Exporter {
         checkpointFileExists(".meta")
       ])
     ).every(Boolean);
-  }
-
-  /**
-   * Create the Export object to be stored in the Exporter instance.
-   *
-   * @param name The desired name of the exported tarfile.
-   */
-  private createExport(name: string): Export {
-    const exp = Export.build({
-      name: name,
-      projectID: this.project.id,
-      checkpointID: this.ckptID,
-      tarfileName: `${name}.tar.gz`
-    });
-    exp.relativeDirPath = path.posix.join("exports", exp.id);
-    exp.directory = path.posix.join(this.project.directory, exp.relativeDirPath);
-    exp.downloadPath = path.posix.join(exp.directory, exp.tarfileName).split("/server/data/")[1]; //<- need to do this better
-    return exp;
   }
 
   /**
@@ -117,9 +117,5 @@ export default class Exporter {
       checkpointID: this.ckptID,
       exportID: this.exp.id
     };
-  }
-
-  public async print(): Promise<string> {
-    return `Exportjob: ${this.exp.id}`;
   }
 }
