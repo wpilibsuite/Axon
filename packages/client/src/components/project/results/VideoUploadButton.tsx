@@ -1,9 +1,9 @@
-import React, { ReactElement } from "react";
-import gql from "graphql-tag";
-import { useMutation } from "@apollo/client";
 import { Button, Dialog, DialogActions, DialogContent, IconButton, TextField } from "@material-ui/core";
 import { DropzoneArea } from "material-ui-dropzone";
+import { useMutation } from "@apollo/client";
 import AddIcon from "@material-ui/icons/Add";
+import React, { ReactElement } from "react";
+import gql from "graphql-tag";
 
 const SAVE_VID_MUTATION = gql`
   mutation saveVideo($projectID: ID!, $name: String!, $video: Upload!) {

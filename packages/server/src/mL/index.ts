@@ -128,7 +128,7 @@ export default class MLService {
    *
    * @param project The project whos training will be stopped.
    */
-  async halt(project: Project): Promise<void> {
+  async stop(project: Project): Promise<void> {
     const job = this.trainjobs.find((job) => job.project.id === project.id);
     if (job === undefined) Promise.reject("no trainjob found");
     await job.stop();

@@ -20,8 +20,8 @@ export const Mutation: MutationResolvers = {
   startTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.startTraining(id);
   },
-  haltTraining: (parent, { id }, { dataSources }) => {
-    return dataSources.projectService.haltTraining(id);
+  stopTraining: (parent, { id }, { dataSources }) => {
+    return dataSources.projectService.stopTraining(id);
   },
   pauseTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.pauseTraining(id);

@@ -1,13 +1,12 @@
-import React, { ReactElement } from "react";
 import { CircularProgress } from "@material-ui/core";
-
 import { Container } from "@material-ui/core";
+import React, { ReactElement } from "react";
 
 export default function StreamViewer(props: { port: string }): ReactElement {
   const [streamLoading, setStreamLoading] = React.useState(true);
-  const [tempError, setTempError] = React.useState(false);
   const [streamTimeout, setStreamTimeout] = React.useState(0);
   const [testError, setTestError] = React.useState(false);
+  const [tempError, setTempError] = React.useState(false);
 
   const handleStreamError = () => {
     setTempError(true);
@@ -20,9 +19,11 @@ export default function StreamViewer(props: { port: string }): ReactElement {
       setStreamLoading(false);
     }
   };
+
   const handleStreamLoaded = () => {
     setStreamLoading(false);
   };
+
   return (
     <Container>
       {streamLoading && (
@@ -33,9 +34,9 @@ export default function StreamViewer(props: { port: string }): ReactElement {
       {!tempError && !testError && (
         <img
           src={`http://localhost:${props.port}/stream.mjpg?dummy=${Math.round(new Date().getTime() / 1000)}`} //<-- so the images dont cache.
-          alt="no stream"
           onError={() => handleStreamError()}
           onLoad={() => handleStreamLoaded()}
+          alt="no stream"
         />
       )}
       {testError && (

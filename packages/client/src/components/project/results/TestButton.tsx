@@ -1,5 +1,3 @@
-import React, { ReactElement, ChangeEvent } from "react";
-
 import {
   Button,
   Radio,
@@ -13,13 +11,14 @@ import {
   Tooltip,
   Collapse
 } from "@material-ui/core";
-import gql from "graphql-tag";
+import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
+import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState";
+import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
+import { DockerState } from "../../../__generated__/globalTypes";
+import React, { ReactElement, ChangeEvent } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import VideoUploadButton from "./VideoUploadButton";
-import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
-import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
-import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState";
-import { DockerState } from "../../../__generated__/globalTypes";
+import gql from "graphql-tag";
 
 const TEST_MODEL_MUTATION = gql`
   mutation testModel($name: String!, $projectID: String!, $exportID: String!, $videoID: String!) {
@@ -34,9 +33,9 @@ export default function TestButton(props: {
   modelExport: GetProjectData_project_exports;
   videos: GetProjectData_project_videos[];
 }): ReactElement {
-  const [testModel] = useMutation(TEST_MODEL_MUTATION);
   const [preparing, setPreparing] = React.useState(false);
   const [videoID, setVideoID] = React.useState<string>();
+  const [testModel] = useMutation(TEST_MODEL_MUTATION);
   const [name, setName] = React.useState<string>();
 
   const handleTest = async () => {
@@ -47,15 +46,19 @@ export default function TestButton(props: {
     });
     handleClosePrepare();
   };
+
   const handleClickPrepare = () => {
     setPreparing(true);
   };
+
   const handleClosePrepare = () => {
     setPreparing(false);
   };
+
   const handleVideoChange = (event: ChangeEvent<HTMLInputElement>) => {
     setVideoID(event.target.value);
   };
+
   const handleTestNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
   };

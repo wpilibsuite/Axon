@@ -25,7 +25,7 @@ type Mutation {
   setDatasetInProject(projectId: ID!, datasetId: ID!, isIncluded: Boolean): Project!
 
   startTraining(id: ID!): Project
-  haltTraining(id: ID!): Project
+  stopTraining(id: ID!): Project
   pauseTraining(id: ID!): Project
   resumeTraining(id: ID!): Project
   saveVideo(projectID: ID!, name: String!, video: Upload!): Video

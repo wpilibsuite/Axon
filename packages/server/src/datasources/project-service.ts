@@ -88,10 +88,10 @@ export class ProjectService extends DataSource {
     return project;
   }
 
-  async haltTraining(id: string): Promise<Project> {
+  async stopTraining(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
     console.log(`stopping training on project: ${JSON.stringify(project)}`);
-    this.mLService.halt(project);
+    this.mLService.stop(project);
     return project;
   }
 
