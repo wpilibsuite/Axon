@@ -61,45 +61,35 @@ export default function Dataset(props: { id: string }): ReactElement {
     setAnchorEl(null);
   };
 
-  const handleRename = () => {
-
-    handleClose();
-  };
-
-
   if (loading) return <p>LOADING</p>;
   if (error || !data) return <p>ERROR</p>;
 
   return (
     <Container>
-
       <Toolbar>
         <Typography variant="h6" style={{ flexGrow: 1 }}>
           {data.dataset?.name}
         </Typography>
-        <IconButton
-          onClick={handleMenu}
-          color="inherit"
-        >
+        <IconButton onClick={handleMenu} color="inherit">
           <MoreVertIcon />
         </IconButton>
         <Menu
           id="menu-appbar"
           anchorEl={anchorEl}
           anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
+            vertical: "top",
+            horizontal: "right"
           }}
           keepMounted
           transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
+            vertical: "top",
+            horizontal: "right"
           }}
           open={open}
           onClose={handleClose}
         >
           {/*<MenuItem onClick={handleRename}>Rename</MenuItem>*/}
-          <RenameDatasetDialog id={props.id}/>
+          <RenameDatasetDialog id={props.id} />
         </Menu>
       </Toolbar>
       <Container>
