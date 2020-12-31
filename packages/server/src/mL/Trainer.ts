@@ -45,7 +45,7 @@ export default class Trainer {
    * Create the training parameter file in the container's mounted directory to control the container.
    */
   public async writeParameterFile(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return
     while (this.paused);
 
     this.status = TrainStatus.Writing;
@@ -77,7 +77,7 @@ export default class Trainer {
    * Clean the container's mounted directory if a training has already taken place.
    */
   public async handleOldData(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return
     while (this.paused);
 
     this.status = TrainStatus.Cleaning;
@@ -103,7 +103,7 @@ export default class Trainer {
    * Move datasets and custom initial checkpoints to the mounted directory.
    */
   public async moveDataToMount(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return
     while (this.paused);
 
     this.status = TrainStatus.Moving;
@@ -130,7 +130,7 @@ export default class Trainer {
    * Extracts the dataset file so that the dataset can be used by the training container.
    */
   public async extractDataset(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return
     while (this.paused);
 
     this.status = TrainStatus.Extracting;
@@ -145,7 +145,7 @@ export default class Trainer {
    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
    */
   public async trainModel(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return
     while (this.paused);
 
     this.status = TrainStatus.Training;
@@ -234,4 +234,13 @@ export default class Trainer {
       lastEpoch: this.lastEpoch
     };
   }
+
+  /**
+   * True if status has been set to stopped, false if otherwise. If status is paused, wait a bit before returning.
+   */
+  private async stopped(): Promise<boolean>{
+    if (this.status === TrainStatus.Stopped) return true;
+    if (this.status === TrainStatus.Paused) await new Promise(resolve => setTimeout(resolve, 1000));
+    return false;
+  } 
 }
