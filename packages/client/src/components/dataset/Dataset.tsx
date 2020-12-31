@@ -88,7 +88,6 @@ export default function Dataset(props: { id: string }): ReactElement {
           open={open}
           onClose={handleClose}
         >
-          {/*<MenuItem onClick={handleRename}>Rename</MenuItem>*/}
           <RenameDatasetDialog id={props.id} />
         </Menu>
       </Toolbar>
