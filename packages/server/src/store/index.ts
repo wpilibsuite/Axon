@@ -34,9 +34,99 @@ export class Dataset extends Model<DatasetAttributes, DatasetCreationAttributes>
   public readonly updatedAt!: Date;
 }
 
+interface CheckpointAttributes {
+  id: string;
+  name: string;
+  step: number;
+  path: string;
+  precision: number;
+}
+
+type CheckpointCreationAttributes = Optional<CheckpointAttributes, keyof CheckpointAttributes>;
+
+export class Checkpoint extends Model<CheckpointAttributes, CheckpointCreationAttributes>
+  implements CheckpointAttributes {
+  public name: string;
+  public step: number;
+  public path: string;
+  public precision: number;
+
+  public readonly id!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+interface ExportAttributes {
+  relativeDirPath: string;
+  downloadPath: string;
+  checkpointID: string;
+  tarfileName: string;
+  directory: string;
+  projectID: string;
+  name: string;
+  id: string;
+}
+
+type ExportCreationAttributes = Optional<ExportAttributes, keyof ExportAttributes>;
+
+export class Export extends Model<ExportAttributes, ExportCreationAttributes> implements ExportAttributes {
+  relativeDirPath: string;
+  downloadPath: string;
+  checkpointID: string;
+  tarfileName: string;
+  projectID: string;
+  directory: string;
+  name: string;
+
+  public readonly id!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+interface VideoAttributes {
+  id: string;
+  name: string;
+  filename: string;
+  fullPath: string;
+}
+
+type VideoCreationAttributes = Optional<VideoAttributes, keyof VideoAttributes>;
+
+export class Video extends Model<VideoAttributes, VideoCreationAttributes> implements VideoAttributes {
+  name: string;
+  filename: string;
+  fullPath: string;
+
+  public readonly id!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+interface TestAttributes {
+  id: string;
+  videoID: string;
+  exportID: string;
+  name: string;
+  directory: string;
+}
+
+type TestCreationAttributes = Optional<TestAttributes, keyof TestAttributes>;
+
+export class Test extends Model<TestAttributes, TestCreationAttributes> implements TestAttributes {
+  videoID: string;
+  exportID: string;
+  name: string;
+  directory: string;
+
+  public readonly id!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
 interface ProjectAttributes {
   id: string;
   name: string;
+  directory: string;
   initialCheckpoint: string;
 
   epochs: number;
@@ -51,6 +141,7 @@ type ProjectCreationAttributes = Optional<ProjectAttributes, keyof ProjectAttrib
 
 export class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implements ProjectAttributes {
   name: string;
+  directory: string;
   initialCheckpoint: string;
 
   epochs: number;
@@ -65,12 +156,31 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   public addDataset!: HasManyAddAssociationMixin<Dataset, string>;
   public removeDataset!: HasManyRemoveAssociationMixin<Dataset, string>;
 
+  public getCheckpoints!: HasManyGetAssociationsMixin<Checkpoint>;
+  public setCheckpoints!: HasManySetAssociationsMixin<Checkpoint, string>;
+  public addCheckpoint!: HasManyAddAssociationMixin<Checkpoint, string>;
+  public removeCheckpoint!: HasManyRemoveAssociationMixin<Checkpoint, string>;
+
+  public getExports!: HasManyGetAssociationsMixin<Export>;
+  public addExport!: HasManyAddAssociationMixin<Export, string>;
+  public removeExport!: HasManyRemoveAssociationMixin<Export, string>;
+
+  public getVideos!: HasManyGetAssociationsMixin<Video>;
+  public addVideo!: HasManyAddAssociationMixin<Video, string>;
+  public removeVideo!: HasManyRemoveAssociationMixin<Video, string>;
+
+  public getTests!: HasManyGetAssociationsMixin<Test>;
+  public addTest!: HasManyAddAssociationMixin<Test, string>;
+  public removeTest!: HasManyRemoveAssociationMixin<Test, string>;
+
   public readonly id!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
   public static associations: {
+    checkpoints: Association<Project, Checkpoint>;
     datasets: Association<Project, Dataset>;
+    exports: Association<Project, Export>;
   };
 }
 
@@ -96,6 +206,134 @@ Dataset.init(
   }
 );
 
+Checkpoint.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    step: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false
+    },
+    path: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    precision: {
+      type: DataTypes.FLOAT,
+      allowNull: true
+    }
+  },
+  {
+    sequelize
+  }
+);
+
+Export.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    projectID: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
+    checkpointID: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
+    name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    tarfileName: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    downloadPath: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    directory: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    relativeDirPath: {
+      type: new DataTypes.STRING(),
+      allowNull: true
+    }
+  },
+  {
+    sequelize
+  }
+);
+
+Video.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    filename: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    fullPath: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    }
+  },
+  {
+    sequelize
+  }
+);
+
+Test.init(
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    videoID: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
+    exportID: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
+    directory: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    }
+  },
+  {
+    sequelize
+  }
+);
+
 Project.init(
   {
     id: {
@@ -105,6 +343,10 @@ Project.init(
       primaryKey: true
     },
     name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    directory: {
       type: new DataTypes.STRING(),
       allowNull: false
     },
@@ -140,5 +382,10 @@ Project.init(
 
 Project.belongsToMany(Dataset, { through: "DatasetProject" });
 Dataset.belongsToMany(Project, { through: "DatasetProject" });
+
+Project.belongsToMany(Checkpoint, { through: "ProjectCheckpoint" });
+Project.belongsToMany(Export, { through: "ProjectExport" });
+Project.belongsToMany(Video, { through: "ProjectVideo" });
+Project.belongsToMany(Test, { through: "ProjectTest" });
 
 sequelize.sync({ force: false });

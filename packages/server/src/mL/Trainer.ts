@@ -1,13 +1,11 @@
-import { ProjectData } from "../datasources/PseudoDatabase";
-import PseudoDatabase from "../datasources/PseudoDatabase";
-import { CONTAINER_MOUNT_PATH } from "./Docker";
-import * as mkdirp from "mkdirp";
+import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
+import Docker, { CONTAINER_MOUNT_PATH } from "./Docker";
+import { Project, Checkpoint } from "../store";
+import { Container } from "dockerode";
 import * as rimraf from "rimraf";
-import Docker from "./Docker";
+import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
-import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
-import { Container } from "dockerode";
 
 type TrainParameters = {
   "eval-frequency": number;
@@ -26,14 +24,16 @@ export default class Trainer {
     train: { name: "gcperkins/wpilib-ml-train", tag: "latest" }
   };
 
-  readonly project: ProjectData;
   private container: Container;
+  private status: TrainStatus;
+  private lastEpoch: number;
+  readonly project: Project;
   readonly docker: Docker;
   private paused: boolean;
-  private status: TrainStatus;
   private epoch: number;
 
-  public constructor(docker: Docker, project: ProjectData) {
+  public constructor(docker: Docker, project: Project) {
+    this.lastEpoch = project.epochs;
     this.status = TrainStatus.Idle;
     this.project = project;
     this.docker = docker;
@@ -44,12 +44,12 @@ export default class Trainer {
    * Create the training parameter file in the container's mounted directory to control the container.
    */
   public async writeParameterFile(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return;
     while (this.paused);
 
     this.status = TrainStatus.Writing;
 
-    const DATASETPATHS = this.project.datasets.map((dataset) =>
+    const DATASETPATHS = (await this.project.getDatasets()).map((dataset) =>
       path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
     );
 
@@ -59,13 +59,13 @@ export default class Trainer {
         : this.project.initialCheckpoint;
 
     const trainParameters: TrainParameters = {
-      "eval-frequency": this.project.hyperparameters.evalFrequency,
-      "percent-eval": this.project.hyperparameters.percentEval,
-      "batch-size": this.project.hyperparameters.batchSize,
+      "eval-frequency": this.project.evalFrequency,
+      "percent-eval": this.project.percentEval,
+      "batch-size": this.project.batchSize,
       "dataset-path": DATASETPATHS,
-      epochs: this.project.hyperparameters.epochs,
-      checkpoint: INITCKPT,
-      name: this.project.name
+      name: this.project.name,
+      epochs: this.lastEpoch,
+      checkpoint: INITCKPT
     };
 
     const HYPERPARAMETER_FILE_PATH = path.posix.join(this.project.directory, "hyperparameters.json");
@@ -76,44 +76,38 @@ export default class Trainer {
    * Clean the container's mounted directory if a training has already taken place.
    */
   public async handleOldData(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return;
     while (this.paused);
 
     this.status = TrainStatus.Cleaning;
 
+    /* remove old train dir to clear eval files */
     const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
     if (fs.existsSync(OLD_TRAIN_DIR)) {
-      try {
-        await new Promise((resolve) => rimraf(OLD_TRAIN_DIR, resolve));
-      } catch (e) {
-        if (e.message.toLowerCase().includes("permission denied"))
-          Promise.reject("permission denied when deleting old train directory");
-        else throw e;
-      }
-
+      await new Promise((resolve) => rimraf(OLD_TRAIN_DIR, resolve));
       console.log(`old train dir ${OLD_TRAIN_DIR} removed`);
-    } //if this project has already trained, we must get rid of the evaluation files in order to only get new metrics
+    }
 
+    /* get rid of old metrics file so the old metrics are not read */
     const OLD_METRICS_FILE = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(OLD_METRICS_FILE)) {
       fs.unlinkSync(OLD_METRICS_FILE);
-    } //must clear old checkpoints in order for new ones to be saved by trainer
+    }
 
-    this.project.checkpoints = {}; //must add a way to preserve existing checkpoints somehow
-
-    await PseudoDatabase.pushProject(this.project);
+    const project = await Project.findByPk(this.project.id);
+    await project.setCheckpoints([]);
   }
 
   /**
    * Move datasets and custom initial checkpoints to the mounted directory.
    */
   public async moveDataToMount(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return;
     while (this.paused);
 
     this.status = TrainStatus.Moving;
 
-    for (const dataset of this.project.datasets)
+    for (const dataset of await this.project.getDatasets())
       await fs.promises.copyFile(
         path.posix.join("data", dataset.path),
         path.posix.join(this.project.directory, "dataset", path.basename(dataset.path))
@@ -125,18 +119,9 @@ export default class Trainer {
       if (!fs.existsSync(path.posix.join(this.project.directory, "checkpoints")))
         await mkdirp(path.posix.join(this.project.directory, "checkpoints"));
 
-      await Promise.all([
-        copyCheckpointFile(".data-00000-of-00001"),
-        copyCheckpointFile(".index"),
-        copyCheckpointFile(".meta")
-      ]);
-    }
-
-    async function copyCheckpointFile(extention: string): Promise<void> {
-      return fs.promises.copyFile(
-        path.posix.join("data", "checkpoints", this.project.initialCheckpoint.concat(extention)),
-        path.posix.join(this.project.directory, "checkpoints", this.project.initialCheckpoint.concat(extention))
-      );
+      const ckptPath = path.posix.join("data", "checkpoints", this.project.initialCheckpoint);
+      const ckptMount = path.posix.join(this.project.directory, "checkpoints", this.project.initialCheckpoint);
+      await Trainer.copyCheckpoint(ckptPath, ckptMount);
     }
   }
 
@@ -144,7 +129,7 @@ export default class Trainer {
    * Extracts the dataset file so that the dataset can be used by the training container.
    */
   public async extractDataset(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return;
     while (this.paused);
 
     this.status = TrainStatus.Extracting;
@@ -159,7 +144,7 @@ export default class Trainer {
    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
    */
   public async trainModel(): Promise<void> {
-    do if (this.status == TrainStatus.Stopped) return;
+    do if (await this.stopped()) return;
     while (this.paused);
 
     this.status = TrainStatus.Training;
@@ -179,28 +164,49 @@ export default class Trainer {
   public async updateCheckpoints(): Promise<void> {
     const METRICSPATH = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(METRICSPATH)) {
-      const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
-      while (Object.keys(metrics.precision).length > Object.keys(this.project.checkpoints).length) {
-        const CURRENT_CKPT = Object.keys(this.project.checkpoints).length;
-        const step = Object.keys(metrics.precision)[CURRENT_CKPT];
-        this.project.checkpoints[step] = {
-          step: parseInt(step, 10),
-          metrics: [
-            {
-              name: "precision",
-              value: metrics.precision[step] //only one metric supported now
-            }
-          ],
-          status: {
-            exporting: false,
-            downloadPaths: []
-          }
-        };
-        this.epoch = parseInt(step, 10);
+      const project = await Project.findByPk(this.project.id);
 
-        await PseudoDatabase.pushProject(this.project);
+      const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
+      while (Object.keys(metrics.precision).length > (await project.getCheckpoints()).length) {
+        const CURRENT_CKPT = (await project.getCheckpoints()).length;
+        const step = parseInt(Object.keys(metrics.precision)[CURRENT_CKPT]);
+        this.epoch = step;
+        console.log(step);
+
+        const checkpoint = Checkpoint.build({
+          step: step,
+          name: `ckpt${step}`,
+          precision: metrics.precision[step]
+        });
+
+        const ckptDir = `${this.project.directory}/checkpoints/${checkpoint.id}/`;
+        checkpoint.path = path.posix.join(ckptDir, `model.ckpt-${step}`);
+        await mkdirp(ckptDir);
+
+        const ckptSrcPath = path.posix.join(this.project.directory, "train", `model.ckpt-${step}`);
+        await Trainer.copyCheckpoint(ckptSrcPath, checkpoint.path);
+
+        await checkpoint.save();
+        await project.addCheckpoint(checkpoint);
       }
     } else this.epoch = 0;
+  }
+
+  /**
+   * Copies a checkpoint's three files to the desired directory.
+   *
+   * @param sourcePath The full path to the checkpoint, without the file extention. This is because the checkpoint files have 3 different file extentions, with the same basename.
+   * @param destPath The full path to the checpoints destination, without the file extentions.
+   */
+  public static async copyCheckpoint(sourcePath: string, destPath: string): Promise<void> {
+    async function copyCheckpointFile(extention: string): Promise<void> {
+      return fs.promises.copyFile(sourcePath.concat(extention), destPath.concat(extention));
+    }
+    await Promise.all([
+      copyCheckpointFile(".data-00000-of-00001"),
+      copyCheckpointFile(".index"),
+      copyCheckpointFile(".meta")
+    ]);
   }
 
   public async stop(): Promise<void> {
@@ -224,11 +230,16 @@ export default class Trainer {
       status: state,
       projectID: this.project.id,
       currentEpoch: this.epoch,
-      lastEpoch: this.project.hyperparameters.epochs
+      lastEpoch: this.lastEpoch
     };
   }
 
-  public print(): string {
-    return `${this.project.id}: Trainjob \n epoch: ${this.epoch}`;
+  /**
+   * True if status has been set to stopped, false if otherwise. If status is paused, wait a bit before returning.
+   */
+  private async stopped(): Promise<boolean> {
+    if (this.status === TrainStatus.Stopped) return true;
+    if (this.status === TrainStatus.Paused) await new Promise((resolve) => setTimeout(resolve, 1000));
+    return false;
   }
 }

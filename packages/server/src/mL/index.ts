@@ -1,19 +1,16 @@
 import { Trainjob, Exportjob, Testjob, DockerState } from "../schema/__generated__/graphql";
 import { Project } from "../store";
-
-import PseudoDatabase from "../datasources/PseudoDatabase";
-import { ProjectData } from "../datasources/PseudoDatabase";
-import Trainer from "./Trainer";
 import Exporter from "./Exporter";
+import Trainer from "./Trainer";
 import Tester from "./Tester";
 import Docker from "./Docker";
 
 export default class MLService {
-  readonly docker: Docker;
   private dockerState: DockerState;
   private exportjobs: Exporter[];
   private trainjobs: Trainer[];
   private testjobs: Tester[];
+  readonly docker: Docker;
 
   constructor(docker: Docker) {
     this.docker = docker;
@@ -31,7 +28,7 @@ export default class MLService {
     this.dockerState = DockerState.ScanningForDocker;
     if (!(await this.docker.isConnected())) {
       this.dockerState = DockerState.NoDocker;
-      return Promise.resolve();
+      return;
     }
 
     this.dockerState = DockerState.TrainPull;
@@ -49,11 +46,10 @@ export default class MLService {
   /**
    * Train a model based on the parameters in the given project.
    *
-   * @param iproject The model's project.
+   * @param project The model's project.
    */
-  async start(iproject: Project): Promise<void> {
-    console.info(`${iproject.id}: Starting training`);
-    const project: ProjectData = await PseudoDatabase.retrieveProject(iproject.id);
+  async start(project: Project): Promise<void> {
+    console.info(`${project.id}: Starting training`);
     const trainer = new Trainer(this.docker, project);
     this.trainjobs.push(trainer);
 
@@ -69,28 +65,24 @@ export default class MLService {
 
     await trainer.updateCheckpoints();
 
-    PseudoDatabase.pushProject(project);
     this.trainjobs = this.trainjobs.filter((job) => job !== trainer);
-    console.info(`${iproject.id}: Training complete`);
+    console.info(`${project.id}: Training complete`);
   }
 
   /**
    * Export a checkpoint to a tflite model.
    *
-   * @param id The id of the checkpoint's project.
-   * @param checkpointNumber The epoch of the checkpoint to be exported.
+   * @param project The checkpoint's project
+   * @param checkpointID The ID of the checkpoint to be exported.
    * @param name The desired name of the exported file.
    */
-  async export(id: string, checkpointNumber: number, name: string): Promise<string> {
-    const project = await PseudoDatabase.retrieveProject(id);
-    const exporter: Exporter = new Exporter(project, this.docker, checkpointNumber, name);
+  async export(project: Project, checkpointID: string, name: string): Promise<void> {
+    const exporter: Exporter = new Exporter(project, this.docker, checkpointID, name);
     this.exportjobs.push(exporter);
 
-    await exporter.locateCheckpoint();
+    await exporter.mountCheckpoint();
 
     await exporter.createDestinationDirectory();
-
-    await exporter.updateCheckpointStatus(true);
 
     await exporter.writeParameterFile();
 
@@ -98,26 +90,21 @@ export default class MLService {
 
     await exporter.saveExport();
 
-    await exporter.updateCheckpointStatus(false);
-
     this.exportjobs = this.exportjobs.filter((job) => job !== exporter);
-    return "exported";
+    console.info(`${exporter.exp.id}: Export complete`);
   }
 
   /**
    * Test an exported model on a provided video.
    *
-   * @param testName Desired name of the test.
+   * @param name Desired name of the test.
    * @param projectID The test project's id.
    * @param exportID The id of the export to be tested.
    * @param videoID The id of the video to be used in the test
    */
-  async test(testName: string, projectID: string, exportID: string, videoID: string): Promise<string> {
-    const project = await PseudoDatabase.retrieveProject(projectID);
-    const tester: Tester = new Tester(project, this.docker, "5000");
+  async test(name: string, project: Project, exportID: string, videoID: string): Promise<void> {
+    const tester: Tester = new Tester(project, this.docker, "5000", name, exportID, videoID);
     this.testjobs.push(tester);
-
-    await tester.createTest(testName, exportID, videoID);
 
     const mountedModelPath = await tester.mountModel();
 
@@ -132,29 +119,29 @@ export default class MLService {
     await tester.saveTest();
 
     this.testjobs = this.testjobs.filter((job) => job !== tester);
-    return "testing complete";
+    console.info(`${tester.test.id}: Test complete`);
   }
 
   /**
    * Stop the training of a project.
    * Can only be resumed from an eval checkpoint.
    *
-   * @param id The id of the project.
+   * @param project The project whos training will be stopped.
    */
-  async halt(id: string): Promise<void> {
-    const job = this.trainjobs.find((job) => job.project.id === id);
+  async stop(project: Project): Promise<void> {
+    const job = this.trainjobs.find((job) => job.project.id === project.id);
     if (job === undefined) Promise.reject("no trainjob found");
     await job.stop();
   }
 
   /**
    * Pause the training of a project.
-   * Can be easilly resumed.
+   * Can be easily resumed.
    *
-   * @param id The id of the project.
+   * @param project The project whos training will be paused.
    */
-  async pauseTraining(id: string): Promise<void> {
-    const job = this.trainjobs.find((job) => job.project.id === id);
+  async pauseTraining(project: Project): Promise<void> {
+    const job = this.trainjobs.find((job) => job.project.id === project.id);
     if (job === undefined) Promise.reject("no trainjob found");
     await job.pause();
   }
@@ -162,14 +149,19 @@ export default class MLService {
   /**
    * Resume a paused trainjob of a project.
    *
-   * @param id The id of the project.
+   * @param project The project whos training will be resumed.
    */
-  async resumeTraining(id: string): Promise<void> {
-    const job = this.trainjobs.find((job) => job.project.id === id);
+  async resumeTraining(project: Project): Promise<void> {
+    const job = this.trainjobs.find((job) => job.project.id === project.id);
     if (job === undefined) Promise.reject("no trainjob found");
     await job.resume();
   }
 
+  /**
+   *  Find and save new checkpoints generated by a trainjob.
+   *
+   * @param id The id of a project.
+   */
   public async updateCheckpoints(id: string): Promise<void> {
     const job = this.trainjobs.find((job) => job.project.id === id);
     if (job) await job.updateCheckpoints();
@@ -189,14 +181,5 @@ export default class MLService {
 
   public getDockerState(): DockerState {
     return this.dockerState;
-  }
-
-  public async printJobs(): Promise<void> {
-    if (this.trainjobs.length === 0) console.log("no train jobs");
-    this.trainjobs.forEach((job) => console.log(job.print()));
-    if (this.testjobs.length === 0) console.log("no test jobs");
-    for (const job of this.testjobs) console.log(await job.print());
-    if (this.exportjobs.length === 0) console.log("no export jobs");
-    for (const job of this.exportjobs) console.log(await job.print());
   }
 }

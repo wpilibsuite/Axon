@@ -1,19 +1,9 @@
 import * as Dockerode from "dockerode";
 import { Container, ContainerCreateOptions } from "dockerode";
-import { PROJECT_DATA_DIR } from "../constants";
-import { ProjectData } from "../datasources/PseudoDatabase";
 import { DockerImage } from "../schema/__generated__/graphql";
+import { Project } from "../store";
 
 export const CONTAINER_MOUNT_PATH = "/opt/ml/model";
-
-/**
- * Get the working directory of a project.
- *
- * @param project The project to get the working directory of
- */
-function getProjectWorkingDirectory(project: ProjectData): string {
-  return `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
-}
 
 export default class Docker {
   readonly docker;
@@ -96,10 +86,9 @@ export default class Docker {
    * @param image The image to base this container on
    * @param ports The ports to expose
    */
-  async createContainer(project: ProjectData, image: DockerImage, ports: [string?] = []): Promise<Container> {
+  async createContainer(project: Project, image: DockerImage, ports: [string?] = []): Promise<Container> {
     console.info(`${project.id}: Launching container ${image.name}`);
 
-    const localMountPath = getProjectWorkingDirectory(project).replace("C:\\", "/c/").replace(/\\/g, "/");
     const options: ContainerCreateOptions = {
       Image: `${image.name}:${image.tag}`,
       name: `wpilib-${image.name.replace(/\//g, "_")}-${project.id}`,
@@ -116,7 +105,7 @@ export default class Docker {
       Tty: true,
       Volumes: { [CONTAINER_MOUNT_PATH]: {} },
       HostConfig: {
-        Binds: [`${localMountPath}:${CONTAINER_MOUNT_PATH}:rw`],
+        Binds: [`${project.directory}:${CONTAINER_MOUNT_PATH}:rw`],
         PortBindings: Object.assign({}, ...ports.map((port) => ({ [port]: [{ HostPort: port.split("/")[0] }] })))
       },
       ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))

@@ -9,12 +9,11 @@ import {
   Card,
   Button
 } from "@material-ui/core";
-import ExpandLess from "@material-ui/icons/ExpandLess";
-import ExpandMore from "@material-ui/icons/ExpandMore";
-import { gql, useQuery } from "@apollo/client";
-import React, { ReactElement } from "react";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
+import { ExpandLess, ExpandMore } from "@material-ui/icons";
+import { gql, useQuery } from "@apollo/client";
+import React, { ReactElement } from "react";
 import StreamViewer from "./StreamViewer";
 import TestButton from "./TestButton";
 
