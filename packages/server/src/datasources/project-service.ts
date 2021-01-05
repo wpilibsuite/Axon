@@ -8,6 +8,7 @@ import * as mkdirp from "mkdirp";
 import MLService from "../mL";
 import * as path from "path";
 import * as fs from "fs";
+import rimraf = require("rimraf");
 
 export class ProjectService extends DataSource {
   private readonly mLService: MLService;
@@ -42,6 +43,13 @@ export class ProjectService extends DataSource {
     await mkProjDir("tests");
 
     return project.save();
+  }
+
+  async deleteProject(id: string): Promise<Project> {
+    const project = await Project.findByPk(id);
+    await new Promise((resolve) => rimraf(project.directory, resolve));
+    await project.destroy();
+    return project;
   }
 
   async updateProject(id: string, updates: ProjectUpdateInput): Promise<Project> {

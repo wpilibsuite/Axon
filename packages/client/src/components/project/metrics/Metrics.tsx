@@ -79,24 +79,17 @@ function CheckpointInfo(props: {
     return (
       <Card variant="outlined">
         <Grid spacing={5} container direction="row" justify="center" alignItems="center">
-          <Grid item xs={12} justify="center">
+          <Grid item container xs={12} justify="center">
             <Typography>{`Epoch ${props.checkpoint.step}`}</Typography>
           </Grid>
-          <Grid>
-            <Grid item>
-              <MetricsList checkpoint={props.checkpoint} />
-            </Grid>
-            <Grid item>
-              <ExportButton id={props.id} checkpoint={props.checkpoint} job={job} />
-            </Grid>
+          <Grid item xs={6}>
+            <MetricsList checkpoint={props.checkpoint} />
           </Grid>
-          <Grid container item xs={12} sm={6}>
-            <Grid item xs={12}>
-              <Typography variant="body1">Exported Models:</Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <ExportsList checkpoint={props.checkpoint} exports={props.exports} />
-            </Grid>
+          <Grid item xs={6}>
+            <ExportsList checkpoint={props.checkpoint} exports={props.exports} />
+          </Grid>
+          <Grid item container xs={12} justify="center" alignItems="center">
+            <ExportButton id={props.id} checkpoint={props.checkpoint} job={job} />
           </Grid>
         </Grid>
       </Card>
@@ -141,20 +134,23 @@ function ExportsList(props: {
   const ckptExports = props.exports ? props.exports.filter((exprt) => exprt.checkpointID === props.checkpoint?.id) : [];
 
   return (
-    <List dense={true}>
-      {ckptExports.map((exprt) => (
-        <ListItem key={exprt.id}>
-          <ListItemIcon>
-            <IconButton>
-              <a download href={`http://localhost:4000/${exprt.downloadPath}`}>
-                <CloudDownloadIcon />
-              </a>
-            </IconButton>
-          </ListItemIcon>
-          <ListItemText primary={path.basename(exprt.downloadPath)} />
-        </ListItem>
-      ))}
-    </List>
+    <>
+      <Typography variant="body1">Exported Models:</Typography>
+      <List dense={true}>
+        {ckptExports.map((exprt) => (
+          <ListItem key={exprt.id}>
+            <ListItemIcon>
+              <IconButton>
+                <a download href={`http://localhost:4000/${exprt.downloadPath}`}>
+                  <CloudDownloadIcon />
+                </a>
+              </IconButton>
+            </ListItemIcon>
+            <ListItemText primary={path.basename(exprt.downloadPath)} />
+          </ListItem>
+        ))}
+      </List>
+    </>
   );
 }
 
