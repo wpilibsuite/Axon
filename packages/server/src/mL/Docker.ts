@@ -2,14 +2,27 @@ import * as Dockerode from "dockerode";
 import { Container, ContainerCreateOptions } from "dockerode";
 import { DockerImage } from "../schema/__generated__/graphql";
 import { Project } from "../store";
+import { DATA_DIR } from "../constants";
+import * as path from "path";
 
-export const CONTAINER_MOUNT_PATH = "/opt/ml/model";
+export const CONTAINER_MOUNT_PATH = "/wpi-data";
+export const VOLUME_NAME = "wpilib-axon-volume";
 
 export default class Docker {
   readonly docker;
 
   constructor(docker: Dockerode) {
     this.docker = docker;
+  }
+
+  /**
+   * Derive the path to a projects directory in the mounted data volume
+   * from a started container's perspective, to pass as an argument on start.
+   *
+   * @param project The project in question.
+   */
+  static containerProjectPath(project: Project): string {
+    return path.posix.join(CONTAINER_MOUNT_PATH, project.directory.replace(DATA_DIR, ""));
   }
 
   /**
@@ -90,6 +103,7 @@ export default class Docker {
     console.info(`${project.id}: Launching container ${image.name}`);
 
     const options: ContainerCreateOptions = {
+      Cmd: [Docker.containerProjectPath(project)],
       Image: `${image.name}:${image.tag}`,
       name: `wpilib-${image.name.replace(/\//g, "_")}-${project.id}`,
       Labels: {
@@ -105,7 +119,7 @@ export default class Docker {
       Tty: true,
       Volumes: { [CONTAINER_MOUNT_PATH]: {} },
       HostConfig: {
-        Binds: [`${project.directory}:${CONTAINER_MOUNT_PATH}:rw`],
+        Binds: [`${VOLUME_NAME}:${CONTAINER_MOUNT_PATH}:rw`],
         PortBindings: Object.assign({}, ...ports.map((port) => ({ [port]: [{ HostPort: port.split("/")[0] }] })))
       },
       ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))

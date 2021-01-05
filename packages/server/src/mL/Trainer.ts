@@ -1,5 +1,5 @@
 import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
-import Docker, { CONTAINER_MOUNT_PATH } from "./Docker";
+import Docker from "./Docker";
 import { Project, Checkpoint } from "../store";
 import { Container } from "dockerode";
 import * as rimraf from "rimraf";
@@ -50,7 +50,7 @@ export default class Trainer {
     this.status = TrainStatus.Writing;
 
     const DATASETPATHS = (await this.project.getDatasets()).map((dataset) =>
-      path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
+      path.posix.join(Docker.containerProjectPath(this.project), "dataset", path.basename(dataset.path))
     );
 
     const INITCKPT =
