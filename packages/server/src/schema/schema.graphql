@@ -19,6 +19,7 @@ type Mutation {
   resetDocker: Boolean!
 
   createDataset(upload: Upload!): Dataset
+  renameDataset(id: ID!, newName: String!): Dataset
 
   createProject(name: String!): Project
   deleteProject(id: ID!): Project
