@@ -58,7 +58,7 @@ export default class Exporter {
       ])
     ).every(Boolean);
   }
-
+  
   /**
    * Create the direcory to hold the export and its checkpoint.
    * Uses the Export previously saved in the Exporter instance for the necessary information.
