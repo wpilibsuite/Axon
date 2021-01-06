@@ -10,9 +10,15 @@ export const VOLUME_NAME = "wpilib-axon-volume";
 
 export default class Docker {
   readonly docker;
+  mount: string;
 
   constructor(docker: Dockerode) {
     this.docker = docker;
+
+    /* if we are inside the container, use the volume name. if not, use the data dir */
+
+    /* someone come up with a better way to do this */
+    this.mount = DATA_DIR === "/usr/src/app/packages/server/data" ? VOLUME_NAME : DATA_DIR;
   }
 
   /**
@@ -119,7 +125,7 @@ export default class Docker {
       Tty: true,
       Volumes: { [CONTAINER_MOUNT_PATH]: {} },
       HostConfig: {
-        Binds: [`${VOLUME_NAME}:${CONTAINER_MOUNT_PATH}:rw`],
+        Binds: [`${this.mount}:${CONTAINER_MOUNT_PATH}:rw`],
         PortBindings: Object.assign({}, ...ports.map((port) => ({ [port]: [{ HostPort: port.split("/")[0] }] })))
       },
       ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))
