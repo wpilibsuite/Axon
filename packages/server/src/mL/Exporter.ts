@@ -76,8 +76,7 @@ export default class Exporter {
     const config_path = path.posix.join(container_project_path, "pipeline.config");
     //checkpoint path from containers perspective
     const checkpoint = await Checkpoint.findByPk(this.ckptID);
-    const checkpoint_relative_path = checkpoint.path.replace(this.project.directory, "");
-    const checkpoint_path = path.posix.join(container_project_path, checkpoint_relative_path);
+    const checkpoint_path = path.posix.join(container_project_path, checkpoint.relativePath);
 
     const exportparameters = {
       name: this.exp.name,

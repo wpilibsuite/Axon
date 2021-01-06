@@ -179,12 +179,13 @@ export default class Trainer {
           precision: metrics.precision[step]
         });
 
-        const ckptDir = `${this.project.directory}/checkpoints/${checkpoint.id}/`;
-        checkpoint.path = path.posix.join(ckptDir, `model.ckpt-${step}`);
-        await mkdirp(ckptDir);
+        const relativeDir = path.posix.join("checkpoints", checkpoint.id);
+        checkpoint.relativePath = path.posix.join(relativeDir, `model.ckpt-${step}`);
+        checkpoint.fullPath = path.posix.join(this.project.directory, checkpoint.relativePath);
+        await mkdirp(path.posix.join(this.project.directory, relativeDir));
 
         const ckptSrcPath = path.posix.join(this.project.directory, "train", `model.ckpt-${step}`);
-        await Trainer.copyCheckpoint(ckptSrcPath, checkpoint.path);
+        await Trainer.copyCheckpoint(ckptSrcPath, checkpoint.fullPath);
 
         await checkpoint.save();
         await project.addCheckpoint(checkpoint);

@@ -38,8 +38,9 @@ interface CheckpointAttributes {
   id: string;
   name: string;
   step: number;
-  path: string;
+  fullPath: string;
   precision: number;
+  relativePath: string;
 }
 
 type CheckpointCreationAttributes = Optional<CheckpointAttributes, keyof CheckpointAttributes>;
@@ -48,7 +49,8 @@ export class Checkpoint extends Model<CheckpointAttributes, CheckpointCreationAt
   implements CheckpointAttributes {
   public name: string;
   public step: number;
-  public path: string;
+  public fullPath: string;
+  public relativePath: string;
   public precision: number;
 
   public readonly id!: string;
@@ -222,7 +224,11 @@ Checkpoint.init(
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false
     },
-    path: {
+    fullPath: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    relativePath: {
       type: new DataTypes.STRING(),
       allowNull: false
     },

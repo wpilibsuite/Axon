@@ -37,7 +37,6 @@ const GET_PROJECT_DATA = gql`
         id
         name
         step
-        path
         precision
       }
       exports {
