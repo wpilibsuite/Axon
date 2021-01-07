@@ -70,7 +70,13 @@ export class DatasetService extends DataSource {
   }
 
   async getDatasetImages(id: string): Promise<LabeledImage[]> {
-    return this.listImages(id);
+    let images: LabeledImage[] = [];
+    try {
+      images = await this.listImages(id);
+    } catch (e) {
+      console.log(e);
+    }
+    return images;
   }
 
   async createDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {

@@ -43,7 +43,7 @@ To make Axon portable and easy to use, we provide a Docker image to run it.
 
 ## Running
 
-`docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -p 3000:3000 -p 4000:4000 <tag-name>`
+`docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v wpilib-axon-volume:/usr/src/app/packages/server/data -p 3000:3000 -p 4000:4000 <tag-name>`
 
 # Contributing to WPILib
 

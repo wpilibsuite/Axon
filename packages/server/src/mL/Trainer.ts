@@ -1,5 +1,5 @@
 import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
-import Docker, { CONTAINER_MOUNT_PATH } from "./Docker";
+import Docker from "./Docker";
 import { Project, Checkpoint } from "../store";
 import { Container } from "dockerode";
 import * as rimraf from "rimraf";
@@ -50,7 +50,7 @@ export default class Trainer {
     this.status = TrainStatus.Writing;
 
     const DATASETPATHS = (await this.project.getDatasets()).map((dataset) =>
-      path.posix.join(CONTAINER_MOUNT_PATH, "dataset", path.basename(dataset.path))
+      path.posix.join(Docker.containerProjectPath(this.project), "dataset", path.basename(dataset.path))
     );
 
     const INITCKPT =
@@ -179,12 +179,13 @@ export default class Trainer {
           precision: metrics.precision[step]
         });
 
-        const ckptDir = `${this.project.directory}/checkpoints/${checkpoint.id}/`;
-        checkpoint.path = path.posix.join(ckptDir, `model.ckpt-${step}`);
-        await mkdirp(ckptDir);
+        const relativeDir = path.posix.join("checkpoints", checkpoint.id);
+        checkpoint.relativePath = path.posix.join(relativeDir, `model.ckpt-${step}`);
+        checkpoint.fullPath = path.posix.join(this.project.directory, checkpoint.relativePath);
+        await mkdirp(path.posix.join(this.project.directory, relativeDir));
 
         const ckptSrcPath = path.posix.join(this.project.directory, "train", `model.ckpt-${step}`);
-        await Trainer.copyCheckpoint(ckptSrcPath, checkpoint.path);
+        await Trainer.copyCheckpoint(ckptSrcPath, checkpoint.fullPath);
 
         await checkpoint.save();
         await project.addCheckpoint(checkpoint);
