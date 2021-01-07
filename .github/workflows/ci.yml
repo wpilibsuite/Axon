@@ -45,16 +45,75 @@ jobs:
       - name: Build
         run: yarn workspace client build
 
-  build-docker:
-    name: Build Docker
+  build-axon-docker:
+    name: Build Axon Container
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build Docker Image
+      - name: Build Axon Docker Image
         run: docker build -t ml-app .
-      - name: Save Docker Image
+      - name: Save Axon Docker Image
         run: docker save -o ml-app.tar ml-app
       - uses: actions/upload-artifact@v2
         with:
           name: Docker Container
           path: ml-app.tar
+
+  build-ml-base-docker:
+    name: Build ML Base Container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build ML Base Image
+        run: docker build -t axon-ml-base
+        working-directory: ./packages/ml/mobilenet/base
+
+  build-ml-dataset-docker:
+    name: Build ML Dataset Container
+    runs-on: ubuntu-latest
+    needs: build-ml-base-docker
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build ML Dataset Image
+        run: docker build -t axon-ml-dataset
+        working-directory: ./packages/ml/mobilenet/dataset
+
+  build-ml-metrics-docker:
+    name: Build ML Metrics Container
+    runs-on: ubuntu-latest
+    needs: build-ml-base-docker
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build ML Metrics Image
+        run: docker build -t axon-ml-metrics
+        working-directory: ./packages/ml/mobilenet/metrics
+
+  build-ml-test-docker:
+    name: Build ML Test Container
+    runs-on: ubuntu-latest
+    needs: build-ml-base-docker
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build ML Test Image
+        run: docker build -t axon-ml-test
+        working-directory: ./packages/ml/mobilenet/test
+
+  build-ml-tflite-docker:
+    name: Build ML TFLite Container
+    runs-on: ubuntu-latest
+    needs: build-ml-base-docker
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build ML TFLite Image
+        run: docker build -t axon-ml-tflite
+        working-directory: ./packages/ml/mobilenet/tflite
+
+  build-ml-training-docker:
+    name: Build ML Training Container
+    runs-on: ubuntu-latest
+    needs: build-ml-training-docker
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build ML Training Image
+        run: docker build -t axon-ml-training
+        working-directory: ./packages/ml/mobilenet/training
