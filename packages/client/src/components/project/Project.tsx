@@ -1,13 +1,11 @@
-import React, { ReactElement } from "react";
+import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
 import { AppBar, Box, Tab, Tabs } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import Input from "./input/Input";
+import { gql, useQuery } from "@apollo/client";
+import React, { ReactElement } from "react";
 import Metrics from "./metrics/Metrics";
 import Results from "./results/Results";
-import { gql, useQuery } from "@apollo/client";
-import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
-
-import DatabaseTestButton from "./DatabaseTestButton";
+import Input from "./input/Input";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -36,19 +34,15 @@ const GET_PROJECT_DATA = gql`
     project(id: $id) {
       id
       checkpoints {
+        id
+        name
         step
-        metrics {
-          name
-          value
-        }
-        status {
-          exporting
-          downloadPaths
-        }
+        precision
       }
       exports {
         id
-        projectId
+        projectID
+        checkpointID
         name
         directory
         downloadPath
@@ -95,12 +89,11 @@ export default function Project(props: { id: string }): ReactElement {
           <Input id={props.id} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Metrics id={props.id} checkpoints={data.project.checkpoints} />
+          <Metrics id={props.id} checkpoints={data.project.checkpoints} exports={data.project.exports} />
         </TabPanel>
         <TabPanel value={value} index={2}>
           <Results id={props.id} exports={data.project.exports} videos={data.project.videos} />
         </TabPanel>
-        <DatabaseTestButton id={props.id} />
       </div>
     );
   } else {

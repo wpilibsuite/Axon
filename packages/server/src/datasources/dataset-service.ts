@@ -70,8 +70,13 @@ export class DatasetService extends DataSource {
   }
 
   async getDatasetImages(id: string): Promise<LabeledImage[]> {
-    // return this.listImages(id);
-    return [];
+    let images: LabeledImage[] = [];
+    try {
+      images = await this.listImages(id);
+    } catch (e) {
+      console.log(e);
+    }
+    return images;
   }
 
   async createDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
@@ -79,6 +84,12 @@ export class DatasetService extends DataSource {
     dataset.path = `datasets/${dataset.id}/${filename}`;
     await this.upload(dataset.id, dataset.name, stream).then(() => dataset.save());
     return dataset;
+  }
+
+  async renameDataset(id: string, newName: string): Promise<Dataset> {
+    const dataset = await this.getDataset(id);
+    dataset.name = newName;
+    return dataset.save();
   }
 
   private readMetaData(id: string): SuperviselyMeta {
