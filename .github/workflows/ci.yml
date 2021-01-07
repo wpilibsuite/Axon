@@ -82,9 +82,9 @@ jobs:
           name: Docker Container
           path: ./packages/ml/mobilenet/base/wpilib_axon_base.latest.tar
       - name: Publish Docker Image
-#        if: |
-#          github.repository_owner == 'wpilibsuite' &&
-#          github.ref == 'refs/heads/master'
+        if: |
+          github.repository_owner == 'wpilibsuite' &&
+          github.ref == 'refs/heads/master'
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker push wpilib/axon-base:latest
