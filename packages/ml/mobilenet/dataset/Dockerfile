@@ -1,4 +1,4 @@
-FROM gcperkins/wpilib-ml-base:latest
+FROM wpilib/axon-base:latest
 
 RUN mkdir -p /opt/ml/model/tmp && \
     mkdir -p /opt/ml/model/out

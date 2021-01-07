@@ -1,4 +1,4 @@
-FROM gcperkins/wpilib-ml-base
+FROM wpilib/axon-base:latest
 
 RUN mkdir -p /tensorflow/models/research/learn && \
     mkdir -p /tensorflow/models/research/learn/ckpt && \

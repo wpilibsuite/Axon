@@ -1,4 +1,4 @@
-FROM gcperkins/wpilib-ml-base
+FROM wpilib/axon-base:latest
 
 COPY scripts /tensorflow/models/research/
 WORKDIR /tensorflow/models/research/

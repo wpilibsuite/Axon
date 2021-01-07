@@ -1,6 +1,5 @@
 FROM borda/docker_python-opencv-ffmpeg
 
-
 RUN mkdir -p /tensorflow/models/research/ && \
     cd /tensorflow/models/research/ && \
     apt-get update && \

@@ -72,8 +72,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Base Image
-        run: docker build -t axon-ml-base
+        run: docker build -t axon-base
         working-directory: ./packages/ml/mobilenet/base
+      - name: Save Axon Docker Image
+        run: docker save -o wpilib_axon_base.latest.tar wpilib/axon-base:latest
+        working-directory: ./packages/ml/mobilenet/base
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Docker Container
+          path: ./packages/ml/mobilenet/base/wpilib_axon_base.latest.tar
+      - name: Publish Docker Image
+        if: |
+          github.repository_owner == 'wpilibsuite' &&
+          github.ref == 'refs/heads/master'
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push wpilib/axon-base:latest
 
   build-ml-dataset-docker:
     name: Build ML Dataset Container
@@ -84,6 +98,20 @@ jobs:
       - name: Build ML Dataset Image
         run: docker build -t axon-ml-dataset
         working-directory: ./packages/ml/mobilenet/dataset
+      - name: Save Axon Docker Image
+        run: docker save -o wpilib_axon_dataset.latest.tar wpilib/axon-dataset:latest
+        working-directory: ./packages/ml/mobilenet/dataset
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Docker Container
+          path: ./packages/ml/mobilenet/dataset/wpilib_axon_dataset.latest.tar
+      - name: Publish Docker Image
+        if: |
+          github.repository_owner == 'wpilibsuite' &&
+          github.ref == 'refs/heads/master'
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push wpilib/axon-dataset:latest
 
   build-ml-metrics-docker:
     name: Build ML Metrics Container
@@ -94,6 +122,20 @@ jobs:
       - name: Build ML Metrics Image
         run: docker build -t axon-ml-metrics
         working-directory: ./packages/ml/mobilenet/metrics
+      - name: Save Axon Docker Image
+        run: docker save -o wpilib_axon_metrics.latest.tar wpilib/axon-metrics:latest
+        working-directory: ./packages/ml/mobilenet/metrics
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Docker Container
+          path: ./packages/ml/mobilenet/metrics/wpilib_axon_metrics.latest.tar
+      - name: Publish Docker Image
+        if: |
+          github.repository_owner == 'wpilibsuite' &&
+          github.ref == 'refs/heads/master'
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push wpilib/axon-metrics:latest
 
   build-ml-test-docker:
     name: Build ML Test Container
@@ -104,6 +146,20 @@ jobs:
       - name: Build ML Test Image
         run: docker build -t axon-ml-test
         working-directory: ./packages/ml/mobilenet/test
+      - name: Save Axon Docker Image
+        run: docker save -o wpilib_axon_test.latest.tar wpilib/axon-test:latest
+        working-directory: ./packages/ml/mobilenet/test
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Docker Container
+          path: ./packages/ml/mobilenet/test/wpilib_axon_test.latest.tar
+      - name: Publish Docker Image
+        if: |
+          github.repository_owner == 'wpilibsuite' &&
+          github.ref == 'refs/heads/master'
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push wpilib/axon-test:latest
 
   build-ml-tflite-docker:
     name: Build ML TFLite Container
@@ -114,13 +170,41 @@ jobs:
       - name: Build ML TFLite Image
         run: docker build -t axon-ml-tflite
         working-directory: ./packages/ml/mobilenet/tflite
+      - name: Save Axon Docker Image
+        run: docker save -o wpilib_axon_tflite.latest.tar wpilib/axon-tflite:latest
+        working-directory: ./packages/ml/mobilenet/tflite
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Docker Container
+          path: ./packages/ml/mobilenet/tflite/wpilib_axon_tflite.latest.tar
+      - name: Publish Docker Image
+        if: |
+          github.repository_owner == 'wpilibsuite' &&
+          github.ref == 'refs/heads/master'
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push wpilib/axon-tflite:latest
 
   build-ml-training-docker:
     name: Build ML Training Container
     runs-on: ubuntu-latest
-    needs: build-ml-training-docker
+    needs: build-ml-base-docker
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Training Image
         run: docker build -t axon-ml-training
         working-directory: ./packages/ml/mobilenet/training
+      - name: Save Axon Docker Image
+        run: docker save -o wpilib_axon_training.latest.tar wpilib/axon-training:latest
+        working-directory: ./packages/ml/mobilenet/training
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Docker Container
+          path: ./packages/ml/mobilenet/training/wpilib_axon_training.latest.tar
+      - name: Publish Docker Image
+        if: |
+          github.repository_owner == 'wpilibsuite' &&
+          github.ref == 'refs/heads/master'
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push wpilib/axon-training:latest
