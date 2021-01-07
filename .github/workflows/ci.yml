@@ -125,13 +125,6 @@ jobs:
       - name: Build ML Test Image
         run: docker build -t wpilib/axon-test:latest .
         working-directory: ./packages/ml/mobilenet/test
-      - name: Save Axon Docker Image
-        run: docker save -o wpilib_axon_test.latest.tar wpilib/axon-test:latest
-        working-directory: ./packages/ml/mobilenet/test
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Docker Container
-          path: ./packages/ml/mobilenet/test/wpilib_axon_test.latest.tar
       - name: Publish Docker Image
         if: |
           github.repository_owner == 'wpilibsuite' &&
