@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Base Image
-        run: docker build -t axon-base
+        run: docker build -t axon-base .
         working-directory: ./packages/ml/mobilenet/base
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_base.latest.tar wpilib/axon-base:latest
@@ -96,7 +96,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Dataset Image
-        run: docker build -t axon-ml-dataset
+        run: docker build -t axon-ml-dataset .
         working-directory: ./packages/ml/mobilenet/dataset
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_dataset.latest.tar wpilib/axon-dataset:latest
@@ -120,7 +120,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Metrics Image
-        run: docker build -t axon-ml-metrics
+        run: docker build -t axon-ml-metrics .
         working-directory: ./packages/ml/mobilenet/metrics
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_metrics.latest.tar wpilib/axon-metrics:latest
@@ -144,7 +144,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Test Image
-        run: docker build -t axon-ml-test
+        run: docker build -t axon-ml-test .
         working-directory: ./packages/ml/mobilenet/test
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_test.latest.tar wpilib/axon-test:latest
@@ -168,7 +168,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML TFLite Image
-        run: docker build -t axon-ml-tflite
+        run: docker build -t axon-ml-tflite .
         working-directory: ./packages/ml/mobilenet/tflite
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_tflite.latest.tar wpilib/axon-tflite:latest
@@ -192,7 +192,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Training Image
-        run: docker build -t axon-ml-training
+        run: docker build -t axon-ml-training .
         working-directory: ./packages/ml/mobilenet/training
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_training.latest.tar wpilib/axon-training:latest
