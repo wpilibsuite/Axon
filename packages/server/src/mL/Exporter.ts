@@ -8,7 +8,7 @@ import * as fs from "fs";
 
 export default class Exporter {
   static readonly images: Record<string, DockerImage> = {
-    export: { name: "gcperkins/wpilib-ml-tflite", tag: "latest" }
+    export: { name: "wpilib/axon-tflite", tag: "latest" }
   };
 
   readonly project: Project;
