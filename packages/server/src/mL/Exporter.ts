@@ -2,7 +2,6 @@ import { DockerImage, Exportjob } from "../schema/__generated__/graphql";
 import { Project, Checkpoint, Export } from "../store";
 import { Container } from "dockerode";
 import * as mkdirp from "mkdirp";
-import Trainer from "./Trainer";
 import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
@@ -43,15 +42,6 @@ export default class Exporter {
   }
 
   /**
-   * Move checkpoint to the correct place in the mounted directory if needed.
-   */
-  public async mountCheckpoint(): Promise<void> {
-    const checkpoint = await Checkpoint.findByPk(this.ckptID);
-    const mountedPath = path.posix.join(this.project.directory, "train", `model.ckpt-${checkpoint.step}`);
-    if (!(await Exporter.checkpointExists(mountedPath))) await Trainer.copyCheckpoint(checkpoint.path, mountedPath);
-  }
-
-  /**
    * Verify that a checkpoint exists.
    *
    * @param path The full path to the checkpoint, without the file extensions.
@@ -81,10 +71,17 @@ export default class Exporter {
    * Create parameter file in the mounted directory to control the export container.
    */
   public async writeParameterFile(): Promise<void> {
+    //pipeline.config must be in project dir
+    const container_project_path = Docker.containerProjectPath(this.project);
+    const config_path = path.posix.join(container_project_path, "pipeline.config");
+    //checkpoint path from containers perspective
     const checkpoint = await Checkpoint.findByPk(this.ckptID);
+    const checkpoint_path = path.posix.join(container_project_path, checkpoint.relativePath);
+
     const exportparameters = {
       name: this.exp.name,
-      epochs: checkpoint.step,
+      config: config_path,
+      checkpoint: checkpoint_path,
       "export-dir": this.exp.relativeDirPath
     };
     fs.writeFileSync(

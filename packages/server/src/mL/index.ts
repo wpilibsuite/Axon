@@ -80,8 +80,6 @@ export default class MLService {
     const exporter: Exporter = new Exporter(project, this.docker, checkpointID, name);
     this.exportjobs.push(exporter);
 
-    await exporter.mountCheckpoint();
-
     await exporter.createDestinationDirectory();
 
     await exporter.writeParameterFile();

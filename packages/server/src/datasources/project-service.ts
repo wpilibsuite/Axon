@@ -35,7 +35,7 @@ export class ProjectService extends DataSource {
 
     /* derive project directory from id, store in object, create folders before saving */
     const mkProjDir = async (folder: string) => mkdirp(path.posix.join(project.directory, folder));
-    project.directory = `/${PROJECT_DATA_DIR}/${project.id}`;
+    project.directory = path.posix.join(PROJECT_DATA_DIR, project.id);
     await mkdirp(project.directory);
     await mkProjDir("checkpoints");
     await mkProjDir("exports");
@@ -199,10 +199,6 @@ export class ProjectService extends DataSource {
    */
   async databaseTest(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
-    const ckpts: Checkpoint[] = await project.getCheckpoints();
-    ckpts.forEach((checkpoint) => {
-      console.log(`Checkpoint: ${checkpoint.step}\n\t${checkpoint.name}\n\t${checkpoint.precision}\n`);
-    });
     return project;
   }
 }

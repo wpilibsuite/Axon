@@ -88,7 +88,8 @@ type Checkpoint {
   id: ID!
   name: String!
   step: Int!
-  path: String!
+  fullPath: String!
+  relativePath: String!
   precision: Float
 }
 

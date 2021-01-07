@@ -1,6 +1,5 @@
 import { DockerImage, Testjob } from "../schema/__generated__/graphql";
 import { Project, Export, Video, Test } from "../store";
-import { CONTAINER_MOUNT_PATH } from "./Docker";
 import { Container } from "dockerode";
 import * as mkdirp from "mkdirp";
 import Docker from "./Docker";
@@ -55,7 +54,11 @@ export default class Tester {
     const MOUNTED_MODEL_PATH = path.posix.join(this.project.directory, model.relativeDirPath, model.tarfileName);
     if (!fs.existsSync(MOUNTED_MODEL_PATH)) await fs.promises.copyFile(FULL_TAR_PATH, MOUNTED_MODEL_PATH);
 
-    const CONTAINER_MODEL_PATH = path.posix.join(CONTAINER_MOUNT_PATH, model.relativeDirPath, model.tarfileName);
+    const CONTAINER_MODEL_PATH = path.posix.join(
+      Docker.containerProjectPath(this.project),
+      model.relativeDirPath,
+      model.tarfileName
+    );
     return Promise.resolve(CONTAINER_MODEL_PATH);
   }
 
@@ -69,7 +72,7 @@ export default class Tester {
     const MOUNTED_VIDEO_PATH = path.posix.join(this.project.directory, "videos", video.filename);
     if (!fs.existsSync(MOUNTED_VIDEO_PATH)) await fs.promises.copyFile(video.fullPath, MOUNTED_VIDEO_PATH);
 
-    const CONTAINER_VIDEO_PATH = path.posix.join(CONTAINER_MOUNT_PATH, "videos", video.filename);
+    const CONTAINER_VIDEO_PATH = path.posix.join(Docker.containerProjectPath(this.project), "videos", video.filename);
     return Promise.resolve(CONTAINER_VIDEO_PATH);
   }
 
