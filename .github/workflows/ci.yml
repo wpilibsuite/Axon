@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Base Image
-        run: docker build -t axon-base .
+        run: docker build -t wpilib/axon-base:latest .
         working-directory: ./packages/ml/mobilenet/base
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_base.latest.tar wpilib/axon-base:latest
@@ -82,9 +82,9 @@ jobs:
           name: Docker Container
           path: ./packages/ml/mobilenet/base/wpilib_axon_base.latest.tar
       - name: Publish Docker Image
-        if: |
-          github.repository_owner == 'wpilibsuite' &&
-          github.ref == 'refs/heads/master'
+#        if: |
+#          github.repository_owner == 'wpilibsuite' &&
+#          github.ref == 'refs/heads/master'
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker push wpilib/axon-base:latest
@@ -96,7 +96,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Dataset Image
-        run: docker build -t axon-ml-dataset .
+        run: docker build -t wpilib/axon-dataset:latest .
         working-directory: ./packages/ml/mobilenet/dataset
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_dataset.latest.tar wpilib/axon-dataset:latest
@@ -120,7 +120,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Metrics Image
-        run: docker build -t axon-ml-metrics .
+        run: docker build -t wpilib/axon-metrics:latest .
         working-directory: ./packages/ml/mobilenet/metrics
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_metrics.latest.tar wpilib/axon-metrics:latest
@@ -144,7 +144,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Test Image
-        run: docker build -t axon-ml-test .
+        run: docker build -t wpilib/axon-test:latest .
         working-directory: ./packages/ml/mobilenet/test
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_test.latest.tar wpilib/axon-test:latest
@@ -168,7 +168,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML TFLite Image
-        run: docker build -t axon-ml-tflite .
+        run: docker build -t wpilib/axon-tflite:latest .
         working-directory: ./packages/ml/mobilenet/tflite
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_tflite.latest.tar wpilib/axon-tflite:latest
@@ -192,7 +192,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build ML Training Image
-        run: docker build -t axon-ml-training .
+        run: docker build -t wpilib/axon-training:latest .
         working-directory: ./packages/ml/mobilenet/training
       - name: Save Axon Docker Image
         run: docker save -o wpilib_axon_training.latest.tar wpilib/axon-training:latest
