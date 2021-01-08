@@ -1,4 +1,5 @@
-FROM wpilib/axon-base:latest
+ARG BASE_VERSION=edge
+FROM wpilib/axon-base:${BASE_VERSION}
 
 RUN mkdir -p /tensorflow/models/research/learn && \
     mkdir -p /tensorflow/models/research/learn/ckpt && \

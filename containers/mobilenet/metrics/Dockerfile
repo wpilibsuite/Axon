@@ -1,4 +1,5 @@
-FROM wpilib/axon-base:latest
+ARG BASE_VERSION=edge
+FROM wpilib/axon-base:${BASE_VERSION}
 
 COPY scripts /tensorflow/models/research/
 WORKDIR /tensorflow/models/research/
