@@ -73,3 +73,5 @@ jobs:
           context: .
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
+          build-args: |
+            AXON_VERSION=${{ steps.docker_meta.outputs.version }}

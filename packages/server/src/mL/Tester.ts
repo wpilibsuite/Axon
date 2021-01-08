@@ -8,7 +8,7 @@ import * as fs from "fs";
 
 export default class Tester {
   static readonly images: Record<string, DockerImage> = {
-    test: { name: "wpilib/axon-test", tag: "latest" }
+    test: { name: "wpilib/axon-test", tag: process.env.AXON_VERSION }
   };
 
   private container: Container;

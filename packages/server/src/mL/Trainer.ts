@@ -19,9 +19,9 @@ type TrainParameters = {
 
 export default class Trainer {
   static readonly images: Record<string, DockerImage> = {
-    dataset: { name: "wpilib/axon-dataset", tag: "latest" },
-    metrics: { name: "wpilib/axon-metrics", tag: "latest" },
-    train: { name: "wpilib/axon-training", tag: "latest" }
+    dataset: { name: "wpilib/axon-dataset", tag: process.env.AXON_VERSION },
+    metrics: { name: "wpilib/axon-metrics", tag: process.env.AXON_VERSION },
+    train: { name: "wpilib/axon-training", tag: process.env.AXON_VERSION }
   };
 
   private container: Container;
