@@ -86,13 +86,21 @@ export default class Docker {
    */
   async pullImages(images: DockerImage[]): Promise<void[]> {
     return Promise.all(
-      Object.entries(images).map(async ([, value]) => {
-        console.info(`Pulling image ${value.name}:${value.tag}`);
-        const stream = await this.docker.pull(`${value.name}:${value.tag}`);
-        this.docker.modem.followProgress(stream, () =>
-          console.info(`Finished pulling image ${value.name}:${value.tag}`)
-        );
-      })
+      Object.entries(images).map(
+        async ([, value]) =>
+          new Promise<void>((resolve) => {
+            console.info(`Pulling image ${value.name}:${value.tag}`);
+            this.docker.pull(
+              `${value.name}:${value.tag}`,
+              (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
+                this.docker.modem.followProgress(stream, () => {
+                  console.info(`Finished pulling image ${value.name}:${value.tag}`);
+                  resolve();
+                });
+              }
+            );
+          })
+      )
     );
   }
 
