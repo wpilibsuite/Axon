@@ -19,9 +19,9 @@ type TrainParameters = {
 
 export default class Trainer {
   static readonly images: Record<string, DockerImage> = {
-    dataset: { name: "gcperkins/wpilib-ml-dataset", tag: "latest" },
-    metrics: { name: "gcperkins/wpilib-ml-metrics", tag: "latest" },
-    train: { name: "gcperkins/wpilib-ml-train", tag: "latest" }
+    dataset: { name: "wpilib/axon-dataset", tag: process.env.AXON_VERSION || "edge" },
+    metrics: { name: "wpilib/axon-metrics", tag: process.env.AXON_VERSION || "edge" },
+    train: { name: "wpilib/axon-training", tag: process.env.AXON_VERSION || "edge" }
   };
 
   private container: Container;

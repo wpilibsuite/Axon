@@ -1,0 +1,129 @@
+name: Containers
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      push: ${{ github.repository_owner == 'wpilibsuite' && github.ref == 'refs/heads/master' }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/setup-buildx-action@v1
+        with:
+          driver: docker
+          version: v0.5.1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        if: ${{ github.repository_owner == 'wpilibsuite' && github.ref == 'refs/heads/master' }}
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Base
+      - name: Base - Docker meta
+        id: base_docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: wpilib/axon-base
+          tag-edge: true
+      - name: Base - Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ env.push }}
+          load: ${{ !env.push }}
+          context: containers/mobilenet/base
+          file: containers/mobilenet/base/Dockerfile
+          tags: ${{ steps.base_docker_meta.outputs.tags }}
+          labels: ${{ steps.base_docker_meta.outputs.labels }}
+      # Dataset
+      - name: Dataset - Docker meta
+        id: dataset_docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: wpilib/axon-dataset
+          tag-edge: true
+      - name: Dataset - Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ env.push }}
+          load: ${{ !env.push }}
+          context: containers/mobilenet/dataset
+          file: containers/mobilenet/dataset/Dockerfile
+          tags: ${{ steps.dataset_docker_meta.outputs.tags }}
+          labels: ${{ steps.dataset_docker_meta.outputs.labels }}
+          build-args: |
+            BASE_VERSION=${{ steps.base_docker_meta.outputs.version }}
+      # Metrics
+      - name: Metrics - Docker meta
+        id: metrics_docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: wpilib/axon-metrics
+          tag-edge: true
+      - name: Metrics - Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ env.push }}
+          load: ${{ !env.push }}
+          context: containers/mobilenet/metrics
+          file: containers/mobilenet/metrics/Dockerfile
+          tags: ${{ steps.metrics_docker_meta.outputs.tags }}
+          labels: ${{ steps.metrics_docker_meta.outputs.labels }}
+          build-args: |
+            BASE_VERSION=${{ steps.base_docker_meta.outputs.version }}
+      # Training
+      - name: Training - Docker meta
+        id: training_docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: wpilib/axon-training
+          tag-edge: true
+      - name: Training - Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ env.push }}
+          load: ${{ !env.push }}
+          context: containers/mobilenet/training
+          file: containers/mobilenet/training/Dockerfile
+          tags: ${{ steps.training_docker_meta.outputs.tags }}
+          labels: ${{ steps.training_docker_meta.outputs.labels }}
+          build-args: |
+            BASE_VERSION=${{ steps.base_docker_meta.outputs.version }}
+      # tflite
+      - name: tflite - Docker meta
+        id: tflite_docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: wpilib/axon-tflite
+          tag-edge: true
+      - name: tflite - Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ env.push }}
+          load: ${{ !env.push }}
+          context: containers/mobilenet/tflite
+          file: containers/mobilenet/tflite/Dockerfile
+          tags: ${{ steps.tflite_docker_meta.outputs.tags }}
+          labels: ${{ steps.tflite_docker_meta.outputs.labels }}
+          build-args: |
+            BASE_VERSION=${{ steps.base_docker_meta.outputs.version }}
+
+      # Test
+      - name: Test - Docker meta
+        id: test_docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: wpilib/axon-test
+          tag-edge: true
+      - name: Test - Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ env.push }}
+          load: ${{ !env.push }}
+          context: containers/mobilenet/test
+          file: containers/mobilenet/test/Dockerfile
+          tags: ${{ steps.test_docker_meta.outputs.tags }}
+          labels: ${{ steps.test_docker_meta.outputs.labels }}

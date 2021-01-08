@@ -12,6 +12,9 @@ RUN yarn install --pure-lockfile --non-interactive && \
 
 COPY . .
 
+ARG AXON_VERSION=edge
+ENV AXON_VERSION=$AXON_VERSION
+
 RUN yarn generate
 
 EXPOSE 3000
