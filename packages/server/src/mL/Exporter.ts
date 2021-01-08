@@ -8,7 +8,7 @@ import * as fs from "fs";
 
 export default class Exporter {
   static readonly images: Record<string, DockerImage> = {
-    export: { name: "wpilib/axon-tflite", tag: process.env.AXON_VERSION }
+    export: { name: "wpilib/axon-tflite", tag: process.env.AXON_VERSION || "edge" }
   };
 
   readonly project: Project;
