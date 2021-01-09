@@ -50,7 +50,7 @@ export default function Projects(): ReactElement {
                   variant="contained"
                   component={Link}
                   to={`projects/${project.id}`}
-                  style={{ width: 800, height: 50, backgroundColor: "dimgray" }}
+                  style={{ width: 800, height: 50, backgroundColor: "#ebfeff" }}
                 >
                   <Typography variant="h6" component="h6">
                     {project.name}
