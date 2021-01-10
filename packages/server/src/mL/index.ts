@@ -31,6 +31,8 @@ export default class MLService {
       return;
     }
 
+    await this.docker.reset();
+
     this.dockerState = DockerState.TrainPull;
     await this.docker.pullImages(Object.values(Trainer.images));
 
