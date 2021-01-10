@@ -7,15 +7,22 @@ import {
   Collapse,
   Typography,
   Card,
-  Button
+  Button,
+  ListItemIcon
 } from "@material-ui/core";
-import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
+import {
+  GetProjectData_project_exports,
+  GetProjectData_project_videos,
+  GetProjectData_project_tests
+} from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
+import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
 import { ExpandLess, ExpandMore } from "@material-ui/icons";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
 import StreamViewer from "./StreamViewer";
 import TestButton from "./TestButton";
+import * as path from "path";
 
 const GET_TESTJOBS = gql`
   query GetTestjobs {
@@ -32,6 +39,7 @@ export default function Results(props: {
   id: string;
   exports: GetProjectData_project_exports[];
   videos: GetProjectData_project_videos[];
+  tests: GetProjectData_project_tests[];
 }): ReactElement {
   const { data, loading, error } = useQuery(GET_TESTJOBS, {
     pollInterval: 2000
@@ -47,7 +55,7 @@ export default function Results(props: {
       <List>
         {props.exports.map((exprt) => (
           <Card key={exprt.name} variant="outlined">
-            <ExportInfo exprt={exprt} videos={props.videos} jobs={data.testjobs} />
+            <ExportInfo exprt={exprt} videos={props.videos} tests={props.tests} jobs={data.testjobs} />
           </Card>
         ))}
       </List>
@@ -59,6 +67,7 @@ function ExportInfo(props: {
   exprt: GetProjectData_project_exports;
   videos: GetProjectData_project_videos[];
   jobs: GetTestjobs_testjobs[];
+  tests: GetProjectData_project_tests[];
 }): JSX.Element {
   const [open, setOpen] = React.useState(false);
 
@@ -77,12 +86,59 @@ function ExportInfo(props: {
         {open ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
       <Collapse in={open} timeout="auto" unmountOnExit>
-        <ActiveTestView active={active} port={port} />
-        <TestButton active={active} modelExport={props.exprt} videos={props.videos} />
-        <a download href={`http://localhost:4000/${props.exprt.downloadPath}`}>
-          <IconButton>Download</IconButton>
-        </a>
+        <Card variant="outlined">
+          <DownloadButton downloadPath={props.exprt.downloadPath} />
+          <ActiveTestView active={active} port={port} />
+          <TestButton active={active} modelExport={props.exprt} videos={props.videos} />
+          <TestList tests={props.tests} exportID={props.exprt.id} />
+        </Card>
       </Collapse>
+    </>
+  );
+}
+
+function DownloadButton(props: { downloadPath: string }): JSX.Element {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline" }}>
+      <List dense={true}>
+        <ListItem>
+          <ListItemIcon>
+            <IconButton>
+              <a href={`http://localhost:4000/${props.downloadPath}`} download>
+                <CloudDownloadIcon />
+              </a>
+            </IconButton>
+          </ListItemIcon>
+          <ListItemText primary={path.basename(props.downloadPath)} />
+        </ListItem>
+      </List>
+    </div>
+  );
+}
+
+function TestList(props: { tests: GetProjectData_project_tests[]; exportID: string }): JSX.Element {
+  const exprtTests = props.tests.filter((test) => test.exportID === props.exportID);
+
+  if (props.tests.length === 0) return <></>;
+
+  return (
+    <>
+      <br />
+      <Typography>Completed tests:</Typography>
+      <List dense={true}>
+        {exprtTests.map((test) => (
+          <ListItem key={test.id}>
+            <ListItemIcon>
+              <IconButton>
+                <a href={`http://localhost:4000/${test.downloadPath}`} download>
+                  <CloudDownloadIcon fontSize="small" />
+                </a>
+              </IconButton>
+            </ListItemIcon>
+            <ListItemText primary={test.name} />
+          </ListItem>
+        ))}
+      </List>
     </>
   );
 }

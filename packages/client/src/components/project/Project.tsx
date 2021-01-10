@@ -53,6 +53,12 @@ const GET_PROJECT_DATA = gql`
         filename
         fullPath
       }
+      tests {
+        id
+        name
+        exportID
+        downloadPath
+      }
     }
   }
 `;
@@ -92,7 +98,12 @@ export default function Project(props: { id: string }): ReactElement {
           <Metrics id={props.id} checkpoints={data.project.checkpoints} exports={data.project.exports} />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          <Results id={props.id} exports={data.project.exports} videos={data.project.videos} />
+          <Results
+            id={props.id}
+            exports={data.project.exports}
+            videos={data.project.videos}
+            tests={data.project.tests}
+          />
         </TabPanel>
       </div>
     );

@@ -1,5 +1,5 @@
 import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState } from "../schema/__generated__/graphql";
-import { Project, Export, Checkpoint, Video } from "../store";
+import { Project, Export, Checkpoint, Video, Test } from "../store";
 import { PROJECT_DATA_DIR } from "../constants";
 import { DataSource } from "apollo-datasource";
 import { createWriteStream, unlink } from "fs";
@@ -176,6 +176,11 @@ export class ProjectService extends DataSource {
   async getVideos(id: string): Promise<Video[]> {
     const project = await Project.findByPk(id);
     return project.getVideos({ order: [["createdAt", "ASC"]] });
+  }
+
+  async getTests(id: string): Promise<Test[]> {
+    const project = await Project.findByPk(id);
+    return project.getTests({ order: [["createdAt", "ASC"]] });
   }
 
   async getTrainjobs(): Promise<Trainjob[]> {

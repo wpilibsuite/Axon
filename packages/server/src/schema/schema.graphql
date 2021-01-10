@@ -116,7 +116,9 @@ type Test {
   videoID: ID!
   exportID: ID!
   name: String!
+  fullPath: String!
   directory: String!
+  downloadPath: String!
 }
 
 type Project {

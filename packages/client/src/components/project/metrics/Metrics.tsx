@@ -101,7 +101,7 @@ function CheckpointInfo(props: {
 function MetricsList(props: { checkpoint: GetProjectData_project_checkpoints }): JSX.Element {
   const metrics: { name: string; value: number }[] = [];
 
-  if (props.checkpoint.precision) metrics.push({ name: "precision", value: props.checkpoint.precision });
+  if (props.checkpoint.precision !== null) metrics.push({ name: "precision", value: props.checkpoint.precision });
 
   return (
     <TableContainer component={Paper}>

@@ -6,7 +6,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  IconButton,
   TextField,
   Tooltip,
   Collapse
@@ -72,7 +71,9 @@ export default function TestButton(props: {
     <>
       <Collapse in={!props.active}>
         <Tooltip title="Test">
-          <IconButton onClick={handleClickPrepare}>Test</IconButton>
+          <Button autoFocus variant="outlined" color="primary" onClick={handleClickPrepare}>
+            Test
+          </Button>
         </Tooltip>
       </Collapse>
       <Dialog onClose={handleClosePrepare} open={preparing}>
@@ -90,12 +91,12 @@ export default function TestButton(props: {
           <TextField onChange={handleTestNameChange} autoFocus margin="dense" label="Test Name" fullWidth />
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClosePrepare}>
+          <Button autoFocus variant="outlined" color="primary" onClick={handleClosePrepare}>
             Cancel
           </Button>
 
           {videoID && (
-            <Button autoFocus onClick={handleTest} color="primary">
+            <Button autoFocus variant="outlined" color="secondary" onClick={handleTest}>
               Test
             </Button>
           )}

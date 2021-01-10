@@ -108,6 +108,8 @@ export default class Tester {
     if (!fs.existsSync(OUTPUT_VID_PATH)) Promise.reject("cant find output video");
     await mkdirp(this.test.directory);
     await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
+    this.test.fullPath = CUSTOM_VID_PATH;
+    this.test.downloadPath = this.test.fullPath.split("/server/data/")[1]; //<- need to do this better
   }
 
   /**
