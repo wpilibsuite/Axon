@@ -1,12 +1,11 @@
 import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
-import { AppBar, Box, Tab, Tabs, Grid, Paper } from "@material-ui/core";
+import { Box, Grid, Paper } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
 import Metrics from "./metrics/Metrics";
 import Results from "./results/Results";
 import Input from "./input/Input";
-import Parameters from "./input/Parameters";
 import Datasets from "./input/Datasets";
 
 interface TabPanelProps {
