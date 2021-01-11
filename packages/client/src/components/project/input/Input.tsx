@@ -193,9 +193,12 @@ export default function Input(props: { id: string }): ReactElement {
     );
   }
   function ProgressBar(): ReactElement {
+    const currentEpoch = trainjob?.currentEpoch ? trainjob?.currentEpoch : 999
+    const lastEpoch = trainjob?.lastEpoch ? trainjob?.lastEpoch : 999
+
     return (
       <Container>
-        {/*<LinearProgressWithLabel value={ trainjob?.currentEpoch / trainjob?.lastEpoch } />*/}
+        <LinearProgressWithLabel value={ currentEpoch / lastEpoch } />
         <p>{`Epoch ${trainjob?.currentEpoch} / ${trainjob?.lastEpoch}`}</p>
       </Container>
     );
