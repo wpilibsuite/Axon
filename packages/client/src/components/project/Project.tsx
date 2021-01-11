@@ -31,15 +31,16 @@ const useStyles = makeStyles((theme) => ({
   },
   paper: {
     padding: theme.spacing(2),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
+    textAlign: "center",
+    color: theme.palette.text.secondary
+  }
 }));
 
 const GET_PROJECT_DATA = gql`
   query GetProjectData($id: ID!) {
     project(id: $id) {
       id
+      name
       checkpoints {
         id
         name
@@ -84,37 +85,16 @@ export default function Project(props: { id: string }): ReactElement {
 
   if (data?.project) {
     return (
-      // <div className={classes.root}>
-      //   <AppBar position="static" color="default">
-      //     <Tabs value={value} onChange={handleChange} indicatorColor="primary" textColor="primary" centered>
-      //       <Tab color="inherit" label="Input" />
-      //       <Tab label="Metrics" />
-      //       <Tab label="Output" />
-      //     </Tabs>
-      //   </AppBar>
-      //   <TabPanel value={value} index={0}>
-      //     <Input id={props.id} />
-      //   </TabPanel>
-      //   <TabPanel value={value} index={1}>
-      //     <Metrics id={props.id} checkpoints={data.project.checkpoints} exports={data.project.exports} />
-      //   </TabPanel>
-      //   <TabPanel value={value} index={2}>
-      //     <Results id={props.id} exports={data.project.exports} videos={data.project.videos} />
-      //   </TabPanel>
-      // </div>
-
       <div className={classes.root}>
         <Grid container spacing={3}>
           <Grid item xs={3}>
-            <Paper className={classes.paper}>{data.project.id}</Paper> //TODO help with getting name
+            <Paper className={classes.paper}>{data.project.name}</Paper>
           </Grid>
           <Grid item xs={9}>
             <Datasets id={props.id} />
-            {/*<Paper className={classes.paper}>Data select text</Paper>*/}
           </Grid>
           <Grid item xs={12}>
             <Input id={props.id} />
-            {/*<Paper className={classes.paper}>Progress and input Bar Text</Paper>*/}
           </Grid>
           <Grid item xs={9}>
             <Metrics id={props.id} checkpoints={data.project.checkpoints} exports={data.project.exports} />

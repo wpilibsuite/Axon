@@ -133,7 +133,11 @@ export default function Input(props: { id: string }): ReactElement {
     if (data?.dockerState === DockerState.TRAIN_PULL) return <p>no train image yet</p>;
     if (starting) return <Button>Starting...</Button>;
 
-    return <Button onClick={handleClick} color="primary" variant="contained">Start</Button>;
+    return (
+      <Button onClick={handleClick} color="primary" variant="contained">
+        Start
+      </Button>
+    );
   }
 
   function StopButton(): ReactElement {
@@ -183,9 +187,7 @@ export default function Input(props: { id: string }): ReactElement {
           <LinearProgress variant="determinate" {...props} />
         </Box>
         <Box minWidth={35}>
-          <Typography variant="body2" color="textSecondary">{`${Math.round(
-            props.value,
-          )}%`}</Typography>
+          <Typography variant="body2" color="textSecondary">{`${Math.round(props.value)}%`}</Typography>
         </Box>
       </Box>
     );
