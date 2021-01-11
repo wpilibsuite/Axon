@@ -22,6 +22,8 @@ type Mutation {
   renameDataset(id: ID!, newName: String!): Dataset
 
   createProject(name: String!): Project
+  deleteProject(id: ID!): Project
+
   updateProject(id: ID!, updates: ProjectUpdateInput!): Project!
   setDatasetInProject(projectId: ID!, datasetId: ID!, isIncluded: Boolean): Project!
 
