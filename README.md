@@ -1,4 +1,5 @@
-# Axon (ml-app)
+Axon (ml-app)
+======================
 
 ![CI](https://github.com/wpilibsuite/ml-react-app/workflows/CI/badge.svg)
 
