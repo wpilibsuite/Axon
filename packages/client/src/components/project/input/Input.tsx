@@ -5,7 +5,7 @@ import { StopTraining, StopTrainingVariables } from "./__generated__/StopTrainin
 import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState";
 import { DockerState, TrainStatus } from "../../../__generated__/globalTypes";
 import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
-import { Button, Container, Divider } from "@material-ui/core";
+import { Button, Container, Divider, LinearProgress, Typography, Box, LinearProgressProps } from "@material-ui/core";
 import { GetTrainjobs } from "./__generated__/GetTrainjobs";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import React, { ReactElement, useState } from "react";
@@ -133,7 +133,7 @@ export default function Input(props: { id: string }): ReactElement {
     if (data?.dockerState === DockerState.TRAIN_PULL) return <p>no train image yet</p>;
     if (starting) return <Button>Starting...</Button>;
 
-    return <Button onClick={handleClick}>Start</Button>;
+    return <Button onClick={handleClick} color="primary" variant="contained">Start</Button>;
   }
 
   function StopButton(): ReactElement {
@@ -176,10 +176,24 @@ export default function Input(props: { id: string }): ReactElement {
       return <Button onClick={handlePause}>Pause</Button>;
     }
   }
-
+  function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
+    return (
+      <Box display="flex" alignItems="center">
+        <Box width="100%" mr={1}>
+          <LinearProgress variant="determinate" {...props} />
+        </Box>
+        <Box minWidth={35}>
+          <Typography variant="body2" color="textSecondary">{`${Math.round(
+            props.value,
+          )}%`}</Typography>
+        </Box>
+      </Box>
+    );
+  }
   function ProgressBar(): ReactElement {
     return (
       <Container>
+        {/*<LinearProgressWithLabel value={ trainjob?.currentEpoch / trainjob?.lastEpoch } />*/}
         <p>{`Epoch ${trainjob?.currentEpoch} / ${trainjob?.lastEpoch}`}</p>
       </Container>
     );
