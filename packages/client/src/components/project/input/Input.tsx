@@ -1,15 +1,16 @@
-import { Button, Container, Divider } from "@material-ui/core";
-import Datasets from "./Datasets";
-import Parameters from "./Parameters";
-import React, { ReactElement, useState } from "react";
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { StartTraining, StartTrainingVariables } from "./__generated__/StartTraining";
-import { HaltTraining, HaltTrainingVariables } from "./__generated__/HaltTraining";
-import { PauseTraining, PauseTrainingVariables } from "./__generated__/PauseTraining";
 import { ResumeTraining, ResumeTrainingVariables } from "./__generated__/ResumeTraining";
+import { StartTraining, StartTrainingVariables } from "./__generated__/StartTraining";
+import { PauseTraining, PauseTrainingVariables } from "./__generated__/PauseTraining";
+import { StopTraining, StopTrainingVariables } from "./__generated__/StopTraining";
+import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState";
+import { DockerState, TrainStatus } from "../../../__generated__/globalTypes";
 import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
+import { Button, Container, Divider } from "@material-ui/core";
 import { GetTrainjobs } from "./__generated__/GetTrainjobs";
-import { TrainStatus } from "../../../__generated__/globalTypes";
+import { gql, useMutation, useQuery } from "@apollo/client";
+import React, { ReactElement, useState } from "react";
+import Parameters from "./Parameters";
+import Datasets from "./Datasets";
 
 const GET_TRAINJOBS = gql`
   query GetTrainjobs {
@@ -30,9 +31,9 @@ const START_TRAINING = gql`
   }
 `;
 
-const HALT_TRAINING = gql`
-  mutation HaltTraining($id: ID!) {
-    haltTraining(id: $id) {
+const STOP_TRAINING = gql`
+  mutation StopTraining($id: ID!) {
+    stopTraining(id: $id) {
       id
     }
   }
@@ -126,26 +127,26 @@ export default function Input(props: { id: string }): ReactElement {
       setStarting(true);
     };
 
-    const { data, loading, error } = useQuery(GET_DOCKER_STATE, { pollInterval: 5000 });
+    const { data, loading, error } = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
     if (loading) return <p>connecting to trainer</p>;
     if (error) return <p>cant connect to trainer</p>;
-    if (data.dockerState < 3) return <p>no train image yet</p>;
+    if (data?.dockerState === DockerState.TRAIN_PULL) return <p>no train image yet</p>;
     if (starting) return <Button>Starting...</Button>;
 
     return <Button onClick={handleClick}>Start</Button>;
   }
 
   function StopButton(): ReactElement {
-    const [haltTraining] = useMutation<HaltTraining, HaltTrainingVariables>(HALT_TRAINING);
+    const [stopTraining] = useMutation<StopTraining, StopTrainingVariables>(STOP_TRAINING);
     const [stopping, setStopping] = useState(false);
 
     const handleClick = () => {
-      haltTraining({ variables: { id: id } });
+      stopTraining({ variables: { id: id } });
       setStopping(true);
     };
     if (stopping) return <Button>Stopping...</Button>;
 
-    return <Button onClick={handleClick}>Halt</Button>;
+    return <Button onClick={handleClick}>Stop</Button>;
   }
 
   function PauseButton(): ReactElement {
@@ -165,7 +166,7 @@ export default function Input(props: { id: string }): ReactElement {
       setResuming(true);
     };
 
-    if (trainjob?.status === TrainStatus.Stopped) {
+    if (trainjob?.status === TrainStatus.Paused) {
       if (pausing) setPausing(false);
       if (resuming) return <Button>Resuming...</Button>;
       return <Button onClick={handleResume}>Resume</Button>;

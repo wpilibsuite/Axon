@@ -19,18 +19,21 @@ type Mutation {
   resetDocker: Boolean!
 
   createDataset(upload: Upload!): Dataset
+  renameDataset(id: ID!, newName: String!): Dataset
 
   createProject(name: String!): Project
+  deleteProject(id: ID!): Project
+
   updateProject(id: ID!, updates: ProjectUpdateInput!): Project!
   setDatasetInProject(projectId: ID!, datasetId: ID!, isIncluded: Boolean): Project!
 
   startTraining(id: ID!): Project
-  haltTraining(id: ID!): Project
+  stopTraining(id: ID!): Project
   pauseTraining(id: ID!): Project
   resumeTraining(id: ID!): Project
-  saveVideo(projectId: ID!, videoName: String!, video: Upload!): Video
-  exportCheckpoint(id: ID!, checkpointNumber: Int!, name: String!): Project
-  testModel(testName: String!, projectID: String!, exportID: String!, videoID: String!): Project
+  saveVideo(projectID: ID!, name: String!, video: Upload!): Video
+  exportCheckpoint(id: ID!, checkpointID: String!, name: String!): Project
+  testModel(name: String!, projectID: String!, exportID: String!, videoID: String!): Project
   databaseTest(id: ID!): Project
 }
 
@@ -81,25 +84,19 @@ type Dataset {
   images: [LabeledImage!]!
 }
 
-type TrainingMetric {
-  name: String!
-  value: Float!
-}
-
-type CheckpointStatus {
-  exporting: Boolean!
-  downloadPaths: [String!]!
-}
-
 type Checkpoint {
+  id: ID!
+  name: String!
   step: Int!
-  status: CheckpointStatus!
-  metrics: [TrainingMetric!]!
+  fullPath: String!
+  relativePath: String!
+  precision: Float
 }
 
 type Export {
-  id: String!
-  projectId: ID!
+  id: ID!
+  projectID: ID!
+  checkpointID: ID!
   name: String!
   directory: String!
   tarfileName: String!
@@ -108,18 +105,17 @@ type Export {
 }
 
 type Video {
-  id: String!
+  id: ID!
   name: String!
   filename: String!
   fullPath: String!
 }
 
 type Test {
-  id: String!
+  id: ID!
+  videoID: ID!
+  exportID: ID!
   name: String!
-  video: Video!
-  model: Export!
-  exportID: String!
   directory: String!
 }
 
@@ -161,6 +157,7 @@ type Trainjob {
 }
 
 type Exportjob {
+  name: String!
   checkpointID: String!
   projectID: String!
   exportID: String!

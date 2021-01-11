@@ -1,24 +1,12 @@
 import React, { ReactElement } from "react";
-import {
-  Container,
-  createStyles,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Theme,
-  Toolbar,
-  Typography
-} from "@material-ui/core";
+import { Button, Container, createStyles, List, ListItem, Paper, Theme, Toolbar, Typography } from "@material-ui/core";
 import gql from "graphql-tag";
 import { makeStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 import { GetProjectList } from "./__generated__/GetProjectList";
 import { useQuery } from "@apollo/client";
 import AddProjectDialogButton from "./AddProjectDialogButton";
+import ProjectMenu from "./ProjectMenu";
 
 const GET_PROJECTS = gql`
   query GetProjectList {
@@ -54,26 +42,25 @@ export default function Projects(): ReactElement {
           </Typography>
           <AddProjectDialogButton />
         </Toolbar>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Name</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.projects.map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell>
-                    <Link to={`projects/${project.id}`}>{project.id}</Link>
-                  </TableCell>
-                  <TableCell>{project.name}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <List dense={true}>
+          {data.projects.map((project) => (
+            <ListItem key={project.id}>
+              <Paper elevation={3}>
+                <Button
+                  variant="contained"
+                  component={Link}
+                  to={`projects/${project.id}`}
+                  style={{ width: 800, height: 50, backgroundColor: "#ebfeff" }}
+                >
+                  <Typography variant="h6" component="h6">
+                    {project.name}
+                  </Typography>
+                </Button>
+                <ProjectMenu project={project} />
+              </Paper>
+            </ListItem>
+          ))}
+        </List>
       </Paper>
     </Container>
   );

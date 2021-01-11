@@ -1,25 +1,34 @@
 import * as Dockerode from "dockerode";
 import { Container, ContainerCreateOptions } from "dockerode";
-import { PROJECT_DATA_DIR } from "../constants";
-import { ProjectData } from "../datasources/PseudoDatabase";
 import { DockerImage } from "../schema/__generated__/graphql";
+import { Project } from "../store";
+import { DATA_DIR } from "../constants";
+import * as path from "path";
 
-export const CONTAINER_MOUNT_PATH = "/opt/ml/model";
-
-/**
- * Get the working directory of a project.
- *
- * @param project The project to get the working directory of
- */
-function getProjectWorkingDirectory(project: ProjectData): string {
-  return `${PROJECT_DATA_DIR}/${project.id}`.replace(/\\/g, "/");
-}
+export const CONTAINER_MOUNT_PATH = "/wpi-data";
+export const VOLUME_NAME = "wpilib-axon-volume";
 
 export default class Docker {
   readonly docker;
+  mount: string;
 
   constructor(docker: Dockerode) {
     this.docker = docker;
+
+    /* if we are inside the container, use the volume name. if not, use the data dir */
+
+    /* someone come up with a better way to do this */
+    this.mount = DATA_DIR === "/usr/src/app/packages/server/data" ? VOLUME_NAME : DATA_DIR;
+  }
+
+  /**
+   * Derive the path to a projects directory in the mounted data volume
+   * from a started container's perspective, to pass as an argument on start.
+   *
+   * @param project The project in question.
+   */
+  static containerProjectPath(project: Project): string {
+    return path.posix.join(CONTAINER_MOUNT_PATH, project.directory.replace(DATA_DIR, ""));
   }
 
   /**
@@ -77,13 +86,21 @@ export default class Docker {
    */
   async pullImages(images: DockerImage[]): Promise<void[]> {
     return Promise.all(
-      Object.entries(images).map(async ([, value]) => {
-        console.info(`Pulling image ${value.name}:${value.tag}`);
-        const stream = await this.docker.pull(`${value.name}:${value.tag}`);
-        this.docker.modem.followProgress(stream, () =>
-          console.info(`Finished pulling image ${value.name}:${value.tag}`)
-        );
-      })
+      Object.entries(images).map(
+        async ([, value]) =>
+          new Promise<void>((resolve) => {
+            console.info(`Pulling image ${value.name}:${value.tag}`);
+            this.docker.pull(
+              `${value.name}:${value.tag}`,
+              (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
+                this.docker.modem.followProgress(stream, () => {
+                  console.info(`Finished pulling image ${value.name}:${value.tag}`);
+                  resolve();
+                });
+              }
+            );
+          })
+      )
     );
   }
 
@@ -96,11 +113,11 @@ export default class Docker {
    * @param image The image to base this container on
    * @param ports The ports to expose
    */
-  async createContainer(project: ProjectData, image: DockerImage, ports: [string?] = []): Promise<Container> {
+  async createContainer(project: Project, image: DockerImage, ports: [string?] = []): Promise<Container> {
     console.info(`${project.id}: Launching container ${image.name}`);
 
-    const localMountPath = getProjectWorkingDirectory(project).replace("C:\\", "/c/").replace(/\\/g, "/");
     const options: ContainerCreateOptions = {
+      Cmd: [Docker.containerProjectPath(project)],
       Image: `${image.name}:${image.tag}`,
       name: `wpilib-${image.name.replace(/\//g, "_")}-${project.id}`,
       Labels: {
@@ -116,7 +133,7 @@ export default class Docker {
       Tty: true,
       Volumes: { [CONTAINER_MOUNT_PATH]: {} },
       HostConfig: {
-        Binds: [`${localMountPath}:${CONTAINER_MOUNT_PATH}:rw`],
+        Binds: [`${this.mount}:${CONTAINER_MOUNT_PATH}:rw`],
         PortBindings: Object.assign({}, ...ports.map((port) => ({ [port]: [{ HostPort: port.split("/")[0] }] })))
       },
       ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))

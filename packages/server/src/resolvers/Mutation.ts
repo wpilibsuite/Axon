@@ -8,8 +8,14 @@ export const Mutation: MutationResolvers = {
     const { createReadStream, filename } = await upload;
     return dataSources.datasetService.createDataset(filename, createReadStream());
   },
+  renameDataset: async (parent, { id, newName }, { dataSources }) => {
+    return dataSources.datasetService.renameDataset(id, newName);
+  },
   createProject: async (parent, { name }, { dataSources }) => {
     return dataSources.projectService.createProject(name);
+  },
+  deleteProject: async (parent, { id }, { dataSources }) => {
+    return dataSources.projectService.deleteProject(id);
   },
   updateProject: async (parent, { id, updates }, { dataSources }) => {
     return dataSources.projectService.updateProject(id, updates);
@@ -20,8 +26,8 @@ export const Mutation: MutationResolvers = {
   startTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.startTraining(id);
   },
-  haltTraining: (parent, { id }, { dataSources }) => {
-    return dataSources.projectService.haltTraining(id);
+  stopTraining: (parent, { id }, { dataSources }) => {
+    return dataSources.projectService.stopTraining(id);
   },
   pauseTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.pauseTraining(id);
@@ -29,16 +35,16 @@ export const Mutation: MutationResolvers = {
   resumeTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.resumeTraining(id);
   },
-  saveVideo: async (parent, { projectId, videoName, video }, { dataSources }) => {
+  saveVideo: async (parent, { projectID, name, video }, { dataSources }) => {
     const { createReadStream, filename } = await video;
     console.log(filename);
-    return dataSources.projectService.saveVideo(projectId, videoName, filename, createReadStream());
+    return dataSources.projectService.saveVideo(projectID, name, filename, createReadStream());
   },
-  exportCheckpoint: async (parent, { id, checkpointNumber, name }, { dataSources }) => {
-    return dataSources.projectService.exportCheckpoint(id, checkpointNumber, name);
+  exportCheckpoint: async (parent, { id, checkpointID, name }, { dataSources }) => {
+    return dataSources.projectService.exportCheckpoint(id, checkpointID, name);
   },
-  testModel: async (parent, { testName, projectID, exportID, videoID }, { dataSources }) => {
-    return dataSources.projectService.testModel(testName, projectID, exportID, videoID);
+  testModel: async (parent, { name, projectID, exportID, videoID }, { dataSources }) => {
+    return dataSources.projectService.testModel(name, projectID, exportID, videoID);
   },
   databaseTest: async (parent, { id }, { dataSources }) => {
     return dataSources.projectService.databaseTest(id);

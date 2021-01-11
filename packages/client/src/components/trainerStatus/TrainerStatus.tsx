@@ -1,5 +1,7 @@
 import React, { ReactElement } from "react";
 import { Typography, Dialog, DialogTitle, DialogContent } from "@material-ui/core";
+import { DockerState } from "../../__generated__/globalTypes";
+import { GetDockerState } from "./__generated__/GetDockerState";
 import { gql, useQuery } from "@apollo/client";
 
 export const GET_DOCKER_STATE = gql`
@@ -10,27 +12,41 @@ export const GET_DOCKER_STATE = gql`
 
 export default function TrainerStatus(): ReactElement {
   const options = { pollInterval: 5000 };
-  const { data, loading, error } = useQuery(GET_DOCKER_STATE, options);
+  const { data, loading, error } = useQuery<GetDockerState>(GET_DOCKER_STATE, options);
 
   if (loading) return <p>connecting to trainer</p>;
   if (error) return <p>cant connect to trainer</p>;
 
+  let statusMessage;
+  switch (data?.dockerState) {
+    case DockerState.NO_DOCKER:
+      statusMessage = "ERROR: docker wont respond.";
+      break;
+    case DockerState.SCANNING_FOR_DOCKER:
+      statusMessage = "connecting to docker";
+      break;
+    case DockerState.TRAIN_PULL:
+      statusMessage = "downloading training images";
+      break;
+    case DockerState.EXPORT_PULL:
+      statusMessage = "downloading export images";
+      break;
+    case DockerState.TEST_PULL:
+      statusMessage = "downloading testing images";
+      break;
+    case DockerState.READY:
+      statusMessage = "Ready";
+      break;
+    default:
+      statusMessage = "no state recieved";
+  }
+
   return (
     <>
       <Typography variant="body2" color="textSecondary" align="center">
-        {
-          [
-            <p key={0}>ERROR: docker wont respond.</p>,
-            <p key={1}>connecting to docker</p>,
-            <p key={2}>downloading training images</p>,
-            <p key={3}>downloading export images</p>,
-            <p key={4}>downloading testing</p>,
-            <p key={5}>Ready</p>,
-            <p key={6}>no data from trainer</p>
-          ][data ? data.dockerState : 6]
-        }
+        {statusMessage}
       </Typography>
-      <Dialog open={data?.dockerState === 0}>
+      <Dialog open={data?.dockerState === DockerState.NO_DOCKER}>
         <DialogTitle>Docker Error</DialogTitle>
         <DialogContent dividers>
           <Typography variant="body2" color="textSecondary" align="center">
