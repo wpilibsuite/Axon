@@ -61,7 +61,6 @@ export default function Datasets(): ReactElement {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell align="right">Image Count</TableCell>
               </TableRow>
@@ -70,9 +69,8 @@ export default function Datasets(): ReactElement {
               {data.datasets.map((dataset) => (
                 <TableRow key={dataset.id}>
                   <TableCell>
-                    <Link to={`datasets/${dataset.id}`}>{dataset.id}</Link>
+                    <Link to={`datasets/${dataset.id}`}>{dataset.name}</Link>
                   </TableCell>
-                  <TableCell>{dataset.name}</TableCell>
                   <TableCell align="right">{dataset.images.length}</TableCell>
                 </TableRow>
               ))}
