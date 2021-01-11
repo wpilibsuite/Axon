@@ -77,9 +77,9 @@ export default class Docker {
       }
     });
     await Promise.all(
-      containers.map(async (listcontainer) => {
-        const container = await this.docker.getContainer(listcontainer.Id);
-        if (listcontainer.State == "running") await container.stop();
+      containers.map(async (listContainer) => {
+        const container = await this.docker.getContainer(listContainer.Id);
+        if (listContainer.State == "running") await container.stop();
         await container.remove();
       })
     );
