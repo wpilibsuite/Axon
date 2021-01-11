@@ -1,11 +1,38 @@
 import * as React from "react";
-import { List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
-import { Link } from "react-router-dom";
-import { Info, PermMedia } from "@material-ui/icons";
+import { ReactElement } from "react";
+import { ChevronRight, ExpandMore, Folder, Info, PermMedia } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { SvgIconTypeMap } from "@material-ui/core/SvgIcon/SvgIcon";
 import { makeStyles } from "@material-ui/core/styles";
-import { ReactElement } from "react";
+import gql from "graphql-tag";
+import { TreeView } from "@material-ui/lab";
+import { useQuery } from "@apollo/client";
+import { TreeGetProjectList } from "./__generated__/TreeGetProjectList";
+import { TreeGetDatasetList } from "./__generated__/TreeGetDatasetList";
+import NavigationTreeItem from "./NavigationTreeItem";
+import NavigationTreeParent from "./NavigationTreeParent";
+
+const GET_PROJECTS = gql`
+    query GetProjectListTree {
+        projects {
+            id
+            name
+        }
+    }
+`;
+
+const GET_DATASETS = gql`
+    query TreeGetDatasetList {
+        datasets {
+            id
+            name
+            images {
+                path
+            }
+        }
+    }
+`;
+
 
 const useStyles = makeStyles((theme) => ({
   link: {
@@ -14,25 +41,36 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export const links: { [link: string]: { name: string; icon: OverridableComponent<SvgIconTypeMap> } } = {
-  "/datasets": { name: "Datasets", icon: PermMedia },
-  "/projects": { name: "Projects", icon: PermMedia },
-  "/about": { name: "About", icon: Info }
-};
+let number = 4;
+
+function getNext(): string {
+  const temp = number;
+  number++;
+  return temp.toString();
+}
 
 export default function LinkList(): ReactElement {
   const classes = useStyles();
 
+  const datasets = useQuery<TreeGetDatasetList, TreeGetDatasetList>(GET_DATASETS);
+  const projects = useQuery<TreeGetProjectList, TreeGetProjectList>(GET_PROJECTS);
+
+  if (datasets.loading || projects.loading) return <p>LOADING</p>;
+  if (datasets.error || projects.error || !datasets.data || !projects.data) return <p>ERROR</p>;
+
   return (
-    <List>
-      {Object.entries(links).map(([pathname, link]) => (
-        <Link key={pathname} to={pathname} className={classes.link}>
-          <ListItem button>
-            <ListItemIcon>{React.createElement(link.icon)}</ListItemIcon>
-            <ListItemText primary={link.name} />
-          </ListItem>
-        </Link>
-      ))}
-    </List>
+    <TreeView defaultCollapseIcon={<ExpandMore />} defaultExpandIcon={<ChevronRight />} defaultExpanded={["1", "2"]}>
+      <NavigationTreeParent text={"Datasets"} nodeId={"1"} icon={Folder} child={
+        datasets.data.datasets.map((dataset, index) => (
+          <NavigationTreeItem key={index} pathname={`/datasets/${dataset.id}`} text={dataset.name}
+                              nodeId={getNext()} icon={PermMedia} />
+        ))} />
+      <NavigationTreeParent text={"Projects"} nodeId={"2"} icon={Folder} child={
+        projects.data.projects.map((project, index) => (
+          <NavigationTreeItem key={index} pathname={`/projects/${project.id}`} text={project.name}
+                              nodeId={getNext()} icon={PermMedia} />
+        ))} />
+      <NavigationTreeItem pathname={"/about"} text={"About"} nodeId={"3"} icon={Info} />
+    </TreeView>
   );
 }
