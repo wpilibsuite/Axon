@@ -27,7 +27,10 @@ To install additional required packages before launching, run the command `yarn`
 
 ## Running
 
-To run Axon use the command `yarn start` and navigate to `http://localhost:3000/`
+To run Axon outside the prebuilt Docker container use the command `yarn start` and navigate to `http://localhost:3000/`
+
+Ensure Docker is running on your machine, or the required images will not be able to start.
+If it is your first time running the program, ensure you have run `yarn install` and `yarn generate`
 
 # Building (Release)
 
@@ -39,11 +42,18 @@ To make Axon portable and easy to use, we provide a Docker image to run it.
 
 ## Building
 
-`docker build -t <tag-name> .`
+To build locally use
+`docker build --build-arg AXON_VERSION=<version> -t <tag-name> .`
+where `<tag-name>` is an arbitrary name of your choosing.
 
 ## Running
 
-`docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v wpilib-axon-volume:/usr/src/app/packages/server/data -p 3000:3000 -p 4000:4000 --pull=always --build-arg AXON_VERSION=<version> <tag-name>`
+To run using the latest published version use
+`docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v wpilib-axon-volume:/usr/src/app/packages/server/data -p 3000:3000 -p 4000:4000 --pull=always <tag-name>`
+
+To run based on a local built image use
+`docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v wpilib-axon-volume:/usr/src/app/packages/server/data -p 3000:3000 -p 4000:4000 <tag-name>`
+where `<tag-name>` is the name set in the previous step.
 
 # Contributing to WPILib
 
