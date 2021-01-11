@@ -1,4 +1,4 @@
-![logo](/logo.png)
+![logo](./logo.png)
 
 # Axon (ml-app)
 
