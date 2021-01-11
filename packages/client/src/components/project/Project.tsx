@@ -106,7 +106,7 @@ export default function Project(props: { id: string }): ReactElement {
       <div className={classes.root}>
         <Grid container spacing={3}>
           <Grid item xs={3}>
-            <Paper className={classes.paper}>Project Title Text</Paper>
+            <Paper className={classes.paper}>{data.project.id}</Paper> //TODO help with getting name
           </Grid>
           <Grid item xs={9}>
             <Datasets id={props.id} />
@@ -118,9 +118,6 @@ export default function Project(props: { id: string }): ReactElement {
           </Grid>
           <Grid item xs={9}>
             <Metrics id={props.id} checkpoints={data.project.checkpoints} exports={data.project.exports} />
-          </Grid>
-          <Grid item xs={3}>
-            <Paper className={classes.paper}>checkpoint info text</Paper>
           </Grid>
           <Grid item xs={12}>
             <Results id={props.id} exports={data.project.exports} videos={data.project.videos} />

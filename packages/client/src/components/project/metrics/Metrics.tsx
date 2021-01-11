@@ -59,10 +59,17 @@ export default function Metrics(props: {
 
   return (
     <>
-      <Chart checkpoints={props.checkpoints} onClick={onSet} />
-      <Collapse in={selectedCheckpoint !== undefined} timeout="auto" unmountOnExit>
-        <CheckpointInfo checkpoint={selectedCheckpoint} exports={props.exports} jobs={data.exportjobs} id={props.id} />
-      </Collapse>
+      <Grid container spacing={3}>
+        <Grid item xs={9}>
+          <Chart checkpoints={props.checkpoints} onClick={onSet} />
+        </Grid>
+        <Grid item xs={3}>
+          <CheckpointInfo checkpoint={selectedCheckpoint} exports={props.exports} jobs={data.exportjobs} id={props.id} />
+        </Grid>
+      </Grid>
+      {/*<Collapse in={selectedCheckpoint !== undefined} timeout="auto" unmountOnExit>*/}
+      {/*  <CheckpointInfo checkpoint={selectedCheckpoint} exports={props.exports} jobs={data.exportjobs} id={props.id} />*/}
+      {/*</Collapse>*/}
       <Exportjobs jobs={data.exportjobs} id={props.id} />
     </>
   );
