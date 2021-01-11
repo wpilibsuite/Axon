@@ -73,8 +73,8 @@ export default function Input(props: { id: string }): ReactElement {
   if (trainjob === undefined)
     return (
       <>
-        <Datasets id={props.id} />
-        <Divider />
+        {/*<Datasets id={props.id} />*/}
+        {/*<Divider />*/}
         <Parameters id={props.id} />
         <Divider />
         <StartButton />

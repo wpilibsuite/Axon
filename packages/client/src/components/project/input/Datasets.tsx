@@ -57,7 +57,7 @@ function DatasetSelectionGridList(props: { id: string }) {
 
 export default function Projects(props: { id: string }): ReactElement {
   return (
-    <Section title="Projects">
+    <Section title="Datasets">
       <DatasetSelectionGridList id={props.id} />
     </Section>
   );
