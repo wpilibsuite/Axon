@@ -1,5 +1,5 @@
 import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
-import { Box, Grid, Paper } from "@material-ui/core";
+import { Grid, Paper } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
@@ -7,22 +7,6 @@ import Metrics from "./metrics/Metrics";
 import Results from "./results/Results";
 import Input from "./input/Input";
 import Datasets from "./input/Datasets";
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box p={3}>{children}</Box>}
-    </div>
-  );
-}
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -66,7 +50,6 @@ const GET_PROJECT_DATA = gql`
 
 export default function Project(props: { id: string }): ReactElement {
   const classes = useStyles();
-  const [value, setValue] = React.useState(0);
 
   const { data, loading, error } = useQuery<GetProjectData, GetProjectDataVariables>(GET_PROJECT_DATA, {
     variables: {
@@ -74,10 +57,6 @@ export default function Project(props: { id: string }): ReactElement {
     },
     pollInterval: 3000
   });
-
-  const handleChange = (event: React.ChangeEvent<unknown>, newValue: number) => {
-    setValue(newValue);
-  };
 
   if (loading) return <p>LOADING</p>;
   if (error) return <p>{error.message}</p>;

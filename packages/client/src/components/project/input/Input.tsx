@@ -10,7 +10,6 @@ import { GetTrainjobs } from "./__generated__/GetTrainjobs";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import React, { ReactElement, useState } from "react";
 import Parameters from "./Parameters";
-import Datasets from "./Datasets";
 
 const GET_TRAINJOBS = gql`
   query GetTrainjobs {
