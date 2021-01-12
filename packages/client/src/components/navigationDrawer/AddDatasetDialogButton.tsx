@@ -63,9 +63,12 @@ export default function AddDatasetDialogButton(): ReactElement {
     <TreeItem
       nodeId={"addbuttondataset"}
       label={
-        <Button component={"label"} className={classes.button} startIcon={<AddIcon />}>
-          <input type="file" style={{ display: "none" }} required onChange={onChange} key={Date.now()} />
-          <Typography variant={"body1"}> Add Dataset</Typography>
+        <Button component={"label"} className={classes.button}>
+          <div className={classes.labelRoot}>
+            {React.createElement(AddIcon, { className: classes.labelIcon })}
+            <input type="file" style={{ display: "none" }} required onChange={onChange} key={Date.now()} />
+            <Typography variant={"body1"}> Add Dataset</Typography>
+          </div>
         </Button>
       }
     />
