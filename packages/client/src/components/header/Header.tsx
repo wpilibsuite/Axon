@@ -16,7 +16,7 @@ export default function Header(): ReactElement {
     <AppBar position="fixed" className={classes.appBar}>
       <Toolbar>
         <Typography variant="h6" color="inherit" noWrap>
-          Machine Learning App
+          Axon
         </Typography>
       </Toolbar>
     </AppBar>
