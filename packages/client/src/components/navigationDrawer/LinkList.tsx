@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const GET_PROJECTS = gql`
-  query GetProjectListTree {
+  query TreeGetProjectList {
     projects {
       id
       name
