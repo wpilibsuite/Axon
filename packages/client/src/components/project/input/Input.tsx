@@ -1,4 +1,5 @@
-import { Container, Divider, LinearProgress, Typography, Box, LinearProgressProps } from "@material-ui/core";
+import { Container, LinearProgress, Typography, Box, LinearProgressProps } from "@material-ui/core";
+import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
 import { StartButton, StopButton, PauseButton } from "./Buttons";
 import { TrainStatus } from "../../../__generated__/globalTypes";
 import { GetTrainjobs } from "./__generated__/GetTrainjobs";
@@ -17,7 +18,7 @@ const GET_TRAINJOBS = gql`
   }
 `;
 
-export default function Input(props: { id: string }): ReactElement {
+export default function Input(props: { id: string; datasets: GetProjectData_project_datasets[] }): ReactElement {
   const { data, loading, error } = useQuery<GetTrainjobs>(GET_TRAINJOBS, {
     pollInterval: 2000
   });
@@ -31,9 +32,10 @@ export default function Input(props: { id: string }): ReactElement {
   if (trainjob === undefined)
     return (
       <>
-        <Parameters id={props.id} />
-        <Divider />
-        <StartButton id={props.id} />
+        <Box display="inline-flex">
+          <Parameters id={props.id} datasets={props.datasets} />
+          <StartButton id={props.id} />
+        </Box>
       </>
     );
 

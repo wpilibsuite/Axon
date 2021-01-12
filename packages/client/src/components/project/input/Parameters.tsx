@@ -1,11 +1,12 @@
-import React from "react";
-import { createStyles, TextField, Theme } from "@material-ui/core";
-import Section from "../Section";
-import { ReactElement } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
 import { UpdateHyperparameters, UpdateHyperparametersVariables } from "./__generated__/UpdateHyperparameters";
+import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
+import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
+import { createStyles, TextField, Theme } from "@material-ui/core";
+import { gql, useMutation, useQuery } from "@apollo/client";
+import { makeStyles } from "@material-ui/core/styles";
+import { ReactElement } from "react";
+import React from "react";
+import Datasets from "./Datasets";
 
 Parameters.fragments = {
   hyperparameters: gql`
@@ -48,7 +49,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-export default function Parameters(props: { id: string }): ReactElement {
+export default function Parameters(props: { id: string; datasets: GetProjectData_project_datasets[] }): ReactElement {
   const classes = useStyles();
   const { loading, error, data } = useQuery<GetHyperparameters, GetHyperparametersVariables>(GET_HYPERPARAMETERS, {
     variables: {
@@ -89,43 +90,42 @@ export default function Parameters(props: { id: string }): ReactElement {
   };
 
   return (
-    <Section title="Parameters">
-      <form className={classes.root}>
-        <fieldset style={{ all: "unset" }}>
-          <TextField
-            name="epochs"
-            label="Epochs"
-            variant="outlined"
-            type="number"
-            value={data?.project?.epochs}
-            onChange={handleOnChange}
-          />
-          <TextField
-            name="batchSize"
-            label="Batch Size"
-            variant="outlined"
-            type="number"
-            value={data?.project?.batchSize}
-            onChange={handleOnChange}
-          />
-          <TextField
-            name="evalFrequency"
-            label="Evaluation Frequency"
-            variant="outlined"
-            type="number"
-            value={data?.project?.evalFrequency}
-            onChange={handleOnChange}
-          />
-          <TextField
-            name="percentEval"
-            label="Percent Evaluation"
-            variant="outlined"
-            type="number"
-            value={data?.project?.percentEval}
-            onChange={handleOnChange}
-          />
-        </fieldset>
-      </form>
-    </Section>
+    <form className={classes.root}>
+      <fieldset style={{ all: "unset" }}>
+        <TextField
+          name="epochs"
+          label="Epochs"
+          variant="outlined"
+          type="number"
+          value={data?.project?.epochs}
+          onChange={handleOnChange}
+        />
+        <TextField
+          name="batchSize"
+          label="Batch Size"
+          variant="outlined"
+          type="number"
+          value={data?.project?.batchSize}
+          onChange={handleOnChange}
+        />
+        <TextField
+          name="evalFrequency"
+          label="Evaluation Frequency"
+          variant="outlined"
+          type="number"
+          value={data?.project?.evalFrequency}
+          onChange={handleOnChange}
+        />
+        <TextField
+          name="percentEval"
+          label="Percent Evaluation"
+          variant="outlined"
+          type="number"
+          value={data?.project?.percentEval}
+          onChange={handleOnChange}
+        />
+        <Datasets id={props.id} selected={props.datasets} />
+      </fieldset>
+    </form>
   );
 }
