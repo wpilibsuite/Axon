@@ -1,11 +1,11 @@
+import { TreeGetProjectList } from "./__generated__/TreeGetProjectList";
+import { TreeGetDatasetList } from "./__generated__/TreeGetDatasetList";
 import * as React from "react";
 import { ReactElement } from "react";
 import { ChevronRight, ExpandMore, Folder, Info, PermMedia } from "@material-ui/icons";
 import gql from "graphql-tag";
 import { TreeItem, TreeView } from "@material-ui/lab";
 import { useQuery } from "@apollo/client";
-import { TreeGetProjectList } from "./__generated__/TreeGetProjectList";
-import { TreeGetDatasetList } from "./__generated__/TreeGetDatasetList";
 import NavigationTreeItem from "./NavigationTreeItem";
 import { Tooltip, Typography } from "@material-ui/core";
 import { Link } from "react-router-dom";
