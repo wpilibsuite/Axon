@@ -1,5 +1,5 @@
 import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState } from "../schema/__generated__/graphql";
-import { Project, Export, Checkpoint, Video } from "../store";
+import { Project, Export, Checkpoint, Video, Dataset } from "../store";
 import { PROJECT_DATA_DIR } from "../constants";
 import { DataSource } from "apollo-datasource";
 import { createWriteStream, unlink } from "fs";
@@ -42,6 +42,12 @@ export class ProjectService extends DataSource {
     await mkProjDir("dataset");
     await mkProjDir("tests");
 
+    return project.save();
+  }
+
+  async renameProject(id: string, newName: string): Promise<Project> {
+    const project = await this.getProject(id);
+    project.name = newName;
     return project.save();
   }
 
