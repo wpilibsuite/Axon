@@ -1,7 +1,6 @@
 import * as React from "react";
 import { ReactElement } from "react";
 import { ChevronRight, ExpandMore, Folder, Info, PermMedia } from "@material-ui/icons";
-import { makeStyles } from "@material-ui/core/styles";
 import gql from "graphql-tag";
 import { TreeView } from "@material-ui/lab";
 import { useQuery } from "@apollo/client";
