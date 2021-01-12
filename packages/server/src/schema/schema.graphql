@@ -20,6 +20,7 @@ type Mutation {
 
   createDataset(upload: Upload!): Dataset
   renameDataset(id: ID!, newName: String!): Dataset
+  deleteDataset(id: ID!): Dataset
 
   createProject(name: String!): Project
   deleteProject(id: ID!): Project
