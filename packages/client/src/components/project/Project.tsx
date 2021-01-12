@@ -6,7 +6,6 @@ import React, { ReactElement } from "react";
 import Metrics from "./metrics/Metrics";
 import Results from "./results/Results";
 import Input from "./input/Input";
-import Datasets from "./input/Datasets";
 import ProjectMenu from "./ProjectMenu";
 
 const useStyles = makeStyles((theme) => ({
@@ -21,6 +20,9 @@ const useStyles = makeStyles((theme) => ({
   heading: {
     display: "flex",
     justifyContent: "center"
+  },
+  projectName: {
+    display: "inline-block"
   }
 }));
 
@@ -75,7 +77,7 @@ export default function Project(props: { id: string }): ReactElement {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <div className={classes.heading}>
-              <Typography align={"center"} variant={"h2"} style={{ display: "inline-block" }}>
+              <Typography align={"center"} variant={"h2"} className={classes.projectName}>
                 {data.project.name}
               </Typography>
               <ProjectMenu project={data.project} />
