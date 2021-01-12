@@ -7,7 +7,10 @@ import {
   Collapse,
   Typography,
   Card,
-  Button
+  Button,
+  DialogActions,
+  Dialog,
+  DialogContent
 } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
@@ -88,22 +91,33 @@ function ExportInfo(props: {
 }
 
 function ActiveTestView(props: { active: boolean; port: string }): JSX.Element {
-  const [streaming, setStreaming] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
   const handleClickView = () => {
-    setStreaming(!streaming);
+    setOpen(true);
   };
-
-  const buttonColor = streaming ? "primary" : "secondary";
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   return (
     <>
       <Collapse in={props.active} timeout="auto" unmountOnExit>
-        <Button variant="outlined" color={buttonColor} onClick={handleClickView}>
-          {streaming ? "Close" : "View"}
+        <Button variant="outlined" color="secondary" onClick={handleClickView}>
+          View
         </Button>
-        <Collapse in={streaming} timeout="auto" unmountOnExit>
-          <StreamViewer port={props.port} />
-        </Collapse>
+        <Dialog onClose={handleClose} open={open} style={{ display: "block" }} maxWidth={false}>
+          <DialogContent dividers>
+            <StreamViewer port={props.port} />
+          </DialogContent>
+          <DialogActions>
+            <Button autoFocus onClick={handleClose}>
+              Close
+            </Button>
+            <Button autoFocus color="primary">
+              Stop
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Collapse>
     </>
   );
