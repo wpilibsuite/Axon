@@ -1,8 +1,6 @@
 import * as React from "react";
 import { ReactElement } from "react";
 import { ChevronRight, ExpandMore, Folder, Info, PermMedia } from "@material-ui/icons";
-import { OverridableComponent } from "@material-ui/core/OverridableComponent";
-import { SvgIconTypeMap } from "@material-ui/core/SvgIcon/SvgIcon";
 import { makeStyles } from "@material-ui/core/styles";
 import gql from "graphql-tag";
 import { TreeView } from "@material-ui/lab";
@@ -33,16 +31,7 @@ const GET_DATASETS = gql`
     }
 `;
 
-
-const useStyles = makeStyles((theme) => ({
-  link: {
-    textDecoration: "none",
-    color: theme.palette.text.primary
-  }
-}));
-
 let number = 4;
-
 function getNext(): string {
   const temp = number;
   number++;
@@ -50,8 +39,6 @@ function getNext(): string {
 }
 
 export default function LinkList(): ReactElement {
-  const classes = useStyles();
-
   const datasets = useQuery<TreeGetDatasetList, TreeGetDatasetList>(GET_DATASETS);
   const projects = useQuery<TreeGetProjectList, TreeGetProjectList>(GET_PROJECTS);
 
