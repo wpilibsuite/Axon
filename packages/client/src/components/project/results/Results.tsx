@@ -10,11 +10,11 @@ import {
   Button,
   DialogActions,
   Dialog,
-  DialogContent
+  DialogContent,
+  Toolbar
 } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
-import { ExpandLess, ExpandMore } from "@material-ui/icons";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
 import StreamViewer from "./StreamViewer";
@@ -63,29 +63,22 @@ function ExportInfo(props: {
   videos: GetProjectData_project_videos[];
   jobs: GetTestjobs_testjobs[];
 }): JSX.Element {
-  const [open, setOpen] = React.useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(!open);
-  };
-
   const job = props.jobs.find((job) => job.exportID === props.exprt.id);
   const active = job !== undefined;
   const port = job ? job.streamPort : "0000";
 
   return (
     <>
-      <ListItem button onClick={handleClickOpen}>
-        <ListItemText primary={props.exprt.name} />
-        {open ? <ExpandLess /> : <ExpandMore />}
+      <ListItem>
+        <Toolbar>
+          <ListItemText primary={props.exprt.name} />
+          <ActiveTestView active={active} port={port} />
+          <TestButton active={active} modelExport={props.exprt} videos={props.videos} />
+          <a download href={`http://localhost:4000/${props.exprt.downloadPath}`}>
+            <IconButton>Download</IconButton>
+          </a>
+        </Toolbar>
       </ListItem>
-      <Collapse in={open} timeout="auto" unmountOnExit>
-        <ActiveTestView active={active} port={port} />
-        <TestButton active={active} modelExport={props.exprt} videos={props.videos} />
-        <a download href={`http://localhost:4000/${props.exprt.downloadPath}`}>
-          <IconButton>Download</IconButton>
-        </a>
-      </Collapse>
     </>
   );
 }
