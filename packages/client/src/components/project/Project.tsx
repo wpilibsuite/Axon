@@ -17,7 +17,8 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
     textAlign: "center",
     color: theme.palette.text.secondary
-  }
+  },
+  heading: {display: "flex", justifyContent: "center"}
 }));
 
 const GET_PROJECT_DATA = gql`
@@ -66,11 +67,11 @@ export default function Project(props: { id: string }): ReactElement {
     return (
       <div className={classes.root}>
         <Grid container spacing={3} alignItems={"center"} justify={"center"}>
-          <Grid item xs={10}>
-            <Typography align={"center"} variant={"h2"}>{data.project.name}</Typography>
-          </Grid>
-          <Grid item xs={2}>
+          <Grid item xs={12}>
+            <div className={classes.heading}>
+            <Typography align={"center"} variant={"h2"} style={{display: 'inline-block'}}>{data.project.name}</Typography>
             <ProjectMenu project={data.project} />
+            </div>
           </Grid>
           <Grid item xs={9}>
             <Datasets id={props.id} />

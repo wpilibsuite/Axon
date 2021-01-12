@@ -68,6 +68,8 @@ export default class Trainer {
       checkpoint: INITCKPT
     };
 
+    console.log(trainParameters);
+
     const HYPERPARAMETER_FILE_PATH = path.posix.join(this.project.directory, "hyperparameters.json");
     await fs.promises.writeFile(HYPERPARAMETER_FILE_PATH, JSON.stringify(trainParameters));
   }
