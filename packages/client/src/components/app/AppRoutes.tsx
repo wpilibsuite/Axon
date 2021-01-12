@@ -4,7 +4,6 @@ import Datasets from "../datasets";
 import Project from "../project";
 import About from "../about";
 import Dataset from "../dataset";
-import Projects from "../projects";
 
 export default function AppRoutes(): ReactElement {
   return (
@@ -19,7 +18,6 @@ export default function AppRoutes(): ReactElement {
           return <Dataset id={match.params.id} />;
         }}
       />
-      <Route path="/projects" exact component={Projects} />
       <Route
         exact
         path="/projects/:id"

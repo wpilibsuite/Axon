@@ -1,5 +1,5 @@
 import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
-import { Grid, Paper } from "@material-ui/core";
+import { Grid, Paper, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
@@ -7,6 +7,7 @@ import Metrics from "./metrics/Metrics";
 import Results from "./results/Results";
 import Input from "./input/Input";
 import Datasets from "./input/Datasets";
+import ProjectMenu from "./ProjectMenu";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -64,9 +65,12 @@ export default function Project(props: { id: string }): ReactElement {
   if (data?.project) {
     return (
       <div className={classes.root}>
-        <Grid container spacing={3}>
-          <Grid item xs={3}>
-            <Paper className={classes.paper}>{data.project.name}</Paper>
+        <Grid container spacing={3} alignItems={"center"} justify={"center"}>
+          <Grid item xs={10}>
+            <Typography align={"center"} variant={"h2"}>{data.project.name}</Typography>
+          </Grid>
+          <Grid item xs={2}>
+            <ProjectMenu project={data.project} />
           </Grid>
           <Grid item xs={9}>
             <Datasets id={props.id} />

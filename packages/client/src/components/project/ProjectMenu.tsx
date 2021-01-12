@@ -9,11 +9,11 @@ import {
   MenuItem,
   TextField
 } from "@material-ui/core";
-import { GetProjectList_projects } from "./__generated__/GetProjectList";
 import { useApolloClient, useMutation } from "@apollo/client";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
+import { GetProjectData_project } from "./__generated__/GetProjectData";
 
 const DELETE_PROJECT_MUTATION = gql`
   mutation DeleteProject($id: ID!) {
@@ -23,7 +23,7 @@ const DELETE_PROJECT_MUTATION = gql`
   }
 `;
 
-export default function ProjectMenu(props: { project: GetProjectList_projects }): ReactElement {
+export default function ProjectMenu(props: { project: GetProjectData_project }): ReactElement {
   const [anchorEl, setAnchorEl] = React.useState<Element | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -48,7 +48,7 @@ export default function ProjectMenu(props: { project: GetProjectList_projects })
   );
 }
 
-function RemoveProjectDialogButton(props: { project: GetProjectList_projects }): ReactElement {
+function RemoveProjectDialogButton(props: { project: GetProjectData_project }): ReactElement {
   const [open, setOpen] = React.useState<boolean>(false);
   const [confirmation, setConfirmation] = React.useState<string>("");
   const [deleteProject] = useMutation(DELETE_PROJECT_MUTATION);
