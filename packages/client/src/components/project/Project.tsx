@@ -6,7 +6,6 @@ import React, { ReactElement } from "react";
 import Metrics from "./metrics/Metrics";
 import Results from "./results/Results";
 import Input from "./input/Input";
-import Datasets from "./input/Datasets";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -24,6 +23,9 @@ const GET_PROJECT_DATA = gql`
     project(id: $id) {
       id
       name
+      datasets {
+        name
+      }
       checkpoints {
         id
         name
@@ -68,11 +70,8 @@ export default function Project(props: { id: string }): ReactElement {
           <Grid item xs={3}>
             <Paper className={classes.paper}>{data.project.name}</Paper>
           </Grid>
-          <Grid item xs={9}>
-            <Datasets id={props.id} />
-          </Grid>
           <Grid item xs={12}>
-            <Input id={props.id} />
+            <Input id={props.id} datasets={data.project.datasets} />
           </Grid>
           <Grid item xs={9}>
             <Metrics id={props.id} checkpoints={data.project.checkpoints} exports={data.project.exports} />
