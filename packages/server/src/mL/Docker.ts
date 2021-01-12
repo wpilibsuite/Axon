@@ -76,8 +76,13 @@ export default class Docker {
         label: ["wpilib=ml"]
       }
     });
-    await Promise.all(containers.map(async (container) => this.docker.getContainer(container.Id).stop()));
-
+    await Promise.all(
+      containers.map(async (listContainer) => {
+        const container = await this.docker.getContainer(listContainer.Id);
+        if (listContainer.State == "running") await container.stop();
+        await container.remove();
+      })
+    );
     return true;
   }
 
