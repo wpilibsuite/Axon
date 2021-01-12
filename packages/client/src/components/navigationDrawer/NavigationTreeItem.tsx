@@ -1,7 +1,6 @@
 import * as React from "react";
 import { ReactElement } from "react";
 import { Typography } from "@material-ui/core";
-import { Link } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { TreeItem } from "@material-ui/lab";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
@@ -31,27 +30,24 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type ProjectListProps = {
-  pathname: string;
   text: string;
   nodeId: string;
   icon: OverridableComponent<SvgIconTypeMap>;
 };
 
-export default function NavigationTreeItem({ pathname, text, nodeId, icon }: ProjectListProps): ReactElement {
+export default function NavigationTreeItem({ text, nodeId, icon }: ProjectListProps): ReactElement {
   const classes = useStyles();
 
   return (
-    <Link to={pathname} className={classes.link}>
-      <TreeItem
-        nodeId={nodeId}
-        className={classes.item}
-        label={
-          <div className={classes.labelRoot}>
-            {React.createElement(icon, { className: classes.labelIcon })}
-            <Typography variant={"body1"}>{text}</Typography>
-          </div>
-        }
-      />
-    </Link>
+    <TreeItem
+      nodeId={nodeId}
+      className={classes.item}
+      label={
+        <div className={classes.labelRoot}>
+          {React.createElement(icon, { className: classes.labelIcon })}
+          <Typography variant={"body1"}>{text}</Typography>
+        </div>
+      }
+    />
   );
 }
