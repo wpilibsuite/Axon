@@ -7,8 +7,8 @@ COPY yarn.lock .
 COPY packages/client ./packages/client
 COPY packages/server ./packages/server
 
-RUN yarn install --pure-lockfile --non-interactive && \
-    yarn build
+RUN yarn install --pure-lockfile --non-interactive
+RUN yarn build
 
 COPY . .
 

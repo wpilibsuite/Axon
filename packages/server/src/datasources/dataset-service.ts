@@ -105,7 +105,6 @@ export class DatasetService extends DataSource {
           async (metaPath): Promise<SuperviselyImage> => {
             return {
               imagePath: metaPath
-                .replace("data/datasets", "datasets")
                 .replace("ann", "img")
                 .replace(/\.[^/.]+$/, ""),
               annotation: JSON.parse((await fs.promises.readFile(metaPath)).toString())
