@@ -11,24 +11,24 @@ import NavigationTreeItem from "./NavigationTreeItem";
 import NavigationTreeParent from "./NavigationTreeParent";
 
 const GET_PROJECTS = gql`
-    query GetProjectListTree {
-        projects {
-            id
-            name
-        }
+  query GetProjectListTree {
+    projects {
+      id
+      name
     }
+  }
 `;
 
 const GET_DATASETS = gql`
-    query TreeGetDatasetList {
-        datasets {
-            id
-            name
-            images {
-                path
-            }
-        }
+  query TreeGetDatasetList {
+    datasets {
+      id
+      name
+      images {
+        path
+      }
     }
+  }
 `;
 
 let number = 4;
@@ -47,16 +47,34 @@ export default function LinkList(): ReactElement {
 
   return (
     <TreeView defaultCollapseIcon={<ExpandMore />} defaultExpandIcon={<ChevronRight />} defaultExpanded={["1", "2"]}>
-      <NavigationTreeParent text={"Datasets"} nodeId={"1"} icon={Folder} child={
-        datasets.data.datasets.map((dataset, index) => (
-          <NavigationTreeItem key={index} pathname={`/datasets/${dataset.id}`} text={dataset.name}
-                              nodeId={getNext()} icon={PermMedia} />
-        ))} />
-      <NavigationTreeParent text={"Projects"} nodeId={"2"} icon={Folder} child={
-        projects.data.projects.map((project, index) => (
-          <NavigationTreeItem key={index} pathname={`/projects/${project.id}`} text={project.name}
-                              nodeId={getNext()} icon={PermMedia} />
-        ))} />
+      <NavigationTreeParent
+        text={"Datasets"}
+        nodeId={"1"}
+        icon={Folder}
+        child={datasets.data.datasets.map((dataset, index) => (
+          <NavigationTreeItem
+            key={index}
+            pathname={`/datasets/${dataset.id}`}
+            text={dataset.name}
+            nodeId={getNext()}
+            icon={PermMedia}
+          />
+        ))}
+      />
+      <NavigationTreeParent
+        text={"Projects"}
+        nodeId={"2"}
+        icon={Folder}
+        child={projects.data.projects.map((project, index) => (
+          <NavigationTreeItem
+            key={index}
+            pathname={`/projects/${project.id}`}
+            text={project.name}
+            nodeId={getNext()}
+            icon={PermMedia}
+          />
+        ))}
+      />
       <NavigationTreeItem pathname={"/about"} text={"About"} nodeId={"3"} icon={Info} />
     </TreeView>
   );
