@@ -1,5 +1,3 @@
-import { TreeGetProjectList } from "./__generated__/TreeGetProjectList";
-import { TreeGetDatasetList } from "./__generated__/TreeGetDatasetList";
 import * as React from "react";
 import { ReactElement } from "react";
 import { ChevronRight, ExpandMore, Folder, Info, PermMedia } from "@material-ui/icons";
