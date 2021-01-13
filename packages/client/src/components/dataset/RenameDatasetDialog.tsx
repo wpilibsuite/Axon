@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, TextField } from "@material-ui/core";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@material-ui/core";
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/client";
 
@@ -12,7 +12,7 @@ const RENAME_DATASET_MUTATION = gql`
   }
 `;
 
-export default function RenameDatasetDialog(props: { id: string }): ReactElement {
+export default function RenameDatasetDialogButton(props: { id: string }): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [newName, setNewName] = React.useState("");
   const [renameDataset] = useMutation(RENAME_DATASET_MUTATION);
@@ -30,7 +30,7 @@ export default function RenameDatasetDialog(props: { id: string }): ReactElement
 
   return (
     <>
-      <MenuItem onClick={handleClickOpen}>Rename</MenuItem>
+      <Button onClick={handleClickOpen}>Rename</Button>
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Rename Datset</DialogTitle>
         <DialogContent dividers>

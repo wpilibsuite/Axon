@@ -8,6 +8,7 @@ import { glob } from "glob";
 import { LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import { Sequelize } from "sequelize";
 import { Dataset } from "../store";
+import rimraf = require("rimraf");
 
 interface SuperviselyMeta {
   classes: {
@@ -90,6 +91,13 @@ export class DatasetService extends DataSource {
     const dataset = await this.getDataset(id);
     dataset.name = newName;
     return dataset.save();
+  }
+
+  async deleteDataset(id: string): Promise<Dataset> {
+    const dataset = await Dataset.findByPk(id);
+    await new Promise((resolve) => rimraf(dataset.path, resolve));
+    await dataset.destroy();
+    return dataset;
   }
 
   private readMetaData(id: string): SuperviselyMeta {

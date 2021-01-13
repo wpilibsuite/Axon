@@ -1,11 +1,12 @@
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
-import { Container, GridList, GridListTile, IconButton, Menu, Toolbar, Typography } from "@material-ui/core";
+import { Container, GridList, GridListTile, IconButton, Menu, Toolbar, Typography, MenuItem } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
-import RenameDatasetDialog from "./RenameDatasetDialog";
+import RenameDatasetDialogButton from "./RenameDatasetDialog";
+import DeleteDatasetDialogButton from "./DeleteDatasetDialog";
 
 const GET_DATASET = gql`
   query GetDataset($id: ID!) {
@@ -51,7 +52,6 @@ export default function Dataset(props: { id: string }): ReactElement {
   });
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -62,8 +62,7 @@ export default function Dataset(props: { id: string }): ReactElement {
   };
 
   if (loading) return <p>LOADING</p>;
-  if (error || !data) return <p>ERROR</p>;
-
+  if (error || !data || !data.dataset) return <p>ERROR</p>;
   return (
     <Container>
       <Toolbar>
@@ -85,10 +84,15 @@ export default function Dataset(props: { id: string }): ReactElement {
             vertical: "top",
             horizontal: "right"
           }}
-          open={open}
+          open={Boolean(anchorEl)}
           onClose={handleClose}
         >
-          <RenameDatasetDialog id={props.id} />
+          <MenuItem onClick={handleClose}>
+            <RenameDatasetDialogButton id={props.id} />
+          </MenuItem>
+          <MenuItem onClick={handleClose}>
+            <DeleteDatasetDialogButton dataset={data.dataset} />
+          </MenuItem>
         </Menu>
       </Toolbar>
       <Container>

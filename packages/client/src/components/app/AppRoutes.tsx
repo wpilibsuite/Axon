@@ -1,6 +1,5 @@
 import React, { ReactElement } from "react";
 import { Route, Switch } from "react-router-dom";
-import Datasets from "../datasets";
 import Project from "../project";
 import About from "../about";
 import Dataset from "../dataset";
@@ -11,7 +10,6 @@ export default function AppRoutes(): ReactElement {
     <Switch>
       <Route path="/" exact component={About} />
       <Route path="/about" exact component={About} />
-      <Route path="/datasets" exact component={Datasets} />
       <Route
         exact
         path="/datasets/:id"
