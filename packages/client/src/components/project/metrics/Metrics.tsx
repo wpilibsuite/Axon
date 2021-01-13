@@ -60,6 +60,9 @@ export default function Metrics(props: {
     <>
       <Grid container spacing={3}>
         <Grid item xs={9}>
+          <Typography variant={"h4"} style={{ paddingBottom: 10 }}>
+            Metrics graph
+          </Typography>
           <Chart checkpoints={props.checkpoints} onClick={onSet} />
         </Grid>
         <Grid item xs={3}>
@@ -72,9 +75,6 @@ export default function Metrics(props: {
           <Exportjobs jobs={data.exportjobs} id={props.id} />
         </Grid>
       </Grid>
-      {/*<Collapse in={selectedCheckpoint !== undefined} timeout="auto" unmountOnExit>*/}
-      {/*  <CheckpointInfo checkpoint={selectedCheckpoint} exports={props.exports} jobs={data.exportjobs} id={props.id} />*/}
-      {/*</Collapse>*/}
     </>
   );
 }
@@ -90,8 +90,8 @@ function CheckpointInfo(props: {
     return (
       <Card variant="outlined">
         <Grid spacing={5} container direction="row" justify="center" alignItems="center">
-          <Grid item container xs={12} justify="center">
-            <Typography>{`Epoch ${props.checkpoint.step}`}</Typography>
+          <Grid item xs={12} justify="center">
+            <Typography variant={"h6"} align={"center"}>{`Epoch ${props.checkpoint.step}`}</Typography>
           </Grid>
           <Grid item xs={6}>
             <MetricsList checkpoint={props.checkpoint} />
@@ -99,14 +99,22 @@ function CheckpointInfo(props: {
           <Grid item xs={6}>
             <ExportsList checkpoint={props.checkpoint} exports={props.exports} />
           </Grid>
-          <Grid item container xs={12} justify="center" alignItems="center">
+          <Grid item xs={12} justify="center" alignItems="center">
             <ExportButton id={props.id} checkpoint={props.checkpoint} job={job} />
           </Grid>
         </Grid>
       </Card>
     );
   }
-  return <></>;
+  return (
+    <Card variant="outlined">
+      <Grid spacing={5} container direction="row" justify="center" alignItems="center">
+        <Grid item xs={12} justify="center">
+          <Typography>No checkpoint selected from graph</Typography>
+        </Grid>
+      </Grid>
+    </Card>
+  );
 }
 
 function MetricsList(props: { checkpoint: GetProjectData_project_checkpoints }): JSX.Element {
@@ -129,7 +137,7 @@ function MetricsList(props: { checkpoint: GetProjectData_project_checkpoints }):
               <TableCell component="th" scope="row">
                 {metric.name}
               </TableCell>
-              <TableCell align="right">{metric.value}</TableCell>
+              <TableCell align="right">{metric.value.toFixed(5)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

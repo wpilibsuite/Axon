@@ -1,4 +1,4 @@
-import { Container, LinearProgress, Typography, Box, LinearProgressProps } from "@material-ui/core";
+import { LinearProgress, Typography, Box, LinearProgressProps, Grid } from "@material-ui/core";
 import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
 import { StartButton, StopButton, PauseButton } from "./Buttons";
 import { TrainStatus } from "../../../__generated__/globalTypes";
@@ -32,10 +32,14 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
   if (trainjob === undefined)
     return (
       <>
-        <Box display="inline-flex">
-          <Parameters id={props.id} datasets={props.datasets} />
-          <StartButton id={props.id} />
-        </Box>
+        <Grid container spacing={3} justify={"center"} alignItems={"center"} style={{ width: "100%" }}>
+          <Grid item xs={11}>
+            <Parameters id={props.id} datasets={props.datasets} />
+          </Grid>
+          <Grid item xs={1}>
+            <StartButton id={props.id} />
+          </Grid>
+        </Grid>
       </>
     );
 
@@ -68,12 +72,12 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
   }
 
   return (
-    <Container>
+    <>
       <h1>{statusMessage}</h1>
       <ProgressBar />
       <StopButton id={props.id} />
       <PauseButton id={props.id} job={trainjob} />
-    </Container>
+    </>
   );
 
   function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
@@ -93,10 +97,10 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
     const lastEpoch = trainjob?.lastEpoch ? trainjob?.lastEpoch : 999;
 
     return (
-      <Container>
+      <>
         <LinearProgressWithLabel value={currentEpoch / lastEpoch} />
         <p>{`Epoch ${trainjob?.currentEpoch} / ${trainjob?.lastEpoch}`}</p>
-      </Container>
+      </>
     );
   }
 }
