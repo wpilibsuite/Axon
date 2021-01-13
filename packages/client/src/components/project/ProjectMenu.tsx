@@ -3,8 +3,8 @@ import MoreVertIcon from "@material-ui/icons/MoreVert";
 import React, { ReactElement } from "react";
 import { GetProjectData_project } from "./__generated__/GetProjectData";
 import { makeStyles } from "@material-ui/core/styles";
-import DeleteProjectDialogButton from "./DeleteDatasetDialog";
-import RenameProjectDialog from "./RenameDatasetDialog";
+import DeleteProjectDialogButton from "./DeleteProjectDialog";
+import RenameProjectDialog from "./RenameProjectDialog";
 
 const useStyles = makeStyles((theme) => ({
   largeIcon: {
