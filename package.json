@@ -13,7 +13,7 @@
     "start": "concurrently --kill-others-on-fail \"yarn server\"  \"yarn client\"",
     "build": "concurrently --kill-others-on-fail \"yarn workspace client build\" \"yarn workspace server build\"",
     "serve": "concurrently --kill-others-on-fail \"yarn workspace client serve\" \"yarn workspace server start\"",
-    "dev": "concurrently --kill-others-on-fail \"yarn workspace client dev\" \"yarn workspace server dev\"",
+    "dev": "yarn generate && concurrently --kill-others-on-fail \"yarn workspace client dev\" \"yarn workspace server dev\"",
     "format": "prettier --write .",
     "test:format": "prettier --check .",
     "test:lint": "yarn workspaces run test:lint",
