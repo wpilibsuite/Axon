@@ -1,21 +1,10 @@
-import {
-  Container,
-  List,
-  ListItem,
-  Collapse,
-  Typography,
-  Card,
-  Button,
-  DialogActions,
-  Dialog,
-  DialogContent
-} from "@material-ui/core";
+import { Container, List, ListItem, Typography, Card, Button } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
 import RenameExportButton from "./RenameExportButton";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
-import StreamViewer from "./StreamViewer";
+import ViewButton from "./ViewButton";
 import TestButton from "./TestButton";
 
 const GET_TESTJOBS = gql`
@@ -63,7 +52,6 @@ function ExportInfo(props: {
 }): JSX.Element {
   const job = props.jobs.find((job) => job.exportID === props.exprt.id);
   const active = job !== undefined;
-  const port = job ? job.streamPort : "0000";
 
   return (
     <>
@@ -71,46 +59,13 @@ function ExportInfo(props: {
         <Typography variant="h6" style={{ flexGrow: 1 }}>
           {props.exprt.name}
         </Typography>
-        <ActiveTestView active={active} port={port} />
+        {active && <ViewButton />}
         <TestButton active={active} modelExport={props.exprt} videos={props.videos} />
         <a download href={`http://localhost:4000/${props.exprt.downloadPath}`}>
           <Button variant="outlined">Download</Button>
         </a>
         <RenameExportButton id={props.exprt.id} />
       </ListItem>
-    </>
-  );
-}
-
-function ActiveTestView(props: { active: boolean; port: string }): JSX.Element {
-  const [open, setOpen] = React.useState(false);
-  const handleClickView = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  return (
-    <>
-      <Collapse in={props.active} timeout="auto" unmountOnExit>
-        <Button variant="outlined" color="secondary" onClick={handleClickView}>
-          View
-        </Button>
-        <Dialog onClose={handleClose} open={open} style={{ display: "block" }} maxWidth={false}>
-          <DialogContent dividers>
-            <StreamViewer port={props.port} />
-          </DialogContent>
-          <DialogActions>
-            <Button autoFocus onClick={handleClose}>
-              Close
-            </Button>
-            <Button autoFocus color="primary">
-              Stop
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Collapse>
     </>
   );
 }
