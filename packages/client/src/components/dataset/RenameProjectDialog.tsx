@@ -32,7 +32,7 @@ export default function RenameDatasetDialogButton(props: { id: string }): ReactE
     <>
       <Button onClick={handleClickOpen}>Rename</Button>
       <Dialog onClose={handleClose} open={open}>
-        <DialogTitle>Rename Datset</DialogTitle>
+        <DialogTitle>Rename Dataset</DialogTitle>
         <DialogContent dividers>
           <TextField
             onChange={(event) => setNewName(event.target.value)}
