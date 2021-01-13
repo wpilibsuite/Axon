@@ -1,17 +1,14 @@
 import {
   Container,
-  IconButton,
   List,
   ListItem,
-  ListItemText,
   Collapse,
   Typography,
   Card,
   Button,
   DialogActions,
   Dialog,
-  DialogContent,
-  Toolbar
+  DialogContent
 } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
@@ -70,14 +67,14 @@ function ExportInfo(props: {
   return (
     <>
       <ListItem>
-        <Toolbar>
-          <ListItemText primary={props.exprt.name} />
-          <ActiveTestView active={active} port={port} />
-          <TestButton active={active} modelExport={props.exprt} videos={props.videos} />
-          <a download href={`http://localhost:4000/${props.exprt.downloadPath}`}>
-            <IconButton>Download</IconButton>
-          </a>
-        </Toolbar>
+        <Typography variant="h6" style={{ flexGrow: 1 }}>
+          {props.exprt.name}
+        </Typography>
+        <ActiveTestView active={active} port={port} />
+        <TestButton active={active} modelExport={props.exprt} videos={props.videos} />
+        <a download href={`http://localhost:4000/${props.exprt.downloadPath}`}>
+          <Button variant="outlined">Download</Button>
+        </a>
       </ListItem>
     </>
   );
