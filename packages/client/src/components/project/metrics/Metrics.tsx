@@ -91,7 +91,7 @@ function CheckpointInfo(props: {
       <Card variant="outlined">
         <Grid spacing={5} container direction="row" justify="center" alignItems="center">
           <Grid item xs={12} justify="center">
-            <Typography>{`Epoch ${props.checkpoint.step}`}</Typography>
+            <Typography variant={"h6"} align={"center"}>{`Epoch ${props.checkpoint.step}`}</Typography>
           </Grid>
           <Grid item xs={6}>
             <MetricsList checkpoint={props.checkpoint} />
@@ -137,7 +137,7 @@ function MetricsList(props: { checkpoint: GetProjectData_project_checkpoints }):
               <TableCell component="th" scope="row">
                 {metric.name}
               </TableCell>
-              <TableCell align="right">{metric.value}</TableCell>
+              <TableCell align="right">{metric.value.toFixed(5)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
