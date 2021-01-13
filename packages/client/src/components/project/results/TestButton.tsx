@@ -6,9 +6,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  IconButton,
   TextField,
-  Tooltip,
   Collapse
 } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
@@ -71,9 +69,9 @@ export default function TestButton(props: {
   return (
     <>
       <Collapse in={!props.active}>
-        <Tooltip title="Test">
-          <IconButton onClick={handleClickPrepare}>Test</IconButton>
-        </Tooltip>
+        <Button variant="outlined" color="primary" onClick={handleClickPrepare}>
+          Test
+        </Button>
       </Collapse>
       <Dialog onClose={handleClosePrepare} open={preparing}>
         <DialogContent dividers>
