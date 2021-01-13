@@ -17,6 +17,9 @@ export const Mutation: MutationResolvers = {
   createProject: async (parent, { name }, { dataSources }) => {
     return dataSources.projectService.createProject(name);
   },
+  renameProject: async (parent, { id, newName }, { dataSources }) => {
+    return dataSources.projectService.renameProject(id, newName);
+  },
   deleteProject: async (parent, { id }, { dataSources }) => {
     return dataSources.projectService.deleteProject(id);
   },
