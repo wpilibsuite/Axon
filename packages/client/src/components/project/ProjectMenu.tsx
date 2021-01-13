@@ -14,6 +14,14 @@ import MoreVertIcon from "@material-ui/icons/MoreVert";
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
 import { GetProjectData_project } from "./__generated__/GetProjectData";
+import { makeStyles } from "@material-ui/core/styles";
+
+const useStyles = makeStyles((theme) => ({
+  largeIcon: {
+    width: 60,
+    height: 60
+  }
+}));
 
 const DELETE_PROJECT_MUTATION = gql`
   mutation DeleteProjectM($id: ID!) {
@@ -24,6 +32,7 @@ const DELETE_PROJECT_MUTATION = gql`
 `;
 
 export default function ProjectMenu(props: { project: GetProjectData_project }): ReactElement {
+  const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState<Element | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -37,7 +46,7 @@ export default function ProjectMenu(props: { project: GetProjectData_project }):
   return (
     <>
       <IconButton onClick={handleClick}>
-        <MoreVertIcon />
+        <MoreVertIcon className={classes.largeIcon} />
       </IconButton>
       <Menu id="simple-menu" anchorEl={anchorEl} keepMounted open={Boolean(anchorEl)} onClose={handleClose}>
         <MenuItem onClick={handleClose}>

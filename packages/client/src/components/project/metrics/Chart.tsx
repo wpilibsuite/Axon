@@ -9,8 +9,8 @@ type Datapoint = {
 
 interface ClickEvent {
   payload: {
-    name: number
-  }
+    name: number;
+  };
 }
 
 export default function Chart(props: {
@@ -41,17 +41,16 @@ export default function Chart(props: {
         }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" label={{value:"Epoch number", position:"insideBottom"}} />
-        <YAxis label={{value:"Percent", position:"insideLeft", offset:-10, angle:-90}}/>
+        <XAxis dataKey="name" label={{ value: "Epoch number", position: "insideBottom" }} />
+        <YAxis label={{ value: "Percent", position: "left", angle: -90 }} />
         <Tooltip />
         <Legend />
 
         <Line
           type="monotone"
           dataKey="precision"
-          stroke="primary"
-
-          dot={{r:5}}
+          stroke="#3f51b5"
+          dot={{ r: 5 }}
           activeDot={{ r: 10, onClick: (event: ClickEvent) => handleClick(event.payload.name) }}
           //must find an event type that lets me access its payload
         />

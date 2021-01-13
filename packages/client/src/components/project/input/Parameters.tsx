@@ -93,64 +93,64 @@ export default function Parameters(props: { id: string; datasets: GetProjectData
   };
 
   return (
-        <Grid container spacing={3} justify={"center"} alignItems={"center"} className={classes.parametersContainer}>
-          <Grid item xs={12} md>
-            <FormControl style={{width: "100%"}}>
-            <TextField
-              name="epochs"
-              margin={"normal"}
-              label="Epochs"
-              variant="outlined"
-              type="number"
-              value={data?.project?.epochs}
-              onChange={handleOnChange}
-            />
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md>
-            <FormControl style={{width: "100%"}}>
-            <TextField
-              name="batchSize"
-              margin={"normal"}
-              label="Batch Size"
-              variant="outlined"
-              type="number"
-              value={data?.project?.batchSize}
-              onChange={handleOnChange}
-            />
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md>
-            <FormControl style={{width: "100%"}}>
-            <TextField
-              name="evalFrequency"
-              margin={"normal"}
-              label="Evaluation Frequency"
-              variant="outlined"
-              type="number"
-              value={data?.project?.evalFrequency}
-              onChange={handleOnChange}
-            />
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md>
-            <FormControl style={{width: "100%"}}>
-            <TextField
-              name="percentEval"
-              margin={"normal"}
-              label="Percent Evaluation"
-              variant="outlined"
-              type="number"
-              value={data?.project?.percentEval}
-              onChange={handleOnChange}
-            />
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md>
-            <FormControl style={{width: "100%"}}>
-            <Datasets id={props.id} selected={props.datasets} />
-            </FormControl>
-          </Grid>
-        </Grid>
+    <Grid container spacing={3} justify={"center"} alignItems={"center"} className={classes.parametersContainer}>
+      <Grid item xs={12} md>
+        <FormControl style={{ width: "100%" }}>
+          <TextField
+            name="epochs"
+            margin={"normal"}
+            label="Epochs"
+            variant="outlined"
+            type="number"
+            value={data?.project?.epochs}
+            onChange={handleOnChange}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} md>
+        <FormControl style={{ width: "100%" }}>
+          <TextField
+            name="batchSize"
+            margin={"normal"}
+            label="Batch Size"
+            variant="outlined"
+            type="number"
+            value={data?.project?.batchSize}
+            onChange={handleOnChange}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} md>
+        <FormControl style={{ width: "100%" }}>
+          <TextField
+            name="evalFrequency"
+            margin={"normal"}
+            label="Evaluation Frequency"
+            variant="outlined"
+            type="number"
+            value={data?.project?.evalFrequency}
+            onChange={handleOnChange}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} md>
+        <FormControl style={{ width: "100%" }}>
+          <TextField
+            name="percentEval"
+            margin={"normal"}
+            label="Percent Evaluation"
+            variant="outlined"
+            type="number"
+            value={data?.project?.percentEval}
+            onChange={handleOnChange}
+          />
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} md>
+        <FormControl style={{ width: "100%" }}>
+          <Datasets id={props.id} selected={props.datasets} />
+        </FormControl>
+      </Grid>
+    </Grid>
   );
 }

@@ -18,10 +18,9 @@ const useStyles = makeStyles((theme) => ({
   },
   largeIcon: {
     width: 60,
-    height: 60,
+    height: 60
   }
 }));
-
 
 const START_TRAINING = gql`
   mutation StartTraining($id: ID!) {
@@ -50,7 +49,7 @@ export function StartButton(props: { id: string }): ReactElement {
   return (
     <Tooltip title={"Start training"}>
       <IconButton onClick={handleClick} color="primary">
-        <PlayCircleFilled className={classes.largeIcon}/>
+        <PlayCircleFilled className={classes.largeIcon} />
       </IconButton>
     </Tooltip>
   );

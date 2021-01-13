@@ -20,6 +20,10 @@ const useStyles = makeStyles((theme) => ({
   },
   projectName: {
     display: "inline-block"
+  },
+  largeIcon: {
+    width: 60,
+    height: 60
   }
 }));
 

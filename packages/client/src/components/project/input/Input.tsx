@@ -32,7 +32,7 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
   if (trainjob === undefined)
     return (
       <>
-        <Grid container spacing={3} justify={"center"} alignItems={"center"} style={{width:"100%"}}>
+        <Grid container spacing={3} justify={"center"} alignItems={"center"} style={{ width: "100%" }}>
           <Grid item xs={11}>
             <Parameters id={props.id} datasets={props.datasets} />
           </Grid>
