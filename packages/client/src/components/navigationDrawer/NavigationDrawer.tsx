@@ -15,7 +15,8 @@ const useStyles = makeStyles((theme) => ({
     width: drawerWidth
   },
   drawerContainer: {
-    overflow: "auto"
+    overflow: "auto",
+    width: "100%"
   },
   link: {
     textDecoration: "none",
