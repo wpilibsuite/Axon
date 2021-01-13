@@ -43,7 +43,7 @@ export default function Results(props: {
 
   return (
     <Container>
-      <Typography>Exported Models</Typography>
+      {props.exports.length > 0 && <Typography>Exported Models</Typography>}
       <List>
         {props.exports.map((exprt) => (
           <Card key={exprt.name} variant="outlined">
