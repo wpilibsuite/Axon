@@ -370,7 +370,7 @@ Project.init(
     },
     evalFrequency: {
       type: DataTypes.INTEGER.UNSIGNED,
-      defaultValue: 50
+      defaultValue: 1
     },
     percentEval: {
       type: DataTypes.FLOAT,
