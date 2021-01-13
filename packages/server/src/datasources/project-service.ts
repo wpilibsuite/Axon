@@ -1,5 +1,5 @@
 import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState } from "../schema/__generated__/graphql";
-import { Project, Export, Checkpoint, Video, Dataset } from "../store";
+import { Project, Export, Checkpoint, Video } from "../store";
 import { PROJECT_DATA_DIR } from "../constants";
 import { DataSource } from "apollo-datasource";
 import { createWriteStream, unlink } from "fs";
