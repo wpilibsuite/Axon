@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/wpilibsuite/ml-react-app/workflows/CI/badge.svg)
 
-![logo](./favicon.svg)
+![logo](./logo.png)
 
 Welcome to the WPILib project. This repository contains Axon.
 
