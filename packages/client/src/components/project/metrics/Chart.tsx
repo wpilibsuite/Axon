@@ -1,11 +1,17 @@
 import React, { ReactElement } from "react";
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label } from "recharts";
 import { GetProjectData_project_checkpoints } from "../__generated__/GetProjectData";
 
 type Datapoint = {
   [key: string]: number;
 };
+
+interface ClickEvent {
+  payload: {
+    name: number
+  }
+}
 
 export default function Chart(props: {
   checkpoints: GetProjectData_project_checkpoints[];
@@ -28,23 +34,25 @@ export default function Chart(props: {
       <LineChart
         data={data}
         margin={{
-          top: 5,
-          right: 10,
-          left: 10,
-          bottom: 5
+          top: 0,
+          right: 0,
+          left: 20,
+          bottom: 0
         }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
+        <XAxis dataKey="name" label={{value:"Epoch number", position:"insideBottom"}} />
+        <YAxis label={{value:"Percent", position:"insideLeft", offset:-10, angle:-90}}/>
         <Tooltip />
         <Legend />
 
         <Line
           type="monotone"
           dataKey="precision"
-          stroke="#8884d8"
-          activeDot={{ r: 8, onClick: (event: any) => handleClick(event.payload.name) }}
+          stroke="primary"
+
+          dot={{r:5}}
+          activeDot={{ r: 10, onClick: (event: ClickEvent) => handleClick(event.payload.name) }}
           //must find an event type that lets me access its payload
         />
       </LineChart>

@@ -1,7 +1,7 @@
 import { UpdateHyperparameters, UpdateHyperparametersVariables } from "./__generated__/UpdateHyperparameters";
 import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
 import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
-import { createStyles, TextField, Theme } from "@material-ui/core";
+import { createStyles, FormControl, Grid, TextField, Theme } from "@material-ui/core";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { makeStyles } from "@material-ui/core/styles";
 import { ReactElement } from "react";
@@ -45,6 +45,9 @@ const useStyles = makeStyles((theme: Theme) =>
         margin: theme.spacing(1),
         width: "25ch"
       }
+    },
+    parametersContainer: {
+      width: "100%"
     }
   })
 );
@@ -90,42 +93,64 @@ export default function Parameters(props: { id: string; datasets: GetProjectData
   };
 
   return (
-    <form className={classes.root}>
-      <fieldset style={{ all: "unset" }}>
-        <TextField
-          name="epochs"
-          label="Epochs"
-          variant="outlined"
-          type="number"
-          value={data?.project?.epochs}
-          onChange={handleOnChange}
-        />
-        <TextField
-          name="batchSize"
-          label="Batch Size"
-          variant="outlined"
-          type="number"
-          value={data?.project?.batchSize}
-          onChange={handleOnChange}
-        />
-        <TextField
-          name="evalFrequency"
-          label="Evaluation Frequency"
-          variant="outlined"
-          type="number"
-          value={data?.project?.evalFrequency}
-          onChange={handleOnChange}
-        />
-        <TextField
-          name="percentEval"
-          label="Percent Evaluation"
-          variant="outlined"
-          type="number"
-          value={data?.project?.percentEval}
-          onChange={handleOnChange}
-        />
-        <Datasets id={props.id} selected={props.datasets} />
-      </fieldset>
-    </form>
+        <Grid container spacing={3} justify={"center"} alignItems={"center"} className={classes.parametersContainer}>
+          <Grid item xs={12} md>
+            <FormControl style={{width: "100%"}}>
+            <TextField
+              name="epochs"
+              margin={"normal"}
+              label="Epochs"
+              variant="outlined"
+              type="number"
+              value={data?.project?.epochs}
+              onChange={handleOnChange}
+            />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md>
+            <FormControl style={{width: "100%"}}>
+            <TextField
+              name="batchSize"
+              margin={"normal"}
+              label="Batch Size"
+              variant="outlined"
+              type="number"
+              value={data?.project?.batchSize}
+              onChange={handleOnChange}
+            />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md>
+            <FormControl style={{width: "100%"}}>
+            <TextField
+              name="evalFrequency"
+              margin={"normal"}
+              label="Evaluation Frequency"
+              variant="outlined"
+              type="number"
+              value={data?.project?.evalFrequency}
+              onChange={handleOnChange}
+            />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md>
+            <FormControl style={{width: "100%"}}>
+            <TextField
+              name="percentEval"
+              margin={"normal"}
+              label="Percent Evaluation"
+              variant="outlined"
+              type="number"
+              value={data?.project?.percentEval}
+              onChange={handleOnChange}
+            />
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md>
+            <FormControl style={{width: "100%"}}>
+            <Datasets id={props.id} selected={props.datasets} />
+            </FormControl>
+          </Grid>
+        </Grid>
   );
 }

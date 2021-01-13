@@ -33,6 +33,7 @@ export default function Datasets(props: { id: string; selected: GetProjectData_p
   return (
     <TextField
       select
+      margin={"normal"}
       label="Datasets"
       variant="outlined"
       value={datasetNames}

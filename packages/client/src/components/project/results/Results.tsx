@@ -42,7 +42,7 @@ export default function Results(props: {
   if (data === undefined) return <p>NO DATA</p>;
 
   return (
-    <Container>
+    <>
       <Typography>Exported Models</Typography>
       <List>
         {props.exports.map((exprt) => (
@@ -51,7 +51,7 @@ export default function Results(props: {
           </Card>
         ))}
       </List>
-    </Container>
+    </>
   );
 }
 

@@ -8,7 +8,20 @@ import { GetTrainjobs_trainjobs } from "./__generated__/GetTrainjobs";
 import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import React, { ReactElement, useState } from "react";
-import { Button } from "@material-ui/core";
+import { Button, IconButton, Tooltip } from "@material-ui/core";
+import { PlayCircleFilled } from "@material-ui/icons";
+import { makeStyles } from "@material-ui/core/styles";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    flexGrow: 1
+  },
+  largeIcon: {
+    width: 60,
+    height: 60,
+  }
+}));
+
 
 const START_TRAINING = gql`
   mutation StartTraining($id: ID!) {
@@ -19,6 +32,7 @@ const START_TRAINING = gql`
 `;
 
 export function StartButton(props: { id: string }): ReactElement {
+  const classes = useStyles();
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [starting, setStarting] = useState(false);
 
@@ -34,9 +48,11 @@ export function StartButton(props: { id: string }): ReactElement {
   if (starting) return <Button>Starting...</Button>;
 
   return (
-    <Button onClick={handleClick} color="primary" variant="contained">
-      Start
-    </Button>
+    <Tooltip title={"Start training"}>
+      <IconButton onClick={handleClick} color="primary">
+        <PlayCircleFilled className={classes.largeIcon}/>
+      </IconButton>
+    </Tooltip>
   );
 }
 
