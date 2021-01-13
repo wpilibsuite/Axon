@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "Axon",
+  "name": "axon",
   "version": "0.0.1",
   "description": "An application for creating ML models",
   "workspaces": [
