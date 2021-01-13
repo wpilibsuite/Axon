@@ -12,6 +12,7 @@ import {
 } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
+import RenameExportButton from "./RenameExportButton";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
 import StreamViewer from "./StreamViewer";
@@ -75,6 +76,7 @@ function ExportInfo(props: {
         <a download href={`http://localhost:4000/${props.exprt.downloadPath}`}>
           <Button variant="outlined">Download</Button>
         </a>
+        <RenameExportButton id={props.exprt.id} />
       </ListItem>
     </>
   );

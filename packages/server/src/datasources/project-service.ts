@@ -51,6 +51,19 @@ export class ProjectService extends DataSource {
     return project.save();
   }
 
+  async renameExport(id: string, newName: string): Promise<Export> {
+    const exprt = await Export.findByPk(id);
+    const newFilename = `${newName}.tar.gz`;
+    exprt.downloadPath = exprt.downloadPath.replace(exprt.tarfileName, newFilename);
+    await fs.promises.rename(
+      path.posix.join(exprt.directory, exprt.tarfileName),
+      path.posix.join(exprt.directory, newFilename)
+    );
+    exprt.tarfileName = newFilename;
+    exprt.name = newName;
+    return exprt.save();
+  }
+
   async deleteProject(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
     await new Promise((resolve) => rimraf(project.directory, resolve));

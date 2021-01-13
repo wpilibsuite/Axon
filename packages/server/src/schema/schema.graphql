@@ -26,6 +26,8 @@ type Mutation {
   renameProject(id: ID!, newName: String!): Project
   deleteProject(id: ID!): Project
 
+  renameExport(id: ID!, newName: String!): Export
+
   updateProject(id: ID!, updates: ProjectUpdateInput!): Project!
   setDatasetInProject(projectId: ID!, datasetId: ID!, isIncluded: Boolean): Project!
 
