@@ -18,8 +18,8 @@ import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
   largeIcon: {
-    width: 60,
-    height: 60
+    width: 40,
+    height: 40
   }
 }));
 
