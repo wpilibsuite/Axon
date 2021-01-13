@@ -10,12 +10,9 @@ import ProjectMenu from "./ProjectMenu";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    flexGrow: 1
-  },
-  paper: {
-    padding: theme.spacing(2),
-    textAlign: "center",
-    color: theme.palette.text.secondary
+    flexGrow: 1,
+    paddingLeft: 25,
+    paddingRight: 25
   },
   heading: {
     display: "flex",
@@ -23,6 +20,10 @@ const useStyles = makeStyles((theme) => ({
   },
   projectName: {
     display: "inline-block"
+  },
+  largeIcon: {
+    width: 60,
+    height: 60
   }
 }));
 
@@ -74,7 +75,7 @@ export default function Project(props: { id: string }): ReactElement {
   if (data?.project) {
     return (
       <div className={classes.root}>
-        <Grid container spacing={3}>
+        <Grid container spacing={3} justify={"center"} alignItems={"center"}>
           <Grid item xs={12}>
             <div className={classes.heading}>
               <Typography align={"center"} variant={"h2"} className={classes.projectName}>
@@ -86,7 +87,7 @@ export default function Project(props: { id: string }): ReactElement {
           <Grid item xs={12}>
             <Input id={props.id} datasets={data.project.datasets} />
           </Grid>
-          <Grid item xs={9}>
+          <Grid item xs={12}>
             <Metrics id={props.id} checkpoints={data.project.checkpoints} exports={data.project.exports} />
           </Grid>
           <Grid item xs={12}>

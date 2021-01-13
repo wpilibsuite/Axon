@@ -1,14 +1,4 @@
-import {
-  Container,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  Collapse,
-  Typography,
-  Card,
-  Button
-} from "@material-ui/core";
+import { IconButton, List, ListItem, ListItemText, Collapse, Typography, Card, Button } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
 import { ExpandLess, ExpandMore } from "@material-ui/icons";
@@ -42,7 +32,7 @@ export default function Results(props: {
   if (data === undefined) return <p>NO DATA</p>;
 
   return (
-    <Container>
+    <>
       <Typography>Exported Models</Typography>
       <List>
         {props.exports.map((exprt) => (
@@ -51,7 +41,7 @@ export default function Results(props: {
           </Card>
         ))}
       </List>
-    </Container>
+    </>
   );
 }
 

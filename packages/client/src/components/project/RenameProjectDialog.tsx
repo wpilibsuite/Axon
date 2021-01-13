@@ -3,19 +3,19 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } 
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/client";
 
-const RENAME_DATASET_MUTATION = gql`
-  mutation RenameDataset($id: ID!, $newName: String!) {
-    renameDataset(id: $id, newName: $newName) {
+const RENAME_PROJECT_MUTATION = gql`
+  mutation RenameProject($id: ID!, $newName: String!) {
+    renameProject(id: $id, newName: $newName) {
       id
       name
     }
   }
 `;
 
-export default function RenameDatasetDialogButton(props: { id: string }): ReactElement {
+export default function RenameProjectDialog(props: { id: string }): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [newName, setNewName] = React.useState("");
-  const [renameDataset] = useMutation(RENAME_DATASET_MUTATION);
+  const [renameProject] = useMutation(RENAME_PROJECT_MUTATION);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -24,7 +24,7 @@ export default function RenameDatasetDialogButton(props: { id: string }): ReactE
     setOpen(false);
   };
   const handleRename = () => {
-    renameDataset({ variables: { id: props.id, newName } });
+    renameProject({ variables: { id: props.id, newName } });
     handleClose();
   };
 
@@ -32,13 +32,13 @@ export default function RenameDatasetDialogButton(props: { id: string }): ReactE
     <>
       <Button onClick={handleClickOpen}>Rename</Button>
       <Dialog onClose={handleClose} open={open}>
-        <DialogTitle>Rename Dataset</DialogTitle>
+        <DialogTitle>Rename Project</DialogTitle>
         <DialogContent dividers>
           <TextField
             onChange={(event) => setNewName(event.target.value)}
             autoFocus
             margin="dense"
-            label="New Dataset Name"
+            label="New Project Name"
             fullWidth
           />
         </DialogContent>
