@@ -11,6 +11,9 @@ export const Mutation: MutationResolvers = {
   renameDataset: async (parent, { id, newName }, { dataSources }) => {
     return dataSources.datasetService.renameDataset(id, newName);
   },
+  deleteDataset: async (parent, { id }, { dataSources }) => {
+    return dataSources.datasetService.deleteDataset(id);
+  },
   createProject: async (parent, { name }, { dataSources }) => {
     return dataSources.projectService.createProject(name);
   },
