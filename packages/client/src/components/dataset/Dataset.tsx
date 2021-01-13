@@ -5,7 +5,7 @@ import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
-import RenameDatasetDialogButton from "./RenameProjectDialog";
+import RenameDatasetDialogButton from "./RenameDatasetDialog";
 import DeleteDatasetDialogButton from "./DeleteDatasetDialog";
 
 const GET_DATASET = gql`
