@@ -60,7 +60,7 @@ export default function Metrics(props: {
     <>
       <Grid container spacing={3}>
         <Grid item xs={9}>
-          <Typography variant={"h4"} style={{ paddingBottom: 10 }}>
+          <Typography variant={"h4"} style={{ paddingBottom: 10 }} align={"center"}>
             Metrics graph
           </Typography>
           <Chart checkpoints={props.checkpoints} onClick={onSet} />
