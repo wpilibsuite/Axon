@@ -7,7 +7,8 @@ import {
   DialogActions,
   DialogContent,
   TextField,
-  Collapse
+  MenuItem,
+  Typography
 } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState";
@@ -27,9 +28,9 @@ const TEST_MODEL_MUTATION = gql`
 `;
 
 export default function TestButton(props: {
-  active: boolean;
   modelExport: GetProjectData_project_exports;
   videos: GetProjectData_project_videos[];
+  handler: () => void;
 }): ReactElement {
   const [preparing, setPreparing] = React.useState(false);
   const [videoID, setVideoID] = React.useState<string>();
@@ -47,6 +48,7 @@ export default function TestButton(props: {
 
   const handleClickPrepare = () => {
     setPreparing(true);
+    props.handler();
   };
 
   const handleClosePrepare = () => {
@@ -68,11 +70,9 @@ export default function TestButton(props: {
 
   return (
     <>
-      <Collapse in={!props.active}>
-        <Button variant="outlined" color="primary" onClick={handleClickPrepare}>
-          Test
-        </Button>
-      </Collapse>
+      <MenuItem onClick={handleClickPrepare}>
+        <Typography variant={"body1"}>Test</Typography>
+      </MenuItem>
       <Dialog onClose={handleClosePrepare} open={preparing}>
         <DialogContent dividers>
           <p>Video to test: </p>
