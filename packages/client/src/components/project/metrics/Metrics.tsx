@@ -20,17 +20,20 @@ export default function Metrics(props: { id: string }): ReactElement {
   const onCheckpoint = (checkpoint: Checkpoint) => {
     setSelected(checkpoint);
   };
+  const onExport = () => {
+    setSelected(null);
+  };
 
   return (
     <>
       <Chart id={props.id} onClick={onCheckpoint} selected={selected} />
-      <ExportButton id={props.id} selected={selected} />
+      <ExportButton id={props.id} selected={selected} onExport={onExport} />
       <Exportjobs id={props.id} />
     </>
   );
 }
 
-export function ExportButton(props: { id: string; selected: Checkpoint | null }): ReactElement {
+export function ExportButton(props: { id: string; selected: Checkpoint | null; onExport: () => void }): ReactElement {
   const [exportCheckpoint] = useMutation(EXPORT_CHECKPOINT_MUTATION);
   const handleExport = () => {
     const name = `STEP-${props.selected?.step}-${new Date().getHours()}-${new Date().getMinutes()}`;
@@ -39,6 +42,7 @@ export function ExportButton(props: { id: string; selected: Checkpoint | null })
     exportCheckpoint({ variables: { id, checkpointID, name } }).catch((err) => {
       console.log(err);
     });
+    props.onExport();
   };
 
   if (props.selected === null)
