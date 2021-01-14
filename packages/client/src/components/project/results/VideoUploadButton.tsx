@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogActions, DialogContent, IconButton, TextField } from "@material-ui/core";
+import { Button, Dialog, DialogActions, DialogContent, IconButton } from "@material-ui/core";
 import { DropzoneArea } from "material-ui-dropzone";
 import { useMutation } from "@apollo/client";
 import AddIcon from "@material-ui/icons/Add";
@@ -35,6 +35,14 @@ export default function VideoUploadButton(props: { id: string }): ReactElement {
     handleClose();
   };
 
+  const handleChange = (files: File[]) => {
+    setVideo(files[0] || {});
+    const video = files[0];
+    if (video) {
+      setName(video.name);
+    }
+  };
+
   return (
     <>
       <IconButton autoFocus onClick={handleClick} color="primary">
@@ -43,19 +51,12 @@ export default function VideoUploadButton(props: { id: string }): ReactElement {
       <Dialog onClose={handleClose} open={open}>
         <DialogContent dividers>
           <DropzoneArea
-            onChange={(files) => setVideo(files[0] || {})}
+            onChange={handleChange}
             acceptedFiles={["video/*"]}
             filesLimit={1}
             maxFileSize={Infinity}
             showFileNames={true}
             showPreviewsInDropzone={true}
-          />
-          <TextField
-            onChange={(event) => setName(event.target.value)}
-            autoFocus
-            margin="dense"
-            label="Video Name"
-            fullWidth
           />
         </DialogContent>
         <DialogActions>
