@@ -3,6 +3,7 @@ import { GetProjectData_project_exports, GetProjectData_project_videos } from ".
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
 import RenameExportButton from "./RenameExportButton";
 import { gql, useQuery } from "@apollo/client";
+import ExportjobsList from "./ExportjobsList";
 import React, { ReactElement } from "react";
 import ViewButton from "./ViewButton";
 import TestButton from "./TestButton";
@@ -34,6 +35,7 @@ export default function Results(props: {
   return (
     <>
       {props.exports.length > 0 && <Typography>Exported Models</Typography>}
+      <ExportjobsList id={props.id} />
       <List>
         {props.exports.map((exprt) => (
           <Card key={exprt.name} variant="outlined">
