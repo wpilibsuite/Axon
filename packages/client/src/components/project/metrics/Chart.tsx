@@ -88,7 +88,7 @@ export default function Chart(props: {
           <Line
             type="monotone"
             dataKey="precision"
-            stroke="#8884d8"
+            stroke="#3f50b5"
             strokeWidth="1"
             dot={{ r: 3 }}
             activeDot={{ r: 15, onClick: (event: ClickEvent) => handleClick(event.payload.step) }}
