@@ -1,42 +1,78 @@
 import sys, os, shutil, tarfile, argparse
 import json_to_csv, generate_tfrecord, parse_meta, parse_hyperparams
-from os.path import join
+from os.path import join, splitext
 
 
 def main(dataset_paths, percent_eval, directory):
+    ROOT_PATH, PATH_EXT = os.path.splitext(dataset_paths[-1])
+    print('----------------------------------------')
+    print('dataset_paths, percent_eval, directory, type')
+    print(dataset_paths)
+    print(percent_eval)
+    print(directory)
+    print(PATH_EXT)
+    print('----------------------------------------')
 
     OUTPUT_PATH = directory
     EXTRACT_PATH = "/home"
     TMP_PATH = "/home/tmp"
+
+    # Placeholder for enum, here 1 is tar, 0 is ZIP
+    NORMAL_MODE = 1 # Assume this is a tar
 
     if not os.path.exists(TMP_PATH):
         os.makedirs(TMP_PATH)
     if not os.path.exists(EXTRACT_PATH):
         os.makedirs(EXTRACT_PATH)
 
-    try:
-        for i in dataset_paths:
-            shutil.copy(i, join(EXTRACT_PATH, 'data.tar'))
-    except:
-        print('unable to retrieve a dataset tar file:')
-        sys.exit(1)
-    for dataset in dataset_paths:
-        with tarfile.open(dataset) as tar_file:
-            tar_file.extractall(join(EXTRACT_PATH, 'out'))
+    if PATH_EXT == '.zip':
+        print('.zip file extension found, interpreting as tensorflow object detection csv zip')
+        NORMAL_MODE = 0 # Not a tar file
 
-    if percent_eval > 100 or percent_eval < 0:
-        percent_eval = 30
-    json_to_csv.main(percent_eval)
-    try:
+    if NORMAL_MODE: # Perform working tar code
+        try:
+            for i in dataset_paths:
+                shutil.copy(i, join(EXTRACT_PATH, 'data.tar'))
+        except:
+            print('unable to retrieve a dataset tar file:')
+            sys.exit(1)
+        for dataset in dataset_paths:
+            with tarfile.open(dataset) as tar_file:
+                tar_file.extractall(join(EXTRACT_PATH, 'out'))
 
-        generate_tfrecord.main(TMP_PATH + "/train.csv", join(OUTPUT_PATH, 'train.record'))
-        generate_tfrecord.main(TMP_PATH + "/eval.csv", join(OUTPUT_PATH, 'eval.record'))
+        if percent_eval > 100 or percent_eval < 0:
+            percent_eval = 30
+        json_to_csv.main(percent_eval)
+        try:
 
-        parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'))
+            generate_tfrecord.main(TMP_PATH + "/train.csv", join(OUTPUT_PATH, 'train.record'))
+            generate_tfrecord.main(TMP_PATH + "/eval.csv", join(OUTPUT_PATH, 'eval.record'))
 
-        print(".\nRecords generated")
-    except ValueError:
-        print("The datasets provided do not have the same class labels. Please make sure that labels are spelt the same in both datasets, or label the same objects for both datasets.")
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'))
+
+            print(".\nRecords generated")
+        except ValueError:
+            print("The datasets provided do not have the same class labels. Please make sure that labels are spelt the same in both datasets, or label the same objects for both datasets.")
+
+    if not NORMAL_MODE:
+        print('treating as zip of tf obj detect')
+        """
+        Psuedocode
+
+        #Unzip the zip in correct dir
+
+        #Generate the records
+        try:
+            generate_tfrecord.main(TMP_PATH + "/test/_annotations.csv", join(OUTPUT_PATH, 'test.record')
+            generate_tfrecord.main(TMP_PATH + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record')
+
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'))
+
+            print(".\nRecords generated")
+        except ValueError:
+            print("The datasets provided do not have the same class labels. Please make sure that labels are spelt the same in both datasets, or label the same objects for both datasets.")
+
+        """
 
 
 if __name__ == "__main__":
