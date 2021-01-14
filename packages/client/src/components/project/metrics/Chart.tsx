@@ -67,7 +67,7 @@ export default function Chart(props: {
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
-      <ResponsiveContainer width="80%" height={400}>
+      <ResponsiveContainer width="100%" height={400}>
         <LineChart
           data={points}
           margin={{
