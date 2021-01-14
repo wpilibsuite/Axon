@@ -164,31 +164,30 @@ export default class Trainer {
   public async updateCheckpoints(): Promise<void> {
     const METRICSPATH = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(METRICSPATH)) {
-      const project = await Project.findByPk(this.project.id);
-
       const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
-      while (Object.keys(metrics.precision).length > (await project.getCheckpoints()).length) {
-        const CURRENT_CKPT = (await project.getCheckpoints()).length;
-        const step = parseInt(Object.keys(metrics.precision)[CURRENT_CKPT]);
-        this.epoch = step;
-        console.log(step);
+      this.epoch = Object.keys(metrics.precision).length;
+      const jssteps: number[] = Object.keys(metrics.precision).map((s) => parseInt(s)); //we must change the metrics.json soon
+      const dbsteps: number[] = (await this.project.getCheckpoints()).map((ckpt) => ckpt.step);
 
-        const checkpoint = Checkpoint.build({
-          step: step,
-          name: `ckpt${step}`,
-          precision: metrics.precision[step]
-        });
+      for (const jsonstep of jssteps) {
+        if (!dbsteps.includes(jsonstep)) {
+          const checkpoint = Checkpoint.build({
+            step: jsonstep,
+            name: `ckpt${jsonstep}`,
+            precision: metrics.precision[jsonstep.toString()]
+          });
+          const relativeDir = path.posix.join("checkpoints", checkpoint.id);
+          checkpoint.relativePath = path.posix.join(relativeDir, `model.ckpt-${jsonstep}`);
+          checkpoint.fullPath = path.posix.join(this.project.directory, checkpoint.relativePath);
+          await mkdirp(path.posix.join(this.project.directory, relativeDir));
 
-        const relativeDir = path.posix.join("checkpoints", checkpoint.id);
-        checkpoint.relativePath = path.posix.join(relativeDir, `model.ckpt-${step}`);
-        checkpoint.fullPath = path.posix.join(this.project.directory, checkpoint.relativePath);
-        await mkdirp(path.posix.join(this.project.directory, relativeDir));
+          const ckptSrcPath = path.posix.join(this.project.directory, "train", `model.ckpt-${jsonstep}`);
 
-        const ckptSrcPath = path.posix.join(this.project.directory, "train", `model.ckpt-${step}`);
-        await Trainer.copyCheckpoint(ckptSrcPath, checkpoint.fullPath);
-
-        await checkpoint.save();
-        await project.addCheckpoint(checkpoint);
+          await checkpoint.save();
+          await this.project.addCheckpoint(checkpoint);
+          await Trainer.copyCheckpoint(ckptSrcPath, checkpoint.fullPath);
+          return;
+        }
       }
     } else this.epoch = 0;
   }

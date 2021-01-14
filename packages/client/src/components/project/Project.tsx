@@ -35,12 +35,6 @@ const GET_PROJECT_DATA = gql`
       datasets {
         name
       }
-      checkpoints {
-        id
-        name
-        step
-        precision
-      }
       exports {
         id
         projectID
