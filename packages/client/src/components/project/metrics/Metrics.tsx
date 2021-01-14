@@ -1,7 +1,6 @@
-import { Tooltip, Button, CircularProgress, List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
+import { Tooltip, Button } from "@material-ui/core";
 import { GetCheckpoints_project_checkpoints } from "./__generated__/GetCheckpoints";
-import { GetExportjobs } from "./__generated__/GetExportjobs";
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { useMutation } from "@apollo/client";
 import React, { ReactElement } from "react";
 import Chart from "./Chart";
@@ -29,7 +28,6 @@ export default function Metrics(props: { id: string }): ReactElement {
     <>
       <Chart id={props.id} onClick={onCheckpoint} selected={selected} />
       <ExportButton id={props.id} selected={selected} onExport={onExport} />
-      <Exportjobs id={props.id} />
     </>
   );
 }
@@ -64,41 +62,5 @@ export function ExportButton(props: { id: string; selected: Checkpoint | null; o
         Export
       </Button>
     </div>
-  );
-}
-
-const GET_EXPORTJOBS = gql`
-  query GetExportjobs {
-    exportjobs {
-      name
-      checkpointID
-      projectID
-      exportID
-    }
-  }
-`;
-
-function Exportjobs(props: { id: string }): JSX.Element {
-  const { data, loading, error } = useQuery<GetExportjobs>(GET_EXPORTJOBS, {
-    pollInterval: 2000
-  });
-  if (loading) return <p>LOADING</p>;
-  if (error) return <p>{error.message}</p>;
-  if (data === undefined) return <p>NO DATA</p>;
-
-  const projectJobs = data.exportjobs.filter((job) => job.projectID === props.id);
-  return (
-    <>
-      <List dense={true}>
-        {projectJobs.map((job) => (
-          <ListItem key={job.checkpointID}>
-            <ListItemIcon>
-              <CircularProgress />
-            </ListItemIcon>
-            <ListItemText primary={`exporting checkpoint "${job.name}"`} secondary={job.exportID} />
-          </ListItem>
-        ))}
-      </List>
-    </>
   );
 }
