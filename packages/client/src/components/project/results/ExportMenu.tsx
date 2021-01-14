@@ -1,7 +1,6 @@
 import { IconButton, Menu, MenuItem, Tooltip, Typography } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
 import ViewButton from "./ViewButton";
@@ -32,11 +31,13 @@ export default function ExportMenu(props: {
   } else {
     viewButton = (
       <Tooltip title={"Test an exported model to view stream"}>
-        <MenuItem disabled>
-          <Typography variant="body1" style={{ color: "#919191" }}>
-            View
-          </Typography>
-        </MenuItem>
+        <span>
+          <MenuItem disabled>
+            <Typography variant="body1" style={{ color: "#919191" }}>
+              View
+            </Typography>
+          </MenuItem>
+        </span>
       </Tooltip>
     );
   }
@@ -47,11 +48,13 @@ export default function ExportMenu(props: {
   } else {
     testButton = (
       <Tooltip title={"Test is running"}>
-        <MenuItem disabled>
-          <Typography variant="body1" style={{ color: "#919191" }}>
-            Test
-          </Typography>
-        </MenuItem>
+        <span>
+          <MenuItem disabled>
+            <Typography variant="body1" style={{ color: "#919191" }}>
+              Test
+            </Typography>
+          </MenuItem>
+        </span>
       </Tooltip>
     );
   }

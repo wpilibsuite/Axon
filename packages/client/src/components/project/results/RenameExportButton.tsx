@@ -11,13 +11,6 @@ import {
 import { useApolloClient, useMutation } from "@apollo/client";
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
-import { makeStyles } from "@material-ui/core/styles";
-
-const useStyles = makeStyles((theme) => ({
-  button: {
-    width: "100%"
-  }
-}));
 
 const RENAME_EXPORT_MUTATION = gql`
   mutation RenameExport($id: ID!, $newName: String!) {
@@ -29,7 +22,6 @@ const RENAME_EXPORT_MUTATION = gql`
 `;
 
 export default function RenameExportButton(props: { id: string; handler: () => void }): ReactElement {
-  const classes = useStyles();
   const [renameExport] = useMutation(RENAME_EXPORT_MUTATION);
   const [newName, setNewName] = React.useState("");
   const [open, setOpen] = React.useState(false);
