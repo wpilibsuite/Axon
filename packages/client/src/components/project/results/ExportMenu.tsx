@@ -49,7 +49,7 @@ export default function ExportMenu(props: {
       <Tooltip title={"Test is running"}>
         <MenuItem disabled>
           <Typography variant="body1" style={{ color: "#919191" }}>
-            View
+            Test
           </Typography>
         </MenuItem>
       </Tooltip>
