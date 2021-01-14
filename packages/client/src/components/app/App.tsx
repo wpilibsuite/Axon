@@ -32,34 +32,34 @@ interface Props {
 
 function App({ client }: Props): ReactElement {
   const classes = useStyles();
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
   const theme = React.useMemo(
     () =>
       createMuiTheme({
         palette: {
-          type: prefersDarkMode ? 'dark' : 'light',
-        },
+          type: prefersDarkMode ? "dark" : "light"
+        }
       }),
-    [prefersDarkMode],
+    [prefersDarkMode]
   );
 
   return (
     <ApolloProvider client={client}>
       <ThemeProvider theme={theme}>
-      <div className={classes.root}>
-        <CssBaseline />
-        <Router history={browserHistory}>
-          <Header />
-          <NavigationDrawer />
-          <main className={classes.content}>
-            <div className={classes.appBarSpacer} />
-            <AppRoutes />
-            <TrainerStatus />
-            <Footer />
-          </main>
-        </Router>
-      </div>
+        <div className={classes.root}>
+          <CssBaseline />
+          <Router history={browserHistory}>
+            <Header />
+            <NavigationDrawer />
+            <main className={classes.content}>
+              <div className={classes.appBarSpacer} />
+              <AppRoutes />
+              <TrainerStatus />
+              <Footer />
+            </main>
+          </Router>
+        </div>
       </ThemeProvider>
     </ApolloProvider>
   );
