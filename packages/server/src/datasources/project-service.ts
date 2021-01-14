@@ -189,7 +189,7 @@ export class ProjectService extends DataSource {
 
   async getExports(id: string): Promise<Export[]> {
     const project = await this.getProject(id);
-    return project.getExports({ order: [["createdAt", "ASC"]] });
+    return project.getExports({ order: [["createdAt", "DESC"]] });
   }
 
   async getVideos(id: string): Promise<Video[]> {
