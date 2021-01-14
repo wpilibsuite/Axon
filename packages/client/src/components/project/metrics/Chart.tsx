@@ -1,7 +1,18 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ReferenceLine
+} from "recharts";
 import { GetCheckpoints, GetCheckpoints_project_checkpoints } from "./__generated__/GetCheckpoints";
 import { gql, useQuery } from "@apollo/client";
 import React from "react";
+
 type Checkpoint = GetCheckpoints_project_checkpoints;
 
 type Datapoint = {
@@ -10,7 +21,7 @@ type Datapoint = {
 
 interface ClickEvent {
   payload: {
-    name: number;
+    step: number;
   };
 }
 
@@ -49,7 +60,7 @@ export default function Chart(props: {
   const checkpoints = data.project.checkpoints;
 
   const points: Datapoint[] = checkpoints.map((checkpoint) => {
-    const point: Datapoint = { name: checkpoint.step };
+    const point: Datapoint = { step: checkpoint.step };
     if (checkpoint.precision !== null) point["precision"] = checkpoint.precision;
     return point;
   });
@@ -67,31 +78,22 @@ export default function Chart(props: {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
+          <XAxis dataKey="step" />
           <YAxis />
           <Tooltip />
           <Legend />
+
+          <ReferenceLine x={props.selected?.step} stroke="#337ac7" strokeWidth={10} />
 
           <Line
             type="monotone"
             dataKey="precision"
             stroke="#8884d8"
-            activeDot={{ r: 8, onClick: (event: ClickEvent) => handleClick(event.payload.name) }}
-            // dot={renderDot}
+            strokeWidth="1"
+            activeDot={{ r: 15, onClick: (event: ClickEvent) => handleClick(event.payload.step) }}
           />
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
-
-  // function renderDot(props: {cx: number, cy: number, stroke: unknown, payload: {name:number}, value: unknown}): ReactElement {
-  //   console.log(props.payload.name);
-  //   if (props.payload.name !== 3) return <></>;
-
-  //   return (
-  //     <svg x={props.cx} y={props.cy} width={200} height={200} fill="red" viewBox="0 0 1024 1024">
-  //     <path d="M150 0 L75 200 L225 200 Z" />
-  //     </svg>
-  //   )
-  // }
 }
