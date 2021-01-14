@@ -35,12 +35,6 @@ const GET_PROJECT_DATA = gql`
       datasets {
         name
       }
-      checkpoints {
-        id
-        name
-        step
-        precision
-      }
       exports {
         id
         projectID
@@ -88,7 +82,7 @@ export default function Project(props: { id: string }): ReactElement {
             <Input id={props.id} datasets={data.project.datasets} />
           </Grid>
           <Grid item xs={12}>
-            <Metrics id={props.id} checkpoints={data.project.checkpoints} exports={data.project.exports} />
+            <Metrics id={props.id} />
           </Grid>
           <Grid item xs={12}>
             <Results id={props.id} exports={data.project.exports} videos={data.project.videos} />
