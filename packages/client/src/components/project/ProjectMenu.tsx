@@ -1,4 +1,4 @@
-import { IconButton, Menu, MenuItem } from "@material-ui/core";
+import { IconButton, Menu } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import React, { ReactElement } from "react";
 import { GetProjectData_project } from "./__generated__/GetProjectData";
@@ -31,12 +31,8 @@ export default function ProjectMenu(props: { project: GetProjectData_project }):
         <MoreVertIcon className={classes.largeIcon} />
       </IconButton>
       <Menu id="simple-menu" anchorEl={anchorEl} keepMounted open={Boolean(anchorEl)} onClose={handleClose}>
-        <MenuItem onClick={handleClose}>
-          <RenameProjectDialog id={props.project.id} />
-        </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <DeleteProjectDialogButton project={props.project} />
-        </MenuItem>
+        <RenameProjectDialog id={props.project.id} handler={handleClose} />
+        <DeleteProjectDialogButton project={props.project} handler={handleClose} />
       </Menu>
     </>
   );
