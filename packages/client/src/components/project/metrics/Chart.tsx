@@ -81,7 +81,7 @@ export default function Chart(props: {
           <XAxis dataKey="step" />
           <YAxis />
           <Tooltip />
-          <Legend />
+          <Legend align="left" />
 
           <ReferenceLine x={props.selected?.step} stroke="#337ac7" strokeWidth={10} />
 

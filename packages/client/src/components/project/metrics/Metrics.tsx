@@ -18,7 +18,8 @@ const EXPORT_CHECKPOINT_MUTATION = gql`
 export default function Metrics(props: { id: string }): ReactElement {
   const [selected, setSelected] = React.useState<Checkpoint | null>(null);
   const onCheckpoint = (checkpoint: Checkpoint) => {
-    setSelected(checkpoint);
+    if (checkpoint === selected) setSelected(null);
+    else setSelected(checkpoint);
   };
   const onExport = () => {
     setSelected(null);
