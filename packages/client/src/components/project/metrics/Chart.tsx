@@ -83,7 +83,7 @@ export default function Chart(props: {
           <Tooltip />
           <Legend align="left" />
 
-          <ReferenceLine x={props.selected?.step} stroke="#337ac7" strokeWidth={10} />
+          <ReferenceLine x={props.selected?.step} stroke="#3f50b5" strokeWidth={10} />
 
           <Line
             type="monotone"
