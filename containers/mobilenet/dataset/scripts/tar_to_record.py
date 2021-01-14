@@ -1,11 +1,17 @@
 import sys, os, shutil, tarfile, argparse, zipfile
 import json_to_csv, generate_tfrecord, parse_meta, parse_hyperparams
-from os.path import join, splitext, split
+from os.path import join, splitext
 
 
 def main(dataset_paths, percent_eval, directory):
     ROOT_PATH, PATH_EXT = os.path.splitext(dataset_paths[-1])
-    DATASET_NAME = ROOT_PATH.split('/')[-1]
+    print('----------------------------------------')
+    print('dataset_paths, percent_eval, directory, type')
+    print(dataset_paths)
+    print(percent_eval)
+    print(directory)
+    print(PATH_EXT)
+    print('----------------------------------------')
 
     OUTPUT_PATH = directory
     EXTRACT_PATH = "/home"
@@ -39,10 +45,10 @@ def main(dataset_paths, percent_eval, directory):
         json_to_csv.main(percent_eval)
         try:
 
-            generate_tfrecord.main(TMP_PATH + "/train.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, "/home/")
-            generate_tfrecord.main(TMP_PATH + "/eval.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, "/home/")
+            generate_tfrecord.main(TMP_PATH + "/train.csv", join(OUTPUT_PATH, 'train.record'))
+            generate_tfrecord.main(TMP_PATH + "/eval.csv", join(OUTPUT_PATH, 'eval.record'))
 
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, TMP_PATH + "/eval.csv")
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'))
 
             print(".\nRecords generated")
         except ValueError:
@@ -50,25 +56,23 @@ def main(dataset_paths, percent_eval, directory):
 
     if not NORMAL_MODE:
         print('treating as zip of tf obj detect')
-        #Psuedocode
+        """
+        Psuedocode
 
         #Unzip the zip in correct dir
-        with zipfile.ZipFile(dataset_paths[-1], 'r') as zip_file: # Unzip the file (Assuming 1 zip at this time)
-            zip_file.extractall(EXTRACT_PATH)
-
 
         #Generate the records
         try:
-            print(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv")
-            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/test/")
-            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/")
+            generate_tfrecord.main(TMP_PATH + "/test/_annotations.csv", join(OUTPUT_PATH, 'test.record')
+            generate_tfrecord.main(TMP_PATH + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record')
 
-            print('main records generated')
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv") # Edge case of missing label in one csv
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'))
 
             print(".\nRecords generated")
         except ValueError:
             print("The datasets provided do not have the same class labels. Please make sure that labels are spelt the same in both datasets, or label the same objects for both datasets.")
+
+        """
 
 
 if __name__ == "__main__":
