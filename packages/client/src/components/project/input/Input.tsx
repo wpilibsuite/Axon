@@ -1,4 +1,4 @@
-import { LinearProgress, Typography, Box, LinearProgressProps, Grid } from "@material-ui/core";
+import { LinearProgress, Typography, Box, Grid } from "@material-ui/core";
 import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
 import { StartButton, StopButton, PauseButton } from "./Buttons";
 import { TrainStatus } from "../../../__generated__/globalTypes";
