@@ -78,8 +78,8 @@ export default function Chart(props: {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="step" />
-          <YAxis />
+          <XAxis dataKey="step" /*label={{ value: "Epoch", position: "insideBottom" }}*/ />
+          <YAxis /* label={{ value: "Percent", position: "left", angle: -90 }}*/ />
           <Tooltip />
           <Legend align="left" />
 
@@ -90,6 +90,7 @@ export default function Chart(props: {
             dataKey="precision"
             stroke="#8884d8"
             strokeWidth="1"
+            dot={{ r: 3 }}
             activeDot={{ r: 15, onClick: (event: ClickEvent) => handleClick(event.payload.step) }}
           />
         </LineChart>
