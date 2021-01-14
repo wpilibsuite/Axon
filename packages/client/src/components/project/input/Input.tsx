@@ -1,4 +1,4 @@
-import { LinearProgress, Typography, Box, LinearProgressProps, Grid } from "@material-ui/core";
+import { LinearProgress, Typography, Box, Grid } from "@material-ui/core";
 import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
 import { StartButton, StopButton, PauseButton } from "./Buttons";
 import { TrainStatus } from "../../../__generated__/globalTypes";
@@ -46,28 +46,28 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
   let statusMessage;
   switch (trainjob.status) {
     case TrainStatus.Idle:
-      statusMessage = "not training";
+      statusMessage = "Idling";
       break;
     case TrainStatus.Paused:
-      statusMessage = "training paused";
+      statusMessage = "Paused";
       break;
     case TrainStatus.Writing:
-      statusMessage = "writing parameter file";
+      statusMessage = "Writing parameters";
       break;
     case TrainStatus.Cleaning:
-      statusMessage = "cleaning old data";
+      statusMessage = "Cleaning data";
       break;
     case TrainStatus.Moving:
-      statusMessage = "moving data";
+      statusMessage = "Moving data";
       break;
     case TrainStatus.Extracting:
-      statusMessage = "extracting dataset";
+      statusMessage = "Extracting dataset";
       break;
     case TrainStatus.Training:
-      statusMessage = "training model";
+      statusMessage = "Training";
       break;
     case TrainStatus.Stopped:
-      statusMessage = "training finished, wrapping up";
+      statusMessage = "Finishing up";
       break;
   }
 
@@ -80,11 +80,11 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
     </>
   );
 
-  function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
+  function LinearProgressWithLabel(props: { value: number }) {
     return (
       <Box display="flex" alignItems="center">
         <Box width="100%" mr={1}>
-          <LinearProgress variant="determinate" {...props} />
+          <LinearProgress variant="determinate" value={props.value} />
         </Box>
         <Box minWidth={35}>
           <Typography variant="body2" color="textSecondary">{`${Math.round(props.value)}%`}</Typography>
@@ -92,13 +92,14 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
       </Box>
     );
   }
+
   function ProgressBar(): ReactElement {
-    const currentEpoch = trainjob?.currentEpoch ? trainjob?.currentEpoch : 999;
-    const lastEpoch = trainjob?.lastEpoch ? trainjob?.lastEpoch : 999;
+    const currentEpoch = trainjob?.currentEpoch ? trainjob?.currentEpoch : 0;
+    const lastEpoch = trainjob?.lastEpoch ? trainjob?.lastEpoch : 1000;
 
     return (
       <>
-        <LinearProgressWithLabel value={currentEpoch / lastEpoch} />
+        <LinearProgressWithLabel value={(100 * currentEpoch) / lastEpoch} />
         <p>{`Epoch ${trainjob?.currentEpoch} / ${trainjob?.lastEpoch}`}</p>
       </>
     );
