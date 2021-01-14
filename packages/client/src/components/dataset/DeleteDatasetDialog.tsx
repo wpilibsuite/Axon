@@ -1,6 +1,15 @@
 import React, { ReactElement } from "react";
 import { useApolloClient, useMutation } from "@apollo/client";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@material-ui/core";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  TextField,
+  Typography
+} from "@material-ui/core";
 import gql from "graphql-tag";
 import { GetDataset_dataset } from "./__generated__/GetDataset";
 
@@ -12,7 +21,10 @@ const DELETE_DATASET_MUTATION = gql`
   }
 `;
 
-export default function DeleteDatasetDialogButton(props: { dataset: GetDataset_dataset }): ReactElement {
+export default function DeleteDatasetDialogButton(props: {
+  dataset: GetDataset_dataset;
+  handler: () => void;
+}): ReactElement {
   const [open, setOpen] = React.useState<boolean>(false);
   const [confirmation, setConfirmation] = React.useState<string>("");
   const [deleteDataset] = useMutation(DELETE_DATASET_MUTATION);
@@ -20,6 +32,7 @@ export default function DeleteDatasetDialogButton(props: { dataset: GetDataset_d
 
   const handleClickOpen = () => {
     setOpen(true);
+    props.handler();
   };
   const handleClose = () => {
     setOpen(false);
@@ -29,16 +42,17 @@ export default function DeleteDatasetDialogButton(props: { dataset: GetDataset_d
       deleteDataset({ variables: { id: props.dataset.id } }).then(() => {
         apolloClient.resetStore().then(() => {
           window.location.href = "/about";
-          console.log("deleted");
+          handleClose();
         });
       });
-      handleClose();
     }
   };
 
   return (
     <>
-      <Button onClick={handleClickOpen}>Delete</Button>
+      <MenuItem onClick={handleClickOpen}>
+        <Typography variant={"body1"}>Delete</Typography>
+      </MenuItem>
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Confirm Dataset Deletion</DialogTitle>
         <DialogContent dividers>

@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
-import { Container, GridList, GridListTile, IconButton, Menu, Toolbar, Typography, MenuItem } from "@material-ui/core";
+import { Container, GridList, GridListTile, IconButton, Menu, Toolbar, Typography } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
@@ -87,12 +87,8 @@ export default function Dataset(props: { id: string }): ReactElement {
           open={Boolean(anchorEl)}
           onClose={handleClose}
         >
-          <MenuItem onClick={handleClose}>
-            <RenameDatasetDialogButton id={props.id} />
-          </MenuItem>
-          <MenuItem onClick={handleClose}>
-            <DeleteDatasetDialogButton dataset={data.dataset} />
-          </MenuItem>
+          <RenameDatasetDialogButton id={props.id} handler={handleClose} />
+          <DeleteDatasetDialogButton dataset={data.dataset} handler={handleClose} />
         </Menu>
       </Toolbar>
       <Container>

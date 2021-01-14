@@ -1,5 +1,14 @@
 import React, { ReactElement } from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@material-ui/core";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  TextField,
+  Typography
+} from "@material-ui/core";
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/client";
 
@@ -12,13 +21,14 @@ const RENAME_PROJECT_MUTATION = gql`
   }
 `;
 
-export default function RenameProjectDialog(props: { id: string }): ReactElement {
+export default function RenameProjectDialog(props: { id: string; handler: () => void }): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [newName, setNewName] = React.useState("");
   const [renameProject] = useMutation(RENAME_PROJECT_MUTATION);
 
   const handleClickOpen = () => {
     setOpen(true);
+    props.handler();
   };
   const handleClose = () => {
     setOpen(false);
@@ -30,7 +40,9 @@ export default function RenameProjectDialog(props: { id: string }): ReactElement
 
   return (
     <>
-      <Button onClick={handleClickOpen}>Rename</Button>
+      <MenuItem onClick={handleClickOpen}>
+        <Typography variant={"body1"}>Rename</Typography>
+      </MenuItem>
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Rename Project</DialogTitle>
         <DialogContent dividers>

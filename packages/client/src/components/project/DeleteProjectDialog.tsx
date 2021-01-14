@@ -1,4 +1,13 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@material-ui/core";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  TextField,
+  Typography
+} from "@material-ui/core";
 import { useApolloClient, useMutation } from "@apollo/client";
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
@@ -12,7 +21,10 @@ const DELETE_PROJECT_MUTATION = gql`
   }
 `;
 
-export default function DeleteProjectDialogButton(props: { project: GetProjectData_project }): ReactElement {
+export default function DeleteProjectDialogButton(props: {
+  project: GetProjectData_project;
+  handler: () => void;
+}): ReactElement {
   const [open, setOpen] = React.useState<boolean>(false);
   const [confirmation, setConfirmation] = React.useState<string>("");
   const [deleteProject] = useMutation(DELETE_PROJECT_MUTATION);
@@ -20,6 +32,7 @@ export default function DeleteProjectDialogButton(props: { project: GetProjectDa
 
   const handleClickOpen = () => {
     setOpen(true);
+    props.handler();
   };
   const handleClose = () => {
     setOpen(false);
@@ -27,15 +40,19 @@ export default function DeleteProjectDialogButton(props: { project: GetProjectDa
   const handleDelete = () => {
     if (confirmation === props.project.name) {
       deleteProject({ variables: { id: props.project.id } }).then(() => {
-        apolloClient.resetStore();
+        apolloClient.resetStore().then(() => {
+          window.location.href = "/about";
+          handleClose();
+        });
       });
-      handleClose();
     }
   };
 
   return (
     <>
-      <Button onClick={handleClickOpen}>Delete</Button>
+      <MenuItem onClick={handleClickOpen}>
+        <Typography variant={"body1"}>Delete</Typography>
+      </MenuItem>
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Confirm Project Deletion</DialogTitle>
         <DialogContent dividers>
