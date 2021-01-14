@@ -1,11 +1,8 @@
-import { List, ListItem, Typography, Card, Button } from "@material-ui/core";
+import { List, ListItem, Typography, Card } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
-import RenameExportButton from "./RenameExportButton";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
-import ViewButton from "./ViewButton";
-import TestButton from "./TestButton";
 import ExportMenu from "./ExportMenu";
 
 const GET_TESTJOBS = gql`
