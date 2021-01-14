@@ -7,7 +7,10 @@ import {
   DialogActions,
   DialogContent,
   TextField,
-  Collapse
+  Collapse,
+  Tooltip,
+  MenuItem,
+  Typography
 } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetDockerState } from "../../trainerStatus/__generated__/GetDockerState";
@@ -17,6 +20,14 @@ import React, { ReactElement, ChangeEvent } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import VideoUploadButton from "./VideoUploadButton";
 import gql from "graphql-tag";
+import ViewButton from "./ViewButton";
+import { makeStyles } from "@material-ui/core/styles";
+
+const useStyles = makeStyles((theme) => ({
+  button: {
+    width: "100%"
+  }
+}));
 
 const TEST_MODEL_MUTATION = gql`
   mutation testModel($name: String!, $projectID: String!, $exportID: String!, $videoID: String!) {
@@ -27,10 +38,11 @@ const TEST_MODEL_MUTATION = gql`
 `;
 
 export default function TestButton(props: {
-  active: boolean;
   modelExport: GetProjectData_project_exports;
   videos: GetProjectData_project_videos[];
+  handler: () => void;
 }): ReactElement {
+  const classes = useStyles();
   const [preparing, setPreparing] = React.useState(false);
   const [videoID, setVideoID] = React.useState<string>();
   const [testModel] = useMutation(TEST_MODEL_MUTATION);
@@ -47,6 +59,7 @@ export default function TestButton(props: {
 
   const handleClickPrepare = () => {
     setPreparing(true);
+    props.handler();
   };
 
   const handleClosePrepare = () => {
@@ -68,11 +81,9 @@ export default function TestButton(props: {
 
   return (
     <>
-      <Collapse in={!props.active}>
-        <Button variant="outlined" color="primary" onClick={handleClickPrepare}>
-          Test
-        </Button>
-      </Collapse>
+      <MenuItem onClick={handleClickPrepare}>
+        <Typography variant={"body1"}>Test</Typography>
+      </MenuItem>
       <Dialog onClose={handleClosePrepare} open={preparing}>
         <DialogContent dividers>
           <p>Video to test: </p>

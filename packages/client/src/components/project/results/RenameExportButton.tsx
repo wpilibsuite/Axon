@@ -1,7 +1,23 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@material-ui/core";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  TextField,
+  Typography
+} from "@material-ui/core";
 import { useApolloClient, useMutation } from "@apollo/client";
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
+import { makeStyles } from "@material-ui/core/styles";
+
+const useStyles = makeStyles((theme) => ({
+  button: {
+    width: "100%"
+  }
+}));
 
 const RENAME_EXPORT_MUTATION = gql`
   mutation RenameExport($id: ID!, $newName: String!) {
@@ -12,7 +28,8 @@ const RENAME_EXPORT_MUTATION = gql`
   }
 `;
 
-export default function RenameExportButton(props: { id: string }): ReactElement {
+export default function RenameExportButton(props: { id: string; handler: () => void }): ReactElement {
+  const classes = useStyles();
   const [renameExport] = useMutation(RENAME_EXPORT_MUTATION);
   const [newName, setNewName] = React.useState("");
   const [open, setOpen] = React.useState(false);
@@ -20,21 +37,22 @@ export default function RenameExportButton(props: { id: string }): ReactElement 
 
   const handleClickOpen = () => {
     setOpen(true);
+    props.handler();
   };
   const handleClose = () => {
     setOpen(false);
   };
   const handleRename = async () => {
-    renameExport({ variables: { id: props.id, newName } });
-    await apolloClient.resetStore();
-    handleClose();
+    renameExport({ variables: { id: props.id, newName } }).then(() =>
+      apolloClient.resetStore().then(() => handleClose())
+    );
   };
 
   return (
     <>
-      <Button variant="outlined" onClick={handleClickOpen}>
-        Rename
-      </Button>
+      <MenuItem onClick={handleClickOpen}>
+        <Typography variant={"body1"}>Rename</Typography>
+      </MenuItem>
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Rename Export</DialogTitle>
         <DialogContent dividers>

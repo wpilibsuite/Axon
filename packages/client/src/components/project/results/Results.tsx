@@ -6,6 +6,7 @@ import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
 import ViewButton from "./ViewButton";
 import TestButton from "./TestButton";
+import ExportMenu from "./ExportMenu";
 
 const GET_TESTJOBS = gql`
   query GetTestjobs {
@@ -50,21 +51,13 @@ function ExportInfo(props: {
   videos: GetProjectData_project_videos[];
   jobs: GetTestjobs_testjobs[];
 }): JSX.Element {
-  const job = props.jobs.find((job) => job.exportID === props.exprt.id);
-  const active = job !== undefined;
-
   return (
     <>
       <ListItem>
         <Typography variant="h6" style={{ flexGrow: 1 }}>
           {props.exprt.name}
         </Typography>
-        {active && <ViewButton />}
-        <TestButton active={active} modelExport={props.exprt} videos={props.videos} />
-        <a download href={`http://localhost:4000/${props.exprt.downloadPath}`}>
-          <Button variant="outlined">Download</Button>
-        </a>
-        <RenameExportButton id={props.exprt.id} />
+        <ExportMenu exprt={props.exprt} videos={props.videos} jobs={props.jobs} />
       </ListItem>
     </>
   );
