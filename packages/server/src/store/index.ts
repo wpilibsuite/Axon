@@ -109,7 +109,9 @@ interface TestAttributes {
   videoID: string;
   exportID: string;
   name: string;
+  fullPath: string;
   directory: string;
+  downloadPath: string;
 }
 
 type TestCreationAttributes = Optional<TestAttributes, keyof TestAttributes>;
@@ -118,7 +120,9 @@ export class Test extends Model<TestAttributes, TestCreationAttributes> implemen
   videoID: string;
   exportID: string;
   name: string;
+  fullPath: string;
   directory: string;
+  downloadPath: string;
 
   public readonly id!: string;
   public readonly createdAt!: Date;
@@ -330,7 +334,15 @@ Test.init(
       type: DataTypes.UUID,
       allowNull: false
     },
+    fullPath: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
     directory: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    downloadPath: {
       type: new DataTypes.STRING(),
       allowNull: false
     }
