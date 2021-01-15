@@ -1,7 +1,8 @@
 import { Button, CircularProgress, List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
-import { QueryTestjobs } from "./__generated__/QueryTestjobs";
+import { QueryTestjobs, QueryTestjobs_testjobs } from "./__generated__/QueryTestjobs";
 import { gql, useMutation, useQuery } from "@apollo/client";
-import React from "react";
+import React, { useState } from "react";
+type Testjob = QueryTestjobs_testjobs;
 
 const GET_TESTJOBS = gql`
   query QueryTestjobs {
@@ -22,7 +23,7 @@ const STOP_TEST = gql`
   }
 `;
 
-export default function Testjobs(props: { exprtID: string }): React.ReactElement {
+export default function Testjobs(props: { exprtID: string; onComplete: (id: string) => void }): React.ReactElement {
   const [stopTest] = useMutation(STOP_TEST);
   const handleStop = (id: string) => {
     stopTest({ variables: { id } }).catch((err) => {
@@ -30,6 +31,7 @@ export default function Testjobs(props: { exprtID: string }): React.ReactElement
     });
   };
 
+  const [jobs, setJobs] = useState<Testjob[]>([]);
   const { data, loading, error } = useQuery<QueryTestjobs>(GET_TESTJOBS, {
     pollInterval: 1000
   });
@@ -37,6 +39,11 @@ export default function Testjobs(props: { exprtID: string }): React.ReactElement
   if (loading) return <p>LOADING</p>;
   if (error) return <p>{error.message}</p>;
   if (data === undefined) return <p>NO DATA</p>;
+
+  if (data.testjobs.length < jobs.length)
+    for (const job of jobs) if (!data.testjobs.includes(job)) props.onComplete(job.testID);
+
+  if (data.testjobs.length !== jobs.length) setJobs(data.testjobs);
 
   const thisExportsTestjobs = data.testjobs.filter((job) => job.exportID === props.exprtID);
 

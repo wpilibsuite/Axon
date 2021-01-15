@@ -14,7 +14,11 @@ const TEST_MODEL_MUTATION = gql`
   }
 `;
 
-export default function TestInput(props: { exprt: Export }): React.ReactElement {
+export default function TestInput(props: {
+  exprt: Export;
+  active: boolean;
+  setActive: (active: boolean) => void;
+}): React.ReactElement {
   const [testModel] = useMutation(TEST_MODEL_MUTATION);
   const [name, setName] = React.useState<string>(`${props.exprt.name}-test`);
   const [videoID, setVideoID] = React.useState<string>();
@@ -31,6 +35,7 @@ export default function TestInput(props: { exprt: Export }): React.ReactElement 
     testModel({ variables: { name, projectID, exportID, videoID } }).catch((err) => {
       console.log(err);
     });
+    props.setActive(true);
   };
 
   return (
@@ -42,7 +47,7 @@ export default function TestInput(props: { exprt: Export }): React.ReactElement 
         <TextField margin={"normal"} variant="outlined" value={name} onChange={handleNameChange} />
       </FormControl>
       <FormControl style={{ width: "40%", display: "flex", justifyContent: "center" }}>
-        <Button variant="outlined" color="primary" onClick={handleTest} disabled={!videoID}>
+        <Button variant="outlined" color="primary" onClick={handleTest} disabled={!videoID || props.active}>
           Test
         </Button>
       </FormControl>

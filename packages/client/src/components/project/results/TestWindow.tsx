@@ -16,6 +16,12 @@ export default function TestWindow(props: { exprt: Export; handler: () => void }
     setOpen(false);
   };
 
+  /* until there is support for multiple tests at once, we gotta do (something like) this */
+  const [active, setActive] = React.useState(false);
+  const handleCompleted = () => {
+    setActive(false);
+  };
+
   return (
     <>
       <MenuItem onClick={handleClick}>
@@ -26,8 +32,8 @@ export default function TestWindow(props: { exprt: Export; handler: () => void }
           <Typography variant="h4" style={{ display: "flex", justifyContent: "center" }}>
             Testing
           </Typography>
-          <TestInput exprt={props.exprt} />
-          <Testjobs exprtID={props.exprt.id} />
+          <TestInput exprt={props.exprt} active={active} setActive={setActive} />
+          <Testjobs exprtID={props.exprt.id} onComplete={handleCompleted} />
           <TestList exprtID={props.exprt.id} />
         </DialogContent>
         <DialogActions>
