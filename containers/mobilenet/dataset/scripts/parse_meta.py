@@ -14,9 +14,7 @@ def get_labels(operation_mode, annotation_file):
 
     if not operation_mode:
         print('Operation mode ZIP')
-        annotation_df = pd.read_csv(annotation_file)
-        print(annotation_df['class'].unique())
-        return annotation_df['class'].unique().tolist()
+        pd.read_csv()
 
 
 
@@ -37,9 +35,3 @@ def main(output_pbtxt, operation_mode, file_path):
                 pbtxt.write("item {\n\nid: %s\n\nname: \"%s\"\n}\n\n" % (i + 1, label))
 
 
-def main(output_pbtxt):
-    print("output_pbtxt in parse_meta.py: " + output_pbtxt)
-    with open(output_pbtxt, 'w+') as pbtxt:
-        print(pbtxt)
-        for i, label in enumerate(get_labels()):
-            pbtxt.write("item {\n\nid: %s\n\nname: \"%s\"\n}\n\n" % (i + 1, label))
