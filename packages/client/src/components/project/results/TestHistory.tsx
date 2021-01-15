@@ -5,11 +5,13 @@ import {
   DialogActions,
   DialogContent,
   FormControl,
+  InputLabel,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   MenuItem,
+  Select,
   TextField,
   Typography
 } from "@material-ui/core";
@@ -17,9 +19,10 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { QueryTestjobs } from "./__generated__/QueryTestjobs";
 import { GetTests } from "./__generated__/GetTests";
 import { GetVideos } from "./__generated__/GetVideos";
-import React from "react";
+import React, { ChangeEvent } from "react";
 import { CloudDownload } from "@material-ui/icons";
 import { GetProjectData_project_exports } from "../__generated__/GetProjectData";
+import VideoUploadButton from "./VideoUploadButton";
 type Export = GetProjectData_project_exports;
 
 const GET_TESTS = gql`
@@ -75,8 +78,10 @@ export default function TestHistory(props: { exprt: Export; handler: () => void 
       </MenuItem>
       <Dialog onClose={handleClose} open={open}>
         <DialogContent dividers>
+          <Typography variant="h4" style={{ display: "flex", justifyContent: "center" }}>
+            Testing
+          </Typography>
           <TestInput exprt={props.exprt} />
-          <Typography> Tests: </Typography>
           <FilteredTestjobs exprtID={props.exprt.id} />
           <TestList exprtID={props.exprt.id} />
         </DialogContent>
@@ -104,7 +109,7 @@ const GET_VIDEOS = gql`
 `;
 function VideoSelect(props: {
   id: string;
-  onSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onSelect: (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => void;
 }): React.ReactElement {
   const { data, loading, error } = useQuery<GetVideos>(GET_VIDEOS, {
     variables: {
@@ -118,13 +123,15 @@ function VideoSelect(props: {
   if (data.project === null) return <p>NOPROJECT</p>;
 
   return (
-    <FormControl style={{ width: "100%" }}>
-      <TextField select margin={"normal"} label="Video" variant="outlined" onChange={props.onSelect}>
+    <>
+      <InputLabel>Select Video</InputLabel>
+      <Select variant="outlined" onChange={props.onSelect}>
         {data.project?.videos.map((video) => (
-          <option value={video.id}>{video.name}</option>
+          <MenuItem value={video.id}>{video.name}</MenuItem>
         ))}
-      </TextField>
-    </FormControl>
+        <VideoUploadButton id={props.id} />
+      </Select>
+    </>
   );
 }
 
@@ -138,14 +145,14 @@ const TEST_MODEL_MUTATION = gql`
 
 function TestInput(props: { exprt: Export }): React.ReactElement {
   const [testModel] = useMutation(TEST_MODEL_MUTATION);
-  const [name, setName] = React.useState<string>(`VIDEOTEST-${props.exprt.name}`);
+  const [name, setName] = React.useState<string>(`${props.exprt.name}-test`);
   const [videoID, setVideoID] = React.useState<string>();
 
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
   };
-  const handleVideoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setVideoID(event.target.value);
+  const handleVideoChange = (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
+    setVideoID(event.target.value as string);
   };
   const handleTest = () => {
     const projectID = props.exprt.projectID;
@@ -156,13 +163,19 @@ function TestInput(props: { exprt: Export }): React.ReactElement {
   };
 
   return (
-    <>
-      <VideoSelect id={props.exprt.projectID} onSelect={handleVideoChange} />
-      <TextField margin={"normal"} label="Name" variant="outlined" value={name} onChange={handleNameChange} />
-      <Button color="primary" onClick={handleTest}>
-        Test
-      </Button>
-    </>
+    <FormControl fullWidth>
+      <FormControl style={{ width: "100%" }}>
+        <VideoSelect id={props.exprt.projectID} onSelect={handleVideoChange} />
+      </FormControl>
+      <FormControl style={{ width: "100%" }}>
+        <TextField margin={"normal"} variant="outlined" value={name} onChange={handleNameChange} />
+      </FormControl>
+      <FormControl style={{ width: "40%", display: "flex", justifyContent: "center" }}>
+        <Button variant="outlined" color="primary" onClick={handleTest} disabled={!videoID}>
+          Test
+        </Button>
+      </FormControl>
+    </FormControl>
   );
 }
 
@@ -194,7 +207,7 @@ function FilteredTestjobs(props: { exprtID: string }): React.ReactElement {
           <ListItemIcon>
             <CircularProgress />
           </ListItemIcon>
-          <ListItemText primary={`Test "${job.name}" in progress...`} />
+          <ListItemText primary={job.name} />
           <a href={`http://localhost:${job.streamPort}/stream.mjpg`} target="_blank" rel="noopener noreferrer">
             <Button variant="outlined" color={"secondary"}>
               View
