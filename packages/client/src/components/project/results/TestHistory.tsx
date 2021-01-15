@@ -113,6 +113,11 @@ function FilteredTestjobs(props: { exprtID: string }): React.ReactElement {
             <CircularProgress />
           </ListItemIcon>
           <ListItemText primary={`Test "${job.name}" in progress...`} />
+          <a href={`http://localhost:${job.streamPort}/stream.mjpg`} target="_blank" rel="noopener noreferrer">
+            <Button variant="outlined" color={"secondary"}>
+              View
+            </Button>
+          </a>
         </ListItem>
       ))}
     </List>
