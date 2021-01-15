@@ -35,7 +35,7 @@ function TestList(props: { exprtID: string }): React.ReactElement {
     <List>
       {data.export?.tests?.map((test) => (
         <ListItem>
-          <a href={test.downloadPath}>
+          <a download href={`http://localhost:4000/${test.downloadPath}`}>
             <ListItemIcon>
               <CloudDownload />
             </ListItemIcon>
