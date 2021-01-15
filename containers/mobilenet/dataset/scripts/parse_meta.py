@@ -11,6 +11,8 @@ def get_labels():
 
 
 def main(output_pbtxt):
+    print("output_pbtxt in parse_meta.py: " + output_pbtxt)
     with open(output_pbtxt, 'w+') as pbtxt:
+        print(pbtxt)
         for i, label in enumerate(get_labels()):
             pbtxt.write("item {\n\nid: %s\n\nname: \"%s\"\n}\n\n" % (i + 1, label))
