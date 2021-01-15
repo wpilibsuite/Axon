@@ -34,6 +34,7 @@ type Mutation {
 
   startTraining(id: ID!): Project
   stopTraining(id: ID!): Project
+  stopTesting(id: ID!): Test
   pauseTraining(id: ID!): Project
   resumeTraining(id: ID!): Project
   saveVideo(projectID: ID!, name: String!, video: Upload!): Video

@@ -14,6 +14,7 @@ export default class Tester {
 
   private container: Container;
   private streamPort: string;
+  private cancelled = false;
   readonly project: Project;
   readonly docker: Docker;
   test: Test;
@@ -40,6 +41,7 @@ export default class Tester {
       name: name
     });
     test.directory = path.posix.join(projDir, "tests", test.id);
+    console.log(`Test ID: ${test.id}`);
     return test;
   }
 
@@ -96,6 +98,7 @@ export default class Tester {
    * Test the model. Requires the test parameter file, the export, and the video to be in the container's mounted directory.
    */
   public async testModel(): Promise<void> {
+    if (this.cancelled) return;
     this.container = await this.docker.createContainer(this.project, Tester.images.test, [this.streamPort]);
     await this.docker.runContainer(this.container);
   }
@@ -104,6 +107,7 @@ export default class Tester {
    * Save the output vid from the container to a zip file, path stored in the test object, with the desired name.
    */
   public async saveOutputVid(): Promise<void> {
+    if (this.cancelled) return;
     const ZIP_SRC = path.posix.join(this.test.directory, this.test.name);
     await mkdirp(ZIP_SRC);
 
@@ -133,9 +137,16 @@ export default class Tester {
    * Save the Test object in the Tester instance to the database.
    */
   public async saveTest(): Promise<void> {
+    if (this.cancelled) return;
     const exprt = await Export.findByPk(this.test.exportID);
     await this.test.save();
     await exprt.addTest(this.test);
+  }
+
+  public async stop(): Promise<Test> {
+    this.cancelled = true;
+    if (this.container && (await this.container.inspect()).State.Running) await this.container.kill({ force: true });
+    return this.test;
   }
 
   public getJob(): Testjob {
