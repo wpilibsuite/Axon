@@ -4,18 +4,23 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  FormControl,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   MenuItem,
+  TextField,
   Typography
 } from "@material-ui/core";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { QueryTestjobs } from "./__generated__/QueryTestjobs";
 import { GetTests } from "./__generated__/GetTests";
+import { GetVideos } from "./__generated__/GetVideos";
 import React from "react";
 import { CloudDownload } from "@material-ui/icons";
+import { GetProjectData_project_exports } from "../__generated__/GetProjectData";
+type Export = GetProjectData_project_exports;
 
 const GET_TESTS = gql`
   query GetTests($id: ID!) {
@@ -53,7 +58,7 @@ function TestList(props: { exprtID: string }): React.ReactElement {
   );
 }
 
-export default function TestHistory(props: { exprtID: string; handler: () => void }): React.ReactElement {
+export default function TestHistory(props: { exprt: Export; handler: () => void }): React.ReactElement {
   const [open, setOpen] = React.useState(false);
   const handleClick = () => {
     setOpen(true);
@@ -70,9 +75,10 @@ export default function TestHistory(props: { exprtID: string; handler: () => voi
       </MenuItem>
       <Dialog onClose={handleClose} open={open}>
         <DialogContent dividers>
+          <TestInput exprt={props.exprt} />
           <Typography> Tests: </Typography>
-          <FilteredTestjobs exprtID={props.exprtID} />
-          <TestList exprtID={props.exprtID} />
+          <FilteredTestjobs exprtID={props.exprt.id} />
+          <TestList exprtID={props.exprt.id} />
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose}>
@@ -80,6 +86,82 @@ export default function TestHistory(props: { exprtID: string; handler: () => voi
           </Button>
         </DialogActions>
       </Dialog>
+    </>
+  );
+}
+
+const GET_VIDEOS = gql`
+  query GetVideos($id: ID!) {
+    project(id: $id) {
+      videos {
+        id
+        name
+        filename
+        fullPath
+      }
+    }
+  }
+`;
+function VideoSelect(props: {
+  id: string;
+  onSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}): React.ReactElement {
+  const { data, loading, error } = useQuery<GetVideos>(GET_VIDEOS, {
+    variables: {
+      id: props.id
+    },
+    pollInterval: 2000
+  });
+
+  if (loading) return <p>LOADING</p>;
+  if (error || !data) return <p>{error?.message}</p>;
+  if (data.project === null) return <p>NOPROJECT</p>;
+
+  return (
+    <FormControl style={{ width: "100%" }}>
+      <TextField select margin={"normal"} label="Video" variant="outlined" onChange={props.onSelect}>
+        {data.project?.videos.map((video) => (
+          <option value={video.id}>{video.name}</option>
+        ))}
+      </TextField>
+    </FormControl>
+  );
+}
+
+const TEST_MODEL_MUTATION = gql`
+  mutation startTest($name: String!, $projectID: String!, $exportID: String!, $videoID: String!) {
+    testModel(name: $name, projectID: $projectID, exportID: $exportID, videoID: $videoID) {
+      id
+    }
+  }
+`;
+
+function TestInput(props: { exprt: Export }): React.ReactElement {
+  const [testModel] = useMutation(TEST_MODEL_MUTATION);
+  const [name, setName] = React.useState<string>(`VIDEOTEST-${props.exprt.name}`);
+  const [videoID, setVideoID] = React.useState<string>();
+
+  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setName(event.target.value);
+  };
+  const handleVideoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setVideoID(event.target.value);
+  };
+  const handleTest = () => {
+    const projectID = props.exprt.projectID;
+    const exportID = props.exprt.id;
+    testModel({ variables: { name, projectID, exportID, videoID } }).catch((err) => {
+      console.log(err);
+    });
+  };
+
+  return (
+    <>
+      <VideoSelect id={props.exprt.projectID} onSelect={handleVideoChange} />
+      <TextField margin={"normal"} label="Name" variant="outlined" value={name} onChange={handleNameChange} />
+      <Button color="primary" onClick={handleTest}>
+        Test
+      </Button>
     </>
   );
 }

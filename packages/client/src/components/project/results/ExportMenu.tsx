@@ -78,7 +78,7 @@ export default function ExportMenu(props: {
         <RenameExportButton id={props.exprt.id} handler={handleClose} />
         {testButton}
         {viewButton}
-        <TestHistory exprtID={props.exprt.id} handler={handleClose} />
+        <TestHistory exprt={props.exprt} handler={handleClose} />
       </Menu>
     </>
   );
