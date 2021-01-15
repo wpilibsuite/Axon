@@ -25,7 +25,7 @@ export default function TestList(props: { exprtID: string }): React.ReactElement
   if (data === undefined || data.export === undefined) return <p>NO DATA</p>;
   if (data.export?.tests?.length === 0) return <Typography> Nothing here yet. </Typography>;
   return (
-    <List style={{ minWidth: 400, maxHeight: '250px', overflow: 'auto' }}>
+    <List style={{ minWidth: 400, maxHeight: "250px", overflow: "auto" }}>
       {data.export?.tests?.map((test) => (
         <ListItem>
           <a download href={`http://localhost:4000/${test.downloadPath}`}>
