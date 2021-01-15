@@ -22,7 +22,8 @@ export default class Trainer {
     dataset: { name: "newdatareader", tag: process.env.AXON_VERSION || "edge" },
     //dataset: { name: "wpilib/axon-dataset", tag: process.env.AXON_VERSION || "edge" },
     metrics: { name: "wpilib/axon-metrics", tag: process.env.AXON_VERSION || "edge" },
-    train: { name: "wpilib/axon-training", tag: process.env.AXON_VERSION || "edge" }
+    train: { name: "newtrainer", tag: process.env.AXON_VERSION || "edge" }
+    //train: { name: "wpilib/axon-training", tag: process.env.AXON_VERSION || "edge" }
   };
 
   private container: Container;
