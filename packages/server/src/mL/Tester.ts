@@ -142,6 +142,7 @@ export default class Tester {
     const testID = this.test ? this.test.id : "";
     return {
       testID: testID,
+      name: this.test.name,
       exportID: this.test.exportID,
       projectID: this.project.id,
       streamPort: this.streamPort

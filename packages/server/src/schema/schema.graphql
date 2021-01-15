@@ -171,6 +171,7 @@ type Exportjob {
 }
 
 type Testjob {
+  name: String!
   testID: String!
   exportID: String!
   projectID: String!
