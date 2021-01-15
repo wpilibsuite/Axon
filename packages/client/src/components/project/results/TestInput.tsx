@@ -1,4 +1,4 @@
-import { Button, FormControl, InputLabel, MenuItem, Select, TextField } from "@material-ui/core";
+import { Button, FormControl, InputLabel, MenuItem, Select, TextField, Tooltip } from "@material-ui/core";
 import { GetProjectData_project_exports } from "../__generated__/GetProjectData";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { GetVideos } from "./__generated__/GetVideos";
@@ -38,6 +38,10 @@ export default function TestInput(props: {
     props.setActive(true);
   };
 
+  let tooltipMessage = `Run inference on ${props.exprt.name}.`;
+  if (!videoID) tooltipMessage = "Select a video to test with.";
+  if (props.active) tooltipMessage = "Test already in progress.";
+
   return (
     <FormControl fullWidth>
       <FormControl style={{ width: "100%" }}>
@@ -47,9 +51,13 @@ export default function TestInput(props: {
         <TextField margin={"normal"} variant="outlined" value={name} onChange={handleNameChange} />
       </FormControl>
       <FormControl style={{ width: "40%", display: "flex", justifyContent: "center" }}>
-        <Button variant="outlined" color="primary" onClick={handleTest} disabled={!videoID || props.active}>
-          Test
-        </Button>
+        <Tooltip title={tooltipMessage}>
+          <span>
+            <Button variant="outlined" color="primary" onClick={handleTest} disabled={!videoID || props.active}>
+              Test
+            </Button>
+          </span>
+        </Tooltip>
       </FormControl>
     </FormControl>
   );
