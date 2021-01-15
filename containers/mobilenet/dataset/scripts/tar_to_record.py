@@ -45,10 +45,10 @@ def main(dataset_paths, percent_eval, directory):
         json_to_csv.main(percent_eval)
         try:
 
-            generate_tfrecord.main(TMP_PATH + "/train.csv", join(OUTPUT_PATH, 'train.record'))
-            generate_tfrecord.main(TMP_PATH + "/eval.csv", join(OUTPUT_PATH, 'eval.record'))
+            generate_tfrecord.main(TMP_PATH + "/train.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, "/home/")
+            generate_tfrecord.main(TMP_PATH + "/eval.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, "/home/")
 
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, TMP_PATH + "/eval.csv")
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, TMP_PATH + "/eval.csv", "/")
 
             print(".\nRecords generated")
         except ValueError:
@@ -68,11 +68,11 @@ def main(dataset_paths, percent_eval, directory):
         #Generate the records
         try:
             print(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv")
-            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'))
-            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'))
+            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/test/")
+            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/train/")
 
             print('main records generated')
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt', EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv"), NORMAL_MODE) # Edge case of missing label in one csv
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv") # Edge case of missing label in one csv
 
             print(".\nRecords generated")
         except ValueError:

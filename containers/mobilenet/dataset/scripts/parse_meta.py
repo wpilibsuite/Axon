@@ -14,7 +14,9 @@ def get_labels(operation_mode, annotation_file):
 
     if not operation_mode:
         print('Operation mode ZIP')
-        pd.read_csv()
+        annotation_df = pd.read_csv(annotation_file)
+        print(annotation_df['class'].unique())
+        return annotation_df['class'].unique().tolist()
 
 
 
