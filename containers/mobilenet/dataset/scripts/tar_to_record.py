@@ -48,7 +48,7 @@ def main(dataset_paths, percent_eval, directory):
             generate_tfrecord.main(TMP_PATH + "/train.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, "/home/")
             generate_tfrecord.main(TMP_PATH + "/eval.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, "/home/")
 
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, TMP_PATH + "/eval.csv", "/")
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, TMP_PATH + "/eval.csv")
 
             print(".\nRecords generated")
         except ValueError:
@@ -72,7 +72,7 @@ def main(dataset_paths, percent_eval, directory):
             generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/train/")
 
             print('main records generated')
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv") # Edge case of missing label in one csv
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv") # Edge case of missing label in one csv
 
             print(".\nRecords generated")
         except ValueError:
