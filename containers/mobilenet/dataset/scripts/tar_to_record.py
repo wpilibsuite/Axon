@@ -58,23 +58,27 @@ def main(dataset_paths, percent_eval, directory):
 
     if not NORMAL_MODE:
         print('treating as zip of tf obj detect')
-        """
-        Psuedocode
+        #Psuedocode
 
         #Unzip the zip in correct dir
+        print('unzip the files')
+        with zipfile.ZipFile(dataset_paths[-1], 'r') as zip_file: # Unzip the file (Assuming 1 zip at this time)
+            zip_file.extractall(OUTPUT_PATH)
+            print('files extracted')
+
 
         #Generate the records
         try:
-            generate_tfrecord.main(TMP_PATH + "/test/_annotations.csv", join(OUTPUT_PATH, 'test.record')
-            generate_tfrecord.main(TMP_PATH + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record')
+            print(TMP_PATH + "/test/_annotations.csv")
+            generate_tfrecord.main(TMP_PATH + "/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'))
+            generate_tfrecord.main(TMP_PATH + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'))
 
+            print('main records generated')
             parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'))
 
             print(".\nRecords generated")
         except ValueError:
             print("The datasets provided do not have the same class labels. Please make sure that labels are spelt the same in both datasets, or label the same objects for both datasets.")
-
-        """
 
 
 if __name__ == "__main__":
