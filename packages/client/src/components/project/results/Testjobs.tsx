@@ -32,7 +32,15 @@ export default function Testjobs(props: { exprtID: string }): React.ReactElement
             <CircularProgress />
           </ListItemIcon>
           <ListItemText primary={job.name} />
-          <a href={`http://localhost:${job.streamPort}/stream.mjpg`} target="_blank" rel="noopener noreferrer">
+          <a
+            href={`http://localhost:${job.streamPort}/stream.mjpg`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: "inherit",
+              textDecoration: "none"
+            }}
+          >
             <Button variant="outlined" color={"secondary"}>
               View
             </Button>

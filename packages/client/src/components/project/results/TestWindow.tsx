@@ -19,7 +19,7 @@ export default function TestWindow(props: { exprt: Export; handler: () => void }
   return (
     <>
       <MenuItem onClick={handleClick}>
-        <Typography variant={"body1"}>Test History</Typography>
+        <Typography variant={"body1"}>Test</Typography>
       </MenuItem>
       <Dialog onClose={handleClose} open={open}>
         <DialogContent dividers>
