@@ -1,6 +1,7 @@
 import { DockerImage, Testjob } from "../schema/__generated__/graphql";
 import { Project, Export, Video, Test } from "../store";
 import { Container } from "dockerode";
+import * as Archiver from "archiver";
 import * as mkdirp from "mkdirp";
 import Docker from "./Docker";
 import * as path from "path";
@@ -100,16 +101,32 @@ export default class Tester {
   }
 
   /**
-   * Save the output vid from the container to the path stored in the test object, with the desired name.
+   * Save the output vid from the container to a zip file, path stored in the test object, with the desired name.
    */
   public async saveOutputVid(): Promise<void> {
-    const CUSTOM_VID_PATH = path.posix.join(this.test.directory, `${this.test.name}.mp4`);
+    const ZIP_SRC = path.posix.join(this.test.directory, this.test.name);
+    await mkdirp(ZIP_SRC);
+
     const OUTPUT_VID_PATH = path.posix.join(this.project.directory, "inference.mp4");
+    const CUSTOM_VID_PATH = path.posix.join(ZIP_SRC, `${this.test.name}.mp4`);
     if (!fs.existsSync(OUTPUT_VID_PATH)) Promise.reject("cant find output video");
-    await mkdirp(this.test.directory);
     await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
-    this.test.fullPath = CUSTOM_VID_PATH;
+
+    this.test.fullPath = path.posix.join(this.test.directory, `${this.test.name}.zip`);
     this.test.downloadPath = this.test.fullPath.split("/server/data/")[1]; //<- need to do this better
+
+    const archive = Archiver("zip", { zlib: { level: 9 } });
+    const stream = fs.createWriteStream(this.test.fullPath);
+
+    return new Promise((resolve, reject) => {
+      archive
+        .directory(ZIP_SRC, false)
+        .on("error", (err) => reject(err))
+        .pipe(stream);
+
+      stream.on("close", () => resolve());
+      archive.finalize();
+    });
   }
 
   /**
