@@ -31,6 +31,7 @@ function TestList(props: { exprtID: string }): React.ReactElement {
   if (loading) return <p>LOADING</p>;
   if (error) return <p>{error.message}</p>;
   if (data === undefined || data.export === undefined) return <p>NO DATA</p>;
+  if (data.export?.tests?.length === 0) return <Typography> Nothing here yet. </Typography>
   return (
     <List>
       {data.export?.tests?.map((test) => (
@@ -64,6 +65,7 @@ export default function TestHistory(props: { exprtID: string; handler: () => voi
       </MenuItem>
       <Dialog onClose={handleClose} open={open}>
         <DialogContent dividers>
+          <Typography> Completed Tests: </Typography>
           <TestList exprtID={props.exprtID} />
         </DialogContent>
         <DialogActions>
