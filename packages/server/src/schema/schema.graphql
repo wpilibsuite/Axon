@@ -8,6 +8,7 @@ type Query {
   dataset(id: ID!): Dataset
   datasets: [Dataset!]!
   project(id: ID!): Project
+  export(id: ID!): Export
   exportjobs: [Exportjob!]!
   trainjobs: [Trainjob!]!
   testjobs: [Testjob!]!
@@ -99,9 +100,10 @@ type Checkpoint {
 
 type Export {
   id: ID!
-  projectID: ID!
-  checkpointID: ID!
   name: String!
+  projectID: ID!
+  tests: [Test!]
+  checkpointID: ID!
   directory: String!
   tarfileName: String!
   downloadPath: String!
@@ -141,7 +143,6 @@ type Project {
   checkpoints: [Checkpoint!]!
   exports: [Export!]!
   videos: [Video!]!
-  tests: [Test!]!
 }
 
 enum TrainStatus {

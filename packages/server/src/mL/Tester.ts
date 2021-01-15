@@ -116,9 +116,9 @@ export default class Tester {
    * Save the Test object in the Tester instance to the database.
    */
   public async saveTest(): Promise<void> {
-    const project = await Project.findByPk(this.project.id);
+    const exprt = await Export.findByPk(this.test.exportID);
     await this.test.save();
-    await project.addTest(this.test);
+    await exprt.addTest(this.test);
   }
 
   public getJob(): Testjob {

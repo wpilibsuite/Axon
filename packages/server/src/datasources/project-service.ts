@@ -30,6 +30,10 @@ export class ProjectService extends DataSource {
     return Project.findByPk(id);
   }
 
+  async getExport(id: string): Promise<Export> {
+    return Export.findByPk(id);
+  }
+
   async createProject(name: string): Promise<Project> {
     const project = Project.build({ name });
 
@@ -198,8 +202,8 @@ export class ProjectService extends DataSource {
   }
 
   async getTests(id: string): Promise<Test[]> {
-    const project = await Project.findByPk(id);
-    return project.getTests({ order: [["createdAt", "ASC"]] });
+    const exprt = await Export.findByPk(id);
+    return exprt.getTests({ order: [["createdAt", "DESC"]] });
   }
 
   async getTrainjobs(): Promise<Trainjob[]> {

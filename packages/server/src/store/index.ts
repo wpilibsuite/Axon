@@ -83,6 +83,14 @@ export class Export extends Model<ExportAttributes, ExportCreationAttributes> im
   public readonly id!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  public getTests!: HasManyGetAssociationsMixin<Test>;
+  public addTest!: HasManyAddAssociationMixin<Test, string>;
+  public removeTest!: HasManyRemoveAssociationMixin<Test, string>;
+
+  public static associations: {
+    tests: Association<Export, Test>;
+  };
 }
 
 interface VideoAttributes {
@@ -174,10 +182,6 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   public getVideos!: HasManyGetAssociationsMixin<Video>;
   public addVideo!: HasManyAddAssociationMixin<Video, string>;
   public removeVideo!: HasManyRemoveAssociationMixin<Video, string>;
-
-  public getTests!: HasManyGetAssociationsMixin<Test>;
-  public addTest!: HasManyAddAssociationMixin<Test, string>;
-  public removeTest!: HasManyRemoveAssociationMixin<Test, string>;
 
   public readonly id!: string;
   public readonly createdAt!: Date;
@@ -404,6 +408,6 @@ Dataset.belongsToMany(Project, { through: "DatasetProject" });
 Project.belongsToMany(Checkpoint, { through: "ProjectCheckpoint" });
 Project.belongsToMany(Export, { through: "ProjectExport" });
 Project.belongsToMany(Video, { through: "ProjectVideo" });
-Project.belongsToMany(Test, { through: "ProjectTest" });
+Export.belongsToMany(Test, { through: "ExportTest" });
 
 sequelize.sync({ force: false });

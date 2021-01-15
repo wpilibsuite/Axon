@@ -30,10 +30,10 @@ function TestList(props: { exprtID: string }): React.ReactElement {
   const { data, loading, error } = useQuery<GetTests>(GET_TESTS, { variables: { id: props.exprtID } });
   if (loading) return <p>LOADING</p>;
   if (error) return <p>{error.message}</p>;
-  if (data === undefined || data.project === undefined) return <p>NO DATA</p>;
+  if (data === undefined || data.export === undefined) return <p>NO DATA</p>;
   return (
     <List>
-      {data.project?.tests.map((test) => (
+      {data.export?.tests?.map((test) => (
         <ListItem>
           <a href={test.downloadPath}>
             <ListItemIcon>

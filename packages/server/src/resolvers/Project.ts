@@ -13,8 +13,5 @@ export const Project: ProjectResolvers = {
   },
   videos(parent, _, { dataSources }: Context) {
     return dataSources.projectService.getVideos(parent.id);
-  },
-  tests(parent, _, { dataSources }: Context) {
-    return dataSources.projectService.getTests(parent.id);
   }
 };
