@@ -50,7 +50,7 @@ def main(dataset_paths, percent_eval, directory):
             generate_tfrecord.main(TMP_PATH + "/train.csv", join(OUTPUT_PATH, 'train.record'))
             generate_tfrecord.main(TMP_PATH + "/eval.csv", join(OUTPUT_PATH, 'eval.record'))
 
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'))
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, TMP_PATH + "/eval.csv")
 
             print(".\nRecords generated")
         except ValueError:
@@ -63,18 +63,18 @@ def main(dataset_paths, percent_eval, directory):
         #Unzip the zip in correct dir
         print('unzip the files')
         with zipfile.ZipFile(dataset_paths[-1], 'r') as zip_file: # Unzip the file (Assuming 1 zip at this time)
-            zip_file.extractall(OUTPUT_PATH)
+            zip_file.extractall(EXTRACT_PATH)
             print('files extracted')
 
 
         #Generate the records
         try:
-            print(TMP_PATH + "/test/_annotations.csv")
-            generate_tfrecord.main(TMP_PATH + "/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'))
-            generate_tfrecord.main(TMP_PATH + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'))
+            print(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv")
+            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'))
+            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'))
 
             print('main records generated')
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'))
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt', EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv"), NORMAL_MODE) # Edge case of missing label in one csv
 
             print(".\nRecords generated")
         except ValueError:
