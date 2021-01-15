@@ -6,6 +6,7 @@ import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
 import ViewButton from "./ViewButton";
 import TestButton from "./TestButton";
 import RenameExportButton from "./RenameExportButton";
+import TestHistory from "./TestHistory";
 
 export default function ExportMenu(props: {
   exprt: GetProjectData_project_exports;
@@ -77,6 +78,7 @@ export default function ExportMenu(props: {
         <RenameExportButton id={props.exprt.id} handler={handleClose} />
         {testButton}
         {viewButton}
+        <TestHistory exprtID={props.exprt.id} handler={handleClose} />
       </Menu>
     </>
   );
