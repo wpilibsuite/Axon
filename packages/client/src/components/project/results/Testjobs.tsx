@@ -1,19 +1,35 @@
 import { Button, CircularProgress, List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
 import { QueryTestjobs } from "./__generated__/QueryTestjobs";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import React from "react";
 
 const GET_TESTJOBS = gql`
   query QueryTestjobs {
     testjobs {
       name
+      testID
       exportID
       streamPort
     }
   }
 `;
 
+const STOP_TEST = gql`
+  mutation StopTest($id: ID!) {
+    stopTesting(id: $id) {
+      name
+    }
+  }
+`;
+
 export default function Testjobs(props: { exprtID: string }): React.ReactElement {
+  const [stopTest] = useMutation(STOP_TEST);
+  const handleStop = (id: string) => {
+    stopTest({ variables: { id } }).catch((err) => {
+      console.log(err);
+    });
+  };
+
   const { data, loading, error } = useQuery<QueryTestjobs>(GET_TESTJOBS, {
     pollInterval: 1000
   });
@@ -45,6 +61,9 @@ export default function Testjobs(props: { exprtID: string }): React.ReactElement
               View
             </Button>
           </a>
+          <Button variant="outlined" onClick={() => handleStop(job.testID)}>
+            Cancel
+          </Button>
         </ListItem>
       ))}
     </List>
