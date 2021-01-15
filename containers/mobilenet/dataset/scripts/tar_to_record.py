@@ -70,7 +70,7 @@ def main(dataset_paths, percent_eval, directory):
         try:
             print(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv")
             generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/test/")
-            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/train/")
+            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/train/")
 
             print('main records generated')
             parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv") # Edge case of missing label in one csv
