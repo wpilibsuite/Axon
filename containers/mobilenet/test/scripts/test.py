@@ -21,7 +21,7 @@ def test_video(directory, video_path, interpreter, labels):
     floating_model = (input_details[0]['dtype'] == np.float32)
 
     input_mean = 127.5
-        input_std = 127.5
+    input_std = 127.5
 
     video = cv2.VideoCapture(video_path)
     image_width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -46,8 +46,8 @@ def test_video(directory, video_path, interpreter, labels):
         input_data = np.expand_dims(frame_resized, axis=0)
 
         # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
-                if floating_model:
-                    input_data = (np.float32(input_data) - input_mean) / input_std
+        if floating_model:
+            input_data = (np.float32(input_data) - input_mean) / input_std
 
         # Perform the actual detection by running the model with the image as input
         interpreter.set_tensor(input_details[0]['index'], input_data)
@@ -60,7 +60,7 @@ def test_video(directory, video_path, interpreter, labels):
 
         # Loop over all detections and draw detection box if confidence is above minimum threshold
         for i in range(len(scores)):
-            if (scores[i] > .5 and scores[i] <= 1.0):
+            if .5 < scores[i] <= 1.0:
                 # Get bounding box coordinates and draw box
                 # Interpreter can return coordinates that are outside of image dimensions,
                 # need to force them to be within image using max() and min()
@@ -73,7 +73,7 @@ def test_video(directory, video_path, interpreter, labels):
                 # Draw label
                 # Look up object name from "labels" array using class index
                 object_name = labels[int(classes[i].item())]
-                label = '%s: %d%%' % (object_name, int(scores[i]*100)) # Example: 'person: 72%'
+                label = '%s: %d%%' % (object_name, int(scores[i] * 100))  # Example: 'person: 72%'
                 label_size, base = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)  # Get font size
                 label_ymin = max(ymin, label_size[1] + 10)  # Make sure not to draw label too close to top of window
                 cv2.rectangle(frame, (xmin, label_ymin - label_size[1] - 10),
