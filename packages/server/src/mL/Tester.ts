@@ -9,7 +9,9 @@ import * as fs from "fs";
 
 export default class Tester {
   static readonly images: Record<string, DockerImage> = {
-    test: { name: "wpilib/axon-test", tag: process.env.AXON_VERSION || "edge" }
+    test: { name: "newtest", tag: process.env.AXON_VERSION || "edge" }
+
+    //test: { name: "wpilib/axon-test", tag: process.env.AXON_VERSION || "edge" }
   };
 
   private videoFilename: string;
