@@ -66,8 +66,8 @@ def test_video(directory, video_path, interpreter, labels):
                 # need to force them to be within image using max() and min()
                 ymin = int(max(1, (boxes[i][0] * image_height)))
                 xmin = int(max(1, (boxes[i][1] * image_width)))
-                ymax = int(min(imH, (boxes[i][2] * image_height)))
-                xmax = int(min(imW, (boxes[i][3] * image_width)))
+                ymax = int(min(image_height, (boxes[i][2] * image_height)))
+                xmax = int(min(image_width, (boxes[i][3] * image_width)))
                 cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 4)
 
                 # Draw label
