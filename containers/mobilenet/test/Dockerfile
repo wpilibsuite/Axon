@@ -4,8 +4,7 @@ RUN mkdir -p /tensorflow/models/research/ && \
     cd /tensorflow/models/research/ && \
     apt-get update && \
     apt-get install wget -y && \
-    python3 --version && \
-    wget "https://github.com/wpilibsuite/DetectCoral/releases/download/v2/testing.mp4" --no-check-certificate
+    python3 --version
 
 RUN pip3 install tensorflow pillow
 

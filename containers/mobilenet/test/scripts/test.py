@@ -24,15 +24,14 @@ def test_video(directory, video_path, interpreter, labels):
     input_std = 127.5
 
     video = cv2.VideoCapture(video_path)
-    image_width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
-    image_height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    imW = video.get(cv2.CAP_PROP_FRAME_WIDTH)
+    imH = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
     fps = video.get(cv2.CAP_PROP_FPS)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(join(directory, "inference.mp4"), fourcc, fps, (int(image_width), int(image_height)))
+    out = cv2.VideoWriter(join(directory, "inference.mp4"), fourcc, fps, (int(imW), int(imH)))
 
-    server = MJPEGServer(image_width, image_height)
+    server = MJPEGServer(imW, imH)
     server.start()
-    o_scale, o_mean = output_details[1]['quantization']
 
     print("MJPEG server started")
     while video.isOpened():
@@ -40,10 +39,11 @@ def test_video(directory, video_path, interpreter, labels):
         # Acquire frame and resize to expected shape [1xHxWx3]
         ret, frame = video.read()
         if not ret:
+            print('Reached the end of the video!')
             break
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb, (width, height))
-        input_data = np.expand_dims(frame_resized, axis=0)
+        input_data = frame_resized.reshape([1, width, height, 3])
 
         # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
         if floating_model:
@@ -55,24 +55,25 @@ def test_video(directory, video_path, interpreter, labels):
 
         # Retrieve detection results
         boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-        classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
+        classes = interpreter.get_tensor(output_details[1]['index'])[0].astype(np.int64)  # Class index of detected objects
         scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
 
         # Loop over all detections and draw detection box if confidence is above minimum threshold
         for i in range(len(scores)):
-            if .5 < scores[i] <= 1.0:
+            if scores[i] > .5 and scores[i] <= 1.0:
+
                 # Get bounding box coordinates and draw box
-                # Interpreter can return coordinates that are outside of image dimensions,
-                # need to force them to be within image using max() and min()
-                ymin = int(max(1, (boxes[i][0] * image_height)))
-                xmin = int(max(1, (boxes[i][1] * image_width)))
-                ymax = int(min(image_height, (boxes[i][2] * image_height)))
-                xmax = int(min(image_width, (boxes[i][3] * image_width)))
+                # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                ymin = int(max(1, (boxes[i][0] * imH)))
+                xmin = int(max(1, (boxes[i][1] * imW)))
+                ymax = int(min(imH, (boxes[i][2] * imH)))
+                xmax = int(min(imW, (boxes[i][3] * imW)))
                 cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 4)
 
                 # Draw label
                 # Look up object name from "labels" array using class index
-                object_name = labels[int(classes[i].item())]
+                print(int(classes[i]))
+                object_name = labels[int(classes[i])]
                 label = '%s: %d%%' % (object_name, int(scores[i] * 100))  # Example: 'person: 72%'
                 label_size, base = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)  # Get font size
                 label_ymin = max(ymin, label_size[1] + 10)  # Make sure not to draw label too close to top of window
