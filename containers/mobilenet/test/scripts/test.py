@@ -43,11 +43,16 @@ def test_video(directory, video_path, interpreter, labels):
             break
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb, (width, height))
-        input_data = frame_resized.reshape([1, width, height, 3])
+        input_data = frame_resized.reshape([1, width, height, 3]).astype(np.uint8)
 
         # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
         if floating_model:
             input_data = (np.float32(input_data) - input_mean) / input_std
+        # if input_details[0]['dtype'] == np.uint8:
+        #
+        #     print("scale", input_scale, "zero_point", input_zero_point)
+        #     input_data = ((input_data / input_scale) + input_zero_point).reshape([1, width, height, 3]).astype(np.uint8)
+        #     print(input_data)
 
         # Perform the actual detection by running the model with the image as input
         interpreter.set_tensor(input_details[0]['index'], input_data)
@@ -55,12 +60,13 @@ def test_video(directory, video_path, interpreter, labels):
 
         # Retrieve detection results
         boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-        classes = interpreter.get_tensor(output_details[1]['index'])[0].astype(np.int64)  # Class index of detected objects
+        classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
         scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
-
+        input_scale, input_zero_point = input_details[0]["quantization"]
+        classes = (classes - input_zero_point) * input_scale
         # Loop over all detections and draw detection box if confidence is above minimum threshold
         for i in range(len(scores)):
-            if scores[i] > .5 and scores[i] <= 1.0:
+            if .4 < scores[i] <= 1.0:
 
                 # Get bounding box coordinates and draw box
                 # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
