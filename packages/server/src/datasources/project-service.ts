@@ -182,7 +182,6 @@ export class ProjectService extends DataSource {
   }
 
   async getCheckpoints(id: string): Promise<Checkpoint[]> {
-    await this.mLService.updateCheckpoints(id);
     const project = await this.getProject(id);
     return project.getCheckpoints({ order: [["step", "ASC"]] });
   }

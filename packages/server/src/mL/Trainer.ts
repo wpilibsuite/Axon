@@ -25,7 +25,7 @@ export default class Trainer {
   };
 
   private container: Container;
-  private status: TrainStatus;
+  public status: TrainStatus;
   private lastEpoch: number;
   readonly project: Project;
   readonly docker: Docker;
@@ -38,6 +38,7 @@ export default class Trainer {
     this.project = project;
     this.docker = docker;
     this.epoch = 0;
+    this.startCheckpointRoutine();
   }
 
   /**
@@ -151,10 +152,24 @@ export default class Trainer {
 
     const metricsContainer = await this.docker.createContainer(this.project, Trainer.images.metrics, ["6006/tcp"]);
     this.container = await this.docker.createContainer(this.project, Trainer.images.train);
+
     await metricsContainer.start();
     await this.docker.runContainer(this.container);
+
     await metricsContainer.stop();
     await metricsContainer.remove();
+
+    this.status = TrainStatus.Stopped;
+  }
+
+  /**
+   * Calls updateCheckpoints every 10 seconds until training is stopped.
+   */
+  private async startCheckpointRoutine() {
+    while (this.status !== TrainStatus.Stopped) {
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await this.updateCheckpoints();
+    }
   }
 
   /**
