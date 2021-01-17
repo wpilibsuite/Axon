@@ -38,7 +38,6 @@ export default class Trainer {
     this.project = project;
     this.docker = docker;
     this.epoch = 0;
-    this.startCheckpointRoutine();
   }
 
   /**
