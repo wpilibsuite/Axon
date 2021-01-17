@@ -63,9 +63,9 @@ export default class MLService {
 
     await trainer.extractDataset();
 
-    await trainer.trainModel();
+    trainer.startCheckpointRoutine();
 
-    await trainer.updateCheckpoints();
+    await trainer.trainModel();
 
     this.trainjobs = this.trainjobs.filter((job) => job !== trainer);
     console.info(`${project.id}: Training complete`);

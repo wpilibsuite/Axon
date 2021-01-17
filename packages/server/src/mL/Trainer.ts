@@ -25,7 +25,7 @@ export default class Trainer {
   };
 
   private container: Container;
-  public status: TrainStatus;
+  private status: TrainStatus;
   private lastEpoch: number;
   readonly project: Project;
   readonly docker: Docker;
@@ -165,18 +165,22 @@ export default class Trainer {
   /**
    * Calls updateCheckpoints every 10 seconds until training is stopped.
    */
-  private async startCheckpointRoutine() {
+  public async startCheckpointRoutine(): Promise<void> {
     while (this.status !== TrainStatus.Stopped) {
       await new Promise((resolve) => setTimeout(resolve, 10000));
       await this.updateCheckpoints();
     }
+    /* wait for any late metrics container parse and update one last time */
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await this.updateCheckpoints();
+    console.log("Checkpoint update routine terminated.");
   }
 
   /**
    * Read the training metrics file and save the metrics in checkpoint objects in the project.
    * Updates the database with the latest checkpoints.
    */
-  public async updateCheckpoints(): Promise<void> {
+  private async updateCheckpoints(): Promise<void> {
     const METRICSPATH = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(METRICSPATH)) {
       const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
