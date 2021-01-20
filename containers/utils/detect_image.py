@@ -24,11 +24,6 @@ import detect
 import tflite_runtime.interpreter as tflite
 import platform
 
-EDGETPU_SHARED_LIB = {
-  'Linux': 'libedgetpu.so.1',
-  'Darwin': 'libedgetpu.1.dylib',
-  'Windows': 'edgetpu.dll'
-}[platform.system()]
 
 
 def load_labels(path, encoding='utf-8'):
@@ -57,7 +52,7 @@ def make_interpreter(model_file):
   return tflite.Interpreter(
       model_path=model_file,
       experimental_delegates=[
-          tflite.load_delegate(EDGETPU_SHARED_LIB,
+          tflite.load_delegate("libedgetpu.so.1",
                                {'device': device[0]} if device else {})
       ])
 
