@@ -50,12 +50,6 @@ def test_video(directory, video_path, interpreter, labels):
         boxes = interpreter.get_tensor(output_details[0]['index'])
         scores = interpreter.get_tensor(output_details[2]['index'])
 
-        classes = np.squeeze(interpreter.get_tensor(output_details[1]['index']))
-        classes = (classes - o_mean) * o_scale #Commented out to allow for multiple classes
-        print("classes: ")
-        print(classes)
-        print("labels: ")
-        print(labels)
         # Loop over all detections and draw detection box if confidence is above minimum threshold
         # print(boxes.shape[1])
         for i in range(boxes.shape[1]):
@@ -211,5 +205,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--dir', type=str, help='Path of the folder to export in.')
     DIRECTORY = parser.parse_args().dir
-    tester = Tester(DIRECTORY)
-    tester.run()
+
+    main(DIRECTORY)
