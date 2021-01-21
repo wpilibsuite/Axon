@@ -67,6 +67,7 @@ def main(dataset_paths, percent_eval, directory):
 
         #Generate the records
         try:
+            # TODO Paths
             print(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv")
             generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/test/")
             generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/train/")
