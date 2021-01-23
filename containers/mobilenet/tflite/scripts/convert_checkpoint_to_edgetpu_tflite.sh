@@ -53,7 +53,7 @@ python object_detection/export_tflite_ssd_graph.py \
 echo "CONVERTING frozen graph to TF Lite file..."
 tflite_convert \
   --output_file="/tensorflow/models/research/learn/models/output_tflite_graph.tflite" \
-  --graph_def_file="/tensorflow/models/research/tflite_graph.pb" \
+  --graph_def_file="${OUTPUT_DIR}/tflite_graph.pb" \
   --inference_type=QUANTIZED_UINT8 \
   --input_arrays="normalized_input_image_tensor" \
   --output_arrays="TFLite_Detection_PostProcess,TFLite_Detection_PostProcess:1,TFLite_Detection_PostProcess:2,TFLite_Detection_PostProcess:3" \
