@@ -8,6 +8,7 @@ type Query {
   dataset(id: ID!): Dataset
   datasets: [Dataset!]!
   project(id: ID!): Project
+  export(id: ID!): Export
   exportjobs: [Exportjob!]!
   trainjobs: [Trainjob!]!
   testjobs: [Testjob!]!
@@ -33,6 +34,7 @@ type Mutation {
 
   startTraining(id: ID!): Project
   stopTraining(id: ID!): Project
+  stopTesting(id: ID!): Test
   pauseTraining(id: ID!): Project
   resumeTraining(id: ID!): Project
   saveVideo(projectID: ID!, name: String!, video: Upload!): Video
@@ -99,9 +101,10 @@ type Checkpoint {
 
 type Export {
   id: ID!
-  projectID: ID!
-  checkpointID: ID!
   name: String!
+  projectID: ID!
+  tests: [Test!]
+  checkpointID: ID!
   directory: String!
   tarfileName: String!
   downloadPath: String!
@@ -120,7 +123,9 @@ type Test {
   videoID: ID!
   exportID: ID!
   name: String!
+  fullPath: String!
   directory: String!
+  downloadPath: String!
 }
 
 type Project {
@@ -139,7 +144,6 @@ type Project {
   checkpoints: [Checkpoint!]!
   exports: [Export!]!
   videos: [Video!]!
-  tests: [Test!]!
 }
 
 enum TrainStatus {
@@ -168,6 +172,7 @@ type Exportjob {
 }
 
 type Testjob {
+  name: String!
   testID: String!
   exportID: String!
   projectID: String!

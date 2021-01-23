@@ -1,6 +1,7 @@
 import { DockerImage, Testjob } from "../schema/__generated__/graphql";
 import { Project, Export, Video, Test } from "../store";
 import { Container } from "dockerode";
+import * as Archiver from "archiver";
 import * as mkdirp from "mkdirp";
 import Docker from "./Docker";
 import * as path from "path";
@@ -13,6 +14,7 @@ export default class Tester {
 
   private container: Container;
   private streamPort: string;
+  private cancelled = false;
   readonly project: Project;
   readonly docker: Docker;
   test: Test;
@@ -39,6 +41,7 @@ export default class Tester {
       name: name
     });
     test.directory = path.posix.join(projDir, "tests", test.id);
+    console.log(`Test ID: ${test.id}`);
     return test;
   }
 
@@ -95,34 +98,62 @@ export default class Tester {
    * Test the model. Requires the test parameter file, the export, and the video to be in the container's mounted directory.
    */
   public async testModel(): Promise<void> {
+    if (this.cancelled) return;
     this.container = await this.docker.createContainer(this.project, Tester.images.test, [this.streamPort]);
     await this.docker.runContainer(this.container);
   }
 
   /**
-   * Save the output vid from the container to the path stored in the test object, with the desired name.
+   * Save the output vid from the container to a zip file, path stored in the test object, with the desired name.
    */
   public async saveOutputVid(): Promise<void> {
-    const CUSTOM_VID_PATH = path.posix.join(this.test.directory, `${this.test.name}.mp4`);
+    if (this.cancelled) return;
+    const ZIP_SRC = path.posix.join(this.test.directory, this.test.name);
+    await mkdirp(ZIP_SRC);
+
     const OUTPUT_VID_PATH = path.posix.join(this.project.directory, "inference.mp4");
+    const CUSTOM_VID_PATH = path.posix.join(ZIP_SRC, `${this.test.name}.mp4`);
     if (!fs.existsSync(OUTPUT_VID_PATH)) Promise.reject("cant find output video");
-    await mkdirp(this.test.directory);
     await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
+
+    this.test.fullPath = path.posix.join(this.test.directory, `${this.test.name}.zip`);
+    this.test.downloadPath = this.test.fullPath.split("/server/data/")[1]; //<- need to do this better
+
+    const archive = Archiver("zip", { zlib: { level: 9 } });
+    const stream = fs.createWriteStream(this.test.fullPath);
+
+    return new Promise((resolve, reject) => {
+      archive
+        .directory(ZIP_SRC, false)
+        .on("error", (err) => reject(err))
+        .pipe(stream);
+
+      stream.on("close", () => resolve());
+      archive.finalize();
+    });
   }
 
   /**
    * Save the Test object in the Tester instance to the database.
    */
   public async saveTest(): Promise<void> {
-    const project = await Project.findByPk(this.project.id);
+    if (this.cancelled) return;
+    const exprt = await Export.findByPk(this.test.exportID);
     await this.test.save();
-    await project.addTest(this.test);
+    await exprt.addTest(this.test);
+  }
+
+  public async stop(): Promise<Test> {
+    this.cancelled = true;
+    if (this.container && (await this.container.inspect()).State.Running) await this.container.kill({ force: true });
+    return this.test;
   }
 
   public getJob(): Testjob {
     const testID = this.test ? this.test.id : "";
     return {
       testID: testID,
+      name: this.test.name,
       exportID: this.test.exportID,
       projectID: this.project.id,
       streamPort: this.streamPort

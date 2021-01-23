@@ -16,6 +16,9 @@ export const Query: QueryResolvers = {
   project: (_, { id }, { dataSources }) => {
     return dataSources.projectService.getProject(id);
   },
+  export: (_, { id }, { dataSources }) => {
+    return dataSources.projectService.getExport(id);
+  },
   projects: (_, args, { dataSources }) => {
     return dataSources.projectService.getProjects();
   },

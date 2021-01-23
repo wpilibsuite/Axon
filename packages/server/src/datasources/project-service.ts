@@ -1,4 +1,4 @@
-import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState } from "../schema/__generated__/graphql";
+import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState, Test } from "../schema/__generated__/graphql";
 import { Project, Export, Checkpoint, Video } from "../store";
 import { PROJECT_DATA_DIR } from "../constants";
 import { DataSource } from "apollo-datasource";
@@ -28,6 +28,10 @@ export class ProjectService extends DataSource {
 
   async getProject(id: string): Promise<Project> {
     return Project.findByPk(id);
+  }
+
+  async getExport(id: string): Promise<Export> {
+    return Export.findByPk(id);
   }
 
   async createProject(name: string): Promise<Project> {
@@ -118,8 +122,12 @@ export class ProjectService extends DataSource {
   async stopTraining(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
     console.log(`stopping training on project: ${JSON.stringify(project)}`);
-    this.mLService.stop(project);
+    this.mLService.stopTraining(project);
     return project;
+  }
+
+  async stopTesting(id: string): Promise<Test> {
+    return this.mLService.stopTesting(id);
   }
 
   async pauseTraining(id: string): Promise<Project> {
@@ -195,6 +203,11 @@ export class ProjectService extends DataSource {
   async getVideos(id: string): Promise<Video[]> {
     const project = await Project.findByPk(id);
     return project.getVideos({ order: [["createdAt", "ASC"]] });
+  }
+
+  async getTests(id: string): Promise<Test[]> {
+    const exprt = await Export.findByPk(id);
+    return exprt.getTests({ order: [["createdAt", "DESC"]] });
   }
 
   async getTrainjobs(): Promise<Trainjob[]> {

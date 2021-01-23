@@ -38,6 +38,9 @@ export const Mutation: MutationResolvers = {
   stopTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.stopTraining(id);
   },
+  stopTesting: (parent, { id }, { dataSources }) => {
+    return dataSources.projectService.stopTesting(id);
+  },
   pauseTraining: (parent, { id }, { dataSources }) => {
     return dataSources.projectService.pauseTraining(id);
   },

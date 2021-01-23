@@ -1,4 +1,4 @@
-import { Trainjob, Exportjob, Testjob, DockerState } from "../schema/__generated__/graphql";
+import { Trainjob, Exportjob, Testjob, Test, DockerState } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import Exporter from "./Exporter";
 import Trainer from "./Trainer";
@@ -128,10 +128,21 @@ export default class MLService {
    *
    * @param project The project whos training will be stopped.
    */
-  async stop(project: Project): Promise<void> {
+  async stopTraining(project: Project): Promise<void> {
     const job = this.trainjobs.find((job) => job.project.id === project.id);
     if (job === undefined) Promise.reject("no trainjob found");
     await job.stop();
+  }
+
+  /**
+   * Stop the testing of an export..
+   *
+   * @param testID The testID to be stopped.
+   */
+  async stopTesting(testID: string): Promise<Test> {
+    const job = this.testjobs.find((job) => job.test.id === testID);
+    if (job === undefined) Promise.reject("no testjob found");
+    return job.stop();
   }
 
   /**
