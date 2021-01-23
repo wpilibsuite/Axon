@@ -165,12 +165,13 @@ export default class Trainer {
    * Calls updateCheckpoints every 10 seconds until training is stopped.
    */
   public async startCheckpointRoutine(): Promise<void> {
+    const UPDATE_INTERVAL = 10000;
     while (this.status !== TrainStatus.Stopped) {
-      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, UPDATE_INTERVAL));
       await this.updateCheckpoints();
     }
     /* wait for any late metrics container parse and update one last time */
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, UPDATE_INTERVAL));
     await this.updateCheckpoints();
     console.log("Checkpoint update routine terminated.");
   }
