@@ -32,6 +32,7 @@ class BBox(collections.namedtuple('BBox', ['xmin', 'ymin', 'xmax', 'ymax'])):
 class Tester:
     def __init__(self, model_dir):
         data = parse_hyperparams.parse(model_dir + "/testparameters.json")
+        output_vid_path = data["output-vid-path"]
         self.video_path = data["test-video"]
         model_path = data["model-tar"]
         tar = tarfile.open(model_path)
@@ -48,7 +49,7 @@ class Tester:
         height = self.input_video.get(cv2.CAP_PROP_FRAME_HEIGHT)
         fps = self.input_video.get(cv2.CAP_PROP_FPS)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        self.output_video = cv2.VideoWriter("/opt/ml/model/inference.mp4", fourcc, fps, (int(width), int(height)))
+        self.output_video = cv2.VideoWriter(output_vid_path, fourcc, fps, (int(width), int(height)))
         self.server = MJPEGServer(300, 300)
 
         self.frames = 0
