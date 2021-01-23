@@ -184,8 +184,8 @@ export default class Trainer {
     const METRICSPATH = path.posix.join(this.project.directory, "metrics.json");
     if (fs.existsSync(METRICSPATH)) {
       const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
-      this.epoch = Object.keys(metrics.precision).length;
       const jssteps: number[] = Object.keys(metrics.precision).map((s) => parseInt(s)); //we must change the metrics.json soon
+      this.epoch = jssteps.sort()[jssteps.length - 1];
       const dbsteps: number[] = (await this.project.getCheckpoints()).map((ckpt) => ckpt.step);
 
       for (const jsonstep of jssteps) {
