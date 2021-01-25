@@ -3,7 +3,6 @@ import * as path from "path";
 import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
 import * as mkdirp from "mkdirp";
-import * as tar from "tar";
 import { glob } from "glob";
 import { LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import { Sequelize } from "sequelize";
