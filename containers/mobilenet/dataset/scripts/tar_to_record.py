@@ -1,17 +1,11 @@
 import sys, os, shutil, tarfile, argparse, zipfile
 import json_to_csv, generate_tfrecord, parse_meta, parse_hyperparams
-from os.path import join, splitext
+from os.path import join, splitext, split
 
 
 def main(dataset_paths, percent_eval, directory):
     ROOT_PATH, PATH_EXT = os.path.splitext(dataset_paths[-1])
-    print('----------------------------------------')
-    print('dataset_paths, percent_eval, directory, type')
-    print(dataset_paths)
-    print(percent_eval)
-    print(directory)
-    print(PATH_EXT)
-    print('----------------------------------------')
+    DATASET_NAME = ROOT_PATH.split('/')[-1]
 
     OUTPUT_PATH = directory
     EXTRACT_PATH = "/home"
@@ -59,21 +53,18 @@ def main(dataset_paths, percent_eval, directory):
         #Psuedocode
 
         #Unzip the zip in correct dir
-        print('unzip the files')
         with zipfile.ZipFile(dataset_paths[-1], 'r') as zip_file: # Unzip the file (Assuming 1 zip at this time)
             zip_file.extractall(EXTRACT_PATH)
-            print('files extracted')
 
 
         #Generate the records
         try:
-            # TODO Paths
-            print(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv")
-            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/test/")
-            generate_tfrecord.main(EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/train/")
+            print(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv")
+            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/test/")
+            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/")
 
             print('main records generated')
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/ASL-TFObj-Axon/train/_annotations.csv") # Edge case of missing label in one csv
+            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv") # Edge case of missing label in one csv
 
             print(".\nRecords generated")
         except ValueError:
