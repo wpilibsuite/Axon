@@ -89,7 +89,6 @@ class Tester:
                         continue
                     
                     frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale, y_scale)
-                    print("detection", end="\t");
 
             self.output_video.write(frame_cv2)
             self.server.set_image(frame_cv2)
