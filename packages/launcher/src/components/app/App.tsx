@@ -23,7 +23,6 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar
 }));
 
-
 function App(): ReactElement {
   const classes = useStyles();
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
@@ -39,19 +38,19 @@ function App(): ReactElement {
   );
 
   return (
-      <ThemeProvider theme={theme}>
-        <div className={classes.root}>
-          <CssBaseline />
-          <Router history={browserHistory}>
-            <Header />
-            <main className={classes.content}>
-              <div className={classes.appBarSpacer} />
-              <AppRoutes />
-              <Footer />
-            </main>
-          </Router>
-        </div>
-      </ThemeProvider>
+    <ThemeProvider theme={theme}>
+      <div className={classes.root}>
+        <CssBaseline />
+        <Router history={browserHistory}>
+          <Header />
+          <main className={classes.content}>
+            <div className={classes.appBarSpacer} />
+            <AppRoutes />
+            <Footer />
+          </main>
+        </Router>
+      </div>
+    </ThemeProvider>
   );
 }
 
