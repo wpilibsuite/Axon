@@ -60,8 +60,8 @@ def main(dataset_paths, percent_eval, directory):
         #Generate the records
         try:
             print(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv")
-            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv", join(OUTPUT_PATH, 'test.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/test/")
-            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/")
+            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/test/")
+            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/")
 
             print('main records generated')
             parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv") # Edge case of missing label in one csv
