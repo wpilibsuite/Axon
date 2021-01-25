@@ -9,6 +9,8 @@
   "scripts": {
     "client": "yarn workspace client start",
     "server": "yarn workspace server start",
+    "launch:dev": "yarn workspace launcher electron:dev",
+    "launch:build": "yarn workspace launcher electron:build",
     "generate": "yarn workspace server generate && yarn workspace client generate",
     "start": "concurrently --kill-others-on-fail \"yarn server\"  \"yarn client\"",
     "build": "concurrently --kill-others-on-fail \"yarn workspace client build\" \"yarn workspace server build\"",

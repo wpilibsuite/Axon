@@ -1,0 +1,24 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="514" width="514" y="-1" x="-1"/>
+  <g display="none" overflow="visible" y="0" x="0" height="100%" width="100%" id="canvasGrid">
+   <rect fill="url(#gridpattern)" stroke-width="0" y="0" x="0" height="100%" width="100%"/>
+  </g>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <ellipse ry="50" rx="49.5" id="svg_1" cy="150" cx="100" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <ellipse ry="50" rx="49.5" id="svg_2" cy="350" cx="103" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <ellipse ry="50" rx="49.5" id="svg_4" cy="100" cx="400" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <ellipse ry="50" rx="49.5" id="svg_5" cy="250" cx="400" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <ellipse ry="50" rx="49.5" id="svg_6" cy="400" cx="400" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_7" y2="100" x2="350" y1="150" x1="150" fill-opacity="null" stroke-opacity="null" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_10" y2="250" x2="350" y1="150" x1="150" fill-opacity="null" stroke-opacity="null" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_11" y2="399.5" x2="344.5" y1="151.5" x1="147.5" fill-opacity="null" stroke-opacity="null" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_12" y2="100" x2="349.5" y1="350" x1="149.5" fill-opacity="null" stroke-opacity="null" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_13" y2="250" x2="350" y1="350" x1="150" fill-opacity="null" stroke-opacity="null" stroke-width="25" stroke="#3f50b5" fill="none"/>
+  <line stroke-linecap="null" stroke-linejoin="null" id="svg_14" y2="400" x2="350" y1="350" x1="150" fill-opacity="null" stroke-opacity="null" stroke-width="25" stroke="#3f50b5" fill="none"/>
+ </g>
+</svg>
