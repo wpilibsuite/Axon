@@ -85,7 +85,7 @@ class Tester:
                         continue
 
                     class_id = int(class_id);
-                    if (class_id not in range(len(self.labels))):
+                    if class_id not in range(len(self.labels)):
                         continue
                     
                     frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale, y_scale)
