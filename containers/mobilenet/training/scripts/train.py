@@ -39,7 +39,6 @@ def main(directory):
     # write the project directory to pipeline config
     sed.replace_words("/opt/ml/model", directory, "pipeline.config")
 
-
     nb_classes = labels.get_total(directory)
     sed.replace_words('NUM_CLASSES', str(nb_classes), "pipeline.config")
     sed.replace_words('BATCH_SIZE_PARAM', str(BATCH_SIZE), "pipeline.config")

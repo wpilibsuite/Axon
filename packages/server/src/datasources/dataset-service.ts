@@ -158,6 +158,6 @@ export class DatasetService extends DataSource {
       stream.pipe(writeStream);
     });
 
-    await tar.extract({ file: savePath, cwd: extractPath, strip: 1 });
+    //await tar.extract({ file: savePath, cwd: extractPath, strip: 1 }); // TODO Discuss extracting tar duplicate here
   }
 }
