@@ -19,6 +19,7 @@ import time
 
 from PIL import Image
 from PIL import ImageDraw
+import cv2
 
 import detect
 import tflite_runtime.interpreter as tflite
@@ -108,7 +109,17 @@ def main():
     labels = load_labels(args.labels) if args.labels else {}
     interpreter = make_interpreter(args.model)
     interpreter.allocate_tensors()
+
+    if args.output:
+        fourcc = cv2.VideoWriter_fourcc(*'avc1')
+        video = cv2.VideoWriter(args.output + ".mp4", fourcc, 10, (WIDTH, HEIGHT))
+
     while True:
+        if keyboard.is_pressed('q'):
+            print("Releasing video")
+            video.release()
+            break
+
         t, frame = cv_sink.grabFrame(img)
         image = Image.fromarray(frame)
         scale = detect.set_input(interpreter, image.size,
@@ -126,13 +137,10 @@ def main():
             print('  score: ', obj.score)
             print('  bbox:  ', obj.bbox)
 
-    if args.output:
-        image = image.convert('RGB')
-        draw_objects(ImageDraw.Draw(image), objs, labels)
-        image.save(args.output)
-        image.show()
-
-    # cs.removeServer(cs.name)
+        if args.output:
+            image = image.convert('RGB')
+            draw_objects(ImageDraw.Draw(image), objs, labels)
+            video.write(np.array(image))
 
 
 if __name__ == '__main__':
