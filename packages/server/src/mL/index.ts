@@ -34,13 +34,13 @@ export default class MLService {
     await this.docker.reset();
 
     this.dockerState = DockerState.TrainPull;
-    //await this.docker.pullImages(Object.values(Trainer.images));
+    await this.docker.pullImages(Object.values(Trainer.images));
 
     this.dockerState = DockerState.ExportPull;
     await this.docker.pullImages(Object.values(Exporter.images));
 
     this.dockerState = DockerState.TestPull;
-    //await this.docker.pullImages(Object.values(Tester.images));
+    await this.docker.pullImages(Object.values(Tester.images));
 
     this.dockerState = DockerState.Ready;
   }
