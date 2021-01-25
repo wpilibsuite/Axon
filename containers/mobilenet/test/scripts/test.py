@@ -81,7 +81,7 @@ class Tester:
                 if scores[i] > .5:
 
                     class_id = class_ids[i];
-                    if (np.isnan(class_id)):
+                    if np.isnan(class_id):
                         continue
 
                     class_id = int(class_id);
