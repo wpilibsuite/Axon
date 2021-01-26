@@ -27,7 +27,7 @@ export default class Docker {
   }
 
   /**
-   * Checks if all of our image is downloaded.
+   * Checks if our image is downloaded.
    */
   async isImageReady(): Promise<boolean> {
     try {
@@ -37,6 +37,27 @@ export default class Docker {
     }
     return true;
   }
+
+  /**
+   * Checks if our container is created
+   */
+  async isContainerReady(): Promise<boolean> {
+    try {
+      await this.docker.getContainer(this.image.name).inspect();
+    } catch (e) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Gets the created container
+   */
+  async getContainer(): Promise<Container> {
+      return this.docker.getContainer(this.image.name);
+  }
+
+
 
   /**
    * Get the docker version number.
@@ -57,7 +78,7 @@ export default class Docker {
       }
     });
     await Promise.all(
-      containers.map(async (listContainer: { Id: any; State: string; }) => {
+      containers.map(async (listContainer: { Id: string; State: string; }) => {
         const container = await this.docker.getContainer(listContainer.Id);
         if (listContainer.State === "running") await container.stop();
         await container.remove();
@@ -94,7 +115,7 @@ export default class Docker {
    * @param ports The ports to expose
    */
   async createContainer(): Promise<Container> {
-    console.info(`Launching container ${this.image.name}`);
+    console.info(`Creating container ${this.image.name}`);
     const ports = ["3000", "4000"];
 
     const options: ContainerCreateOptions = {
