@@ -33,7 +33,7 @@ def split(df, group):
     return [data(filename, gb.get_group(x)) for filename, x in zip(gb.groups.keys(), gb.groups)]
 
 
-def create_tf_example(group, path, labels):
+def create_tf_example(group, path, labels, operation_mode):
     with tf.gfile.GFile(os.path.join(path, '{}'.format(group.filename)), 'rb') as fid:
         encoded_jpg = fid.read()
     encoded_jpg_io = io.BytesIO(encoded_jpg)
@@ -73,14 +73,19 @@ def create_tf_example(group, path, labels):
     return tf_example
 
 
-def main(input_csv, output_tfrecord):
+def main(input_csv, output_tfrecord, operation_mode, img_dir):
     writer = tf.python_io.TFRecordWriter(output_tfrecord)
-    path = '/home/'
+    if not operation_mode: # Is 0, meaning zip
+        #Location of csv minus csv
+        path = img_dir
+    else: # Normal tar
+        path = '/home/'
+
     examples = pd.read_csv(input_csv)
     grouped = split(examples, 'filename')
-    labels = get_labels()
+    labels = get_labels(operation_mode, input_csv)
     for group in grouped:
-        tf_example = create_tf_example(group, path, labels)
+        tf_example = create_tf_example(group, path, labels, operation_mode)
         writer.write(tf_example.SerializeToString())
 
     writer.close()

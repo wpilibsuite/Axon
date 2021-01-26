@@ -32,6 +32,7 @@ class BBox(collections.namedtuple('BBox', ['xmin', 'ymin', 'xmax', 'ymax'])):
 class Tester:
     def __init__(self, model_dir):
         data = parse_hyperparams.parse(model_dir + "/testparameters.json")
+        output_vid_path = data["output-vid-path"]
         self.video_path = data["test-video"]
         model_path = data["model-tar"]
         tar = tarfile.open(model_path)
@@ -48,7 +49,7 @@ class Tester:
         height = self.input_video.get(cv2.CAP_PROP_FRAME_HEIGHT)
         fps = self.input_video.get(cv2.CAP_PROP_FPS)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        self.output_video = cv2.VideoWriter("/opt/ml/model/inference.mp4", fourcc, fps, (int(width), int(height)))
+        self.output_video = cv2.VideoWriter(output_vid_path, fourcc, fps, (int(width), int(height)))
         self.server = MJPEGServer(300, 300)
 
         self.frames = 0
@@ -78,7 +79,17 @@ class Tester:
             boxes, class_ids, scores, x_scale, y_scale = self.get_output(scale)
             for i in range(len(boxes)):
                 if scores[i] > .5:
-                    frame_cv2 = self.label_frame(frame_cv2, self.labels[int(class_ids[i])], boxes[i], scores[i], x_scale, y_scale)
+
+                    class_id = class_ids[i];
+                    if np.isnan(class_id):
+                        continue
+
+                    class_id = int(class_id);
+                    if class_id not in range(len(self.labels)):
+                        continue
+                    
+                    frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale, y_scale)
+                    
             self.output_video.write(frame_cv2)
             self.server.set_image(frame_cv2)
             if self.frames % 1000 == 0:
