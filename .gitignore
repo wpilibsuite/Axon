@@ -178,3 +178,7 @@ __generated__/
 
 packages/server/data/
 build/
+
+# Electron
+
+dist/

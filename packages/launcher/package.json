@@ -1,0 +1,88 @@
+{
+  "name": "launcher",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Axon, a WPILib tool",
+  "author": "WPILib <developers@wpilib.org>",
+  "email": "developers@wpilib.org",
+  "homepage": ".",
+  "main": "build/electron/main.js",
+  "build": {
+    "extends": null,
+    "files": [
+      "build/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "electronVersion": "11.2.1",
+    "appId": "edu.wpi.first.tools.Axon",
+    "productName": "Axon",
+    "copyright": "Copyright (c) FIRST and other WPILib contributors.",
+    "linux": {
+      "target": "deb"
+    }
+  },
+  "dependencies": {
+    "@babel/helper-skip-transparent-expression-wrappers": "^7.12.1",
+    "@babel/helper-validator-option": "^7.12.11",
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
+    "@types/electron-devtools-installer": "^2.2.0",
+    "electron-devtools-installer": "^3.1.1",
+    "electron-is-dev": "^1.2.0",
+    "electron-reload": "^1.5.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-router-dom": "^5.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "@types/jest": "^24.0.0",
+    "@types/node": "^12.0.0",
+    "@types/react": "^16.9.0",
+    "@types/react-dom": "^16.9.0",
+    "@types/react-router": "^5.1.8",
+    "@types/react-router-dom": "^5.1.5",
+    "@typescript-eslint/eslint-plugin": "^4.0.0",
+    "@typescript-eslint/parser": "^4.0.0",
+    "babel-eslint": "^10.0.0",
+    "concurrently": "^5.2.0",
+    "electron": "^11.2.1",
+    "electron-builder": "^22.9.1",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-config-react-app": "^6.0.0",
+    "eslint-plugin-flowtype": "^5.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-react": "^7.20.3",
+    "eslint-plugin-react-hooks": "^4.0.8",
+    "react-scripts": "3.4.1",
+    "typescript": "^3.9.6",
+    "wait-on": "^5.2.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "postinstall": "electron-builder install-app-deps",
+    "electron:dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && electron .\"",
+    "electron:build": "yarn build && tsc -p electron && electron-builder"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
