@@ -3,6 +3,8 @@ import { Container, Grid, IconButton, Tooltip, Typography } from "@material-ui/c
 import logo from "../../assets/logo.png";
 import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
+import Dockerode from "dockerode";
+import Docker from "../../docker/Docker";
 
 const useStyles = makeStyles((theme) => ({
   logo: {
@@ -15,8 +17,16 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const dockerode = new Dockerode();
+const docker = new Docker(dockerode);
+
 export default function About(): ReactElement {
   const classes = useStyles();
+
+  docker.isImageReady().then(value => {
+    console.log(value);
+    console.log("image status ^^^^")
+  });
   return (
     <Container>
       <Grid container spacing={6} direction="column" alignItems="center" justify="center">
