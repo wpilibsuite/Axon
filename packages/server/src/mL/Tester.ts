@@ -117,7 +117,12 @@ export default class Tester {
 
     const OUTPUT_VID_PATH = path.posix.join(this.project.directory, this.videoFilename);
     const CUSTOM_VID_PATH = path.posix.join(ZIP_SRC, `${this.test.name}.mp4`);
-    if (!fs.existsSync(OUTPUT_VID_PATH)) Promise.reject("cant find output video");
+
+    if (!fs.existsSync(OUTPUT_VID_PATH)) {
+      console.log("Test failed. No output video found.");
+      this.cancelled = true;
+      return;
+    }
     await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
 
     this.test.fullPath = path.posix.join(this.test.directory, `${this.test.name}.zip`);
