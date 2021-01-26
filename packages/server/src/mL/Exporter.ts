@@ -102,9 +102,13 @@ export default class Exporter {
    * Save the previously stored Export object to the database.
    */
   public async saveExport(): Promise<void> {
-    const project = await Project.findByPk(this.project.id);
-    await this.exp.save();
-    await project.addExport(this.exp);
+    if (fs.existsSync(path.posix.join(this.exp.directory, this.exp.tarfileName))) {
+      const project = await Project.findByPk(this.project.id);
+      await this.exp.save();
+      await project.addExport(this.exp);
+    } else {
+      console.log("Tarfile not found, export failed.");
+    }
   }
 
   public getJob(): Exportjob {
