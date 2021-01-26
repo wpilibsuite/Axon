@@ -87,7 +87,7 @@ export default class Tester {
    * @param videoPath the path to the mounted video to be used in the test
    */
   public async writeParameterFile(modelPath: string, videoPath: string): Promise<void> {
-    this.videoFilename = `${this.test.name}.mp4`;
+    this.videoFilename = `${this.test.id}.mp4`;
     const outputVidPath = path.posix.join(Docker.containerProjectPath(this.project), this.videoFilename);
     const testparameters = {
       "output-vid-path": outputVidPath,
