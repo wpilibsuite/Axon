@@ -96,7 +96,9 @@ function VideoSelect(props: {
       <InputLabel>Select Video</InputLabel>
       <Select variant="outlined" onChange={props.onSelect}>
         {data.project?.videos.map((video) => (
-          <MenuItem value={video.id} key={video.id}>{video.name}</MenuItem>
+          <MenuItem value={video.id} key={video.id}>
+            {video.name}
+          </MenuItem>
         ))}
         <VideoUploadButton id={props.id} />
       </Select>
