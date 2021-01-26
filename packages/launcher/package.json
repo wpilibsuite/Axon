@@ -14,7 +14,7 @@
     "directories": {
       "buildResources": "assets"
     },
-    "electronVersion": "^11.2.1"
+    "electronVersion": "11.2.1"
   },
   "dependencies": {
     "@babel/helper-skip-transparent-expression-wrappers": "^7.12.1",
