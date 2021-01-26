@@ -14,7 +14,13 @@
     "directories": {
       "buildResources": "assets"
     },
-    "electronVersion": "11.2.1"
+    "electronVersion": "11.2.1",
+    "appId": "edu.wpi.first.tools.Axon",
+    "productName": "Axon",
+    "copyright": "Copyright (c) FIRST and other WPILib contributors.",
+    "linux": {
+      "target": "deb"
+    }
   },
   "dependencies": {
     "@babel/helper-skip-transparent-expression-wrappers": "^7.12.1",
