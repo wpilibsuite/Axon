@@ -94,7 +94,7 @@ export default class Exporter {
    * Run the export container.
    */
   public async exportCheckpoint(): Promise<void> {
-    const container: Container = await this.docker.createContainer(this.project, Exporter.images.export);
+    const container: Container = await this.docker.createContainer(this.project, this.exp.id, Exporter.images.export);
     await this.docker.runContainer(container);
   }
 
