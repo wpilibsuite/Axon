@@ -7,7 +7,7 @@ let win: BrowserWindow | null = null;
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 800,
+    width: 600,
     height: 600,
     webPreferences: {
       nodeIntegration: true
@@ -15,13 +15,15 @@ function createWindow() {
   });
 
   if (isDev) {
-    win.loadURL("http://localhost:3000/index.html");
+    win.loadURL("http://localhost:2000/index.html");
   } else {
     // 'build/index.html'
     win.loadURL(`file://${__dirname}/../index.html`);
   }
 
   win.on("closed", () => (win = null));
+
+  win.setMenu(null);
 
   // Hot Reloading
   if (isDev) {

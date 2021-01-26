@@ -1,6 +1,5 @@
 import React, { ReactElement } from "react";
 import AppRoutes from "./AppRoutes";
-import Header from "../header";
 import { Router } from "react-router";
 import { createBrowserHistory } from "history";
 import Footer from "../footer";
@@ -19,8 +18,7 @@ const useStyles = makeStyles((theme) => ({
     overflow: "auto",
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4)
-  },
-  appBarSpacer: theme.mixins.toolbar
+  }
 }));
 
 function App(): ReactElement {
@@ -42,9 +40,7 @@ function App(): ReactElement {
       <div className={classes.root}>
         <CssBaseline />
         <Router history={browserHistory}>
-          <Header />
           <main className={classes.content}>
-            <div className={classes.appBarSpacer} />
             <AppRoutes />
             <Footer />
           </main>
