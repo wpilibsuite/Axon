@@ -25,14 +25,14 @@ export default function About(): ReactElement {
             Axon Launcher
           </Typography>
         </Grid>
-        <Grid item xs={12} >
-          <img src={logo} alt={logo} className={classes.logo}/>
+        <Grid item xs={12}>
+          <img src={logo} alt={logo} className={classes.logo} />
         </Grid>
         <Grid item xs={12}>
           <Tooltip title={<h3>Start Axon in browser</h3>} placement={"right"}>
-          <IconButton >
-            <PlayArrow className={classes.start}/>
-          </IconButton>
+            <IconButton>
+              <PlayArrow className={classes.start} />
+            </IconButton>
           </Tooltip>
         </Grid>
       </Grid>
