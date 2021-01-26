@@ -5,8 +5,8 @@ import About from "../about";
 export default function AppRoutes(): ReactElement {
   return (
     <Switch>
-      <Route path="/" exact component={About} />
       <Route path="/about" exact component={About} />
+      <Route path="/" component={About} />
     </Switch>
   );
 }

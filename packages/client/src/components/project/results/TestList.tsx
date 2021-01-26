@@ -27,7 +27,7 @@ export default function TestList(props: { exprtID: string }): React.ReactElement
   return (
     <List style={{ minWidth: 400, maxHeight: "250px", overflow: "auto" }}>
       {data.export?.tests?.map((test) => (
-        <ListItem>
+        <ListItem key={test.id}>
           <a download href={`http://localhost:4000/${test.downloadPath}`}>
             <ListItemIcon>
               <CloudDownload />

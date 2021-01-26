@@ -181,5 +181,4 @@ build/
 
 # Electron
 
-/*/dist/
-/*/build/
+dist/
