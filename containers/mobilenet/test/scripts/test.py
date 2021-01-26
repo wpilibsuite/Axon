@@ -80,11 +80,11 @@ class Tester:
             for i in range(len(boxes)):
                 if scores[i] > .5:
 
-                    class_id = class_ids[i];
+                    class_id = class_ids[i]
                     if np.isnan(class_id):
                         continue
 
-                    class_id = int(class_id);
+                    class_id = int(class_id)
                     if class_id not in range(len(self.labels)):
                         continue
                     
@@ -105,6 +105,12 @@ class Tester:
                     ymin=ymin,
                     xmax=xmax,
                     ymax=ymax).scale(x_scale, y_scale)
+
+        height, width, channels = frame.shape
+        # check bbox validity
+        if not 0 <= ymin < ymax <= height or not 0 <= xmin < xmax <= width:
+            return frame
+
         ymin, xmin, ymax, xmax = int(bbox.ymin), int(bbox.xmin), int(bbox.ymax), int(bbox.xmax)
 
         cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 4)
