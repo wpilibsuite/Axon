@@ -68,6 +68,18 @@ export class ProjectService extends DataSource {
     return exprt.save();
   }
 
+  async deleteExport(id: string): Promise<Export> {
+    const exprt = await Export.findByPk(id);
+    try {
+      await new Promise((resolve) => rimraf(exprt.directory, resolve));
+    }
+    catch(err) {
+      console.log("Could not remove export files. Double check ownership of export directory.");
+    }
+    await exprt.destroy();
+    return exprt;
+  }
+
   async deleteProject(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
     await new Promise((resolve) => rimraf(project.directory, resolve));
