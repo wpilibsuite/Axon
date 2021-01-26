@@ -4,6 +4,7 @@ import React from "react";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
 import RenameExportButton from "./RenameExportButton";
+import DeleteExportButton from "./DeleteExportButton";
 import TestWindow from "./TestWindow";
 
 export default function ExportMenu(props: {
@@ -36,8 +37,9 @@ export default function ExportMenu(props: {
             <Typography variant={"body1"}>Download</Typography>
           </a>
         </MenuItem>
-        <RenameExportButton id={props.exprt.id} handler={handleClose} />
         <TestWindow exprt={props.exprt} handler={handleClose} />
+        <RenameExportButton id={props.exprt.id} handler={handleClose} />
+        <DeleteExportButton id={props.exprt.id} name={props.exprt.name} handler={handleClose} />
       </Menu>
     </>
   );
