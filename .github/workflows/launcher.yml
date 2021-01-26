@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 14
       - name: Install Packages
-        run: yarn
+        run: yarn --network-timeout 500000
       - name: Build
         run: yarn launch:build
       - uses: actions/upload-artifact@v2
