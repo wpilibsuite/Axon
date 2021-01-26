@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "description": "Axon, a WPILib tool",
-  "author": "WPILib",
+  "author": "WPILib <developers@wpilib.org>",
   "email": "developers@wpilib.org",
   "homepage": ".",
   "main": "build/electron/main.js",
