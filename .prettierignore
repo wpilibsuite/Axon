@@ -1,3 +1,4 @@
 packages/server/data/
 __generated__/
 build/
+dist/
