@@ -1,5 +1,5 @@
 import { List, ListItem, ListItemIcon, ListItemText, Typography } from "@material-ui/core";
-import { GetTests } from "./__generated__/GetTests";
+import { GetTests, GetTestsVariables} from "./__generated__/GetTests";
 import { CloudDownload } from "@material-ui/icons";
 import { gql, useQuery } from "@apollo/client";
 import React from "react";
@@ -10,13 +10,15 @@ const GET_TESTS = gql`
       tests {
         name
         downloadPath
+        id
       }
+      id
     }
   }
 `;
 
 export default function TestList(props: { exprtID: string }): React.ReactElement {
-  const { data, loading, error } = useQuery<GetTests>(GET_TESTS, {
+  const { data, loading, error } = useQuery<GetTests, GetTestsVariables>(GET_TESTS,{
     variables: { id: props.exprtID },
     pollInterval: 1000
   });
@@ -26,7 +28,7 @@ export default function TestList(props: { exprtID: string }): React.ReactElement
   if (data.export?.tests?.length === 0) return <Typography> Nothing here yet. </Typography>;
   return (
     <List style={{ minWidth: 400, maxHeight: "250px", overflow: "auto" }}>
-      {data.export?.tests?.map((test) => (
+      {data.export?.tests?.map(test => (
         <ListItem key={test.id}>
           <a download href={`http://localhost:4000/${test.downloadPath}`}>
             <ListItemIcon>
