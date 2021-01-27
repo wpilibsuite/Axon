@@ -55,7 +55,7 @@ export default class Docker {
   /**
    * Reset Docker by removing all containers.
    */
-  async reset(): Promise<boolean> {
+  async reset(): Promise<void> {
     // Stop active containers that we manage
     const containers = await this.docker.listContainers({
       all: true,
@@ -66,11 +66,15 @@ export default class Docker {
     await Promise.all(
       containers.map(async (listContainer: { Id: string; State: string }) => {
         const container = await this.docker.getContainer(listContainer.Id);
-        if (listContainer.State === "running") await container.stop();
+        console.log("Id: "+listContainer.Id + " State" + listContainer.State);
+        if (listContainer.State === "running") {
+          console.log("stopping "+listContainer.Id)
+          await container.stop();
+        }
+        console.log("removing "+listContainer.Id);
         await container.remove();
       })
     );
-    return true;
   }
 
   /**

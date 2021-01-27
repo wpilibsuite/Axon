@@ -36,17 +36,17 @@ export default function Launch(): ReactElement {
     console.log("Finished pulling.");
     // image downloaded
     const containers = await docker.getContainers();
-    if (containers === null || containers.length === 0) {
-      docker.createContainer().then((container) => {
-        setContainer(container);
-        setContainerReady(true);
-        console.log("Container created.");
-        console.log("Running container");
-        docker.runContainer(container);
-      });
-    } else {
-      console.log("Container exists");
+    if (containers !== null && containers.length > 0) {
+      console.log("Removing old containers");
+      await docker.reset();
     }
+    console.log("Creating container");
+    const container = await docker.createContainer();
+    setContainer(container);
+    setContainerReady(true);
+    console.log("Container created.");
+    console.log("Running container");
+    docker.runContainer(container);
   };
 
   return (
