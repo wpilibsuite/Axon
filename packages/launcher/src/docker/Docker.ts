@@ -2,7 +2,7 @@ import * as Dockerode from "dockerode";
 import { Container, ContainerCreateOptions } from "dockerode";
 const fs = window.require("fs");
 
-export const CONTAINER_MOUNT_PATH = "/wpi-data";
+export const CONTAINER_MOUNT_PATH = "/usr/src/app/packages/server/data";
 export const VOLUME_NAME = "wpilib-axon-volume";
 
 export default class Docker {
@@ -119,7 +119,7 @@ export default class Docker {
       Tty: true,
       Volumes: { [CONTAINER_MOUNT_PATH]: {} },
       HostConfig: {
-        Binds: [`${this.mount}:${CONTAINER_MOUNT_PATH}:rw`],
+        Binds: [`${this.mount}:${CONTAINER_MOUNT_PATH}:rw`, "/var/run/docker.sock:/var/run/docker.sock"],
         PortBindings: Object.assign({}, ...ports.map((port) => ({ [port]: [{ HostPort: port.split("/")[0] }] })))
       },
       ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))
