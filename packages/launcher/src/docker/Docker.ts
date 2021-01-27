@@ -72,7 +72,11 @@ export default class Docker {
           await container.stop();
         }
         console.log("removing "+listContainer.Id);
-        await container.remove();
+        try {
+          await container.remove();
+        } catch (e) {
+          console.log("Stopping main axon container")
+        }
       })
     );
   }
