@@ -4,7 +4,7 @@ import logo from "../../assets/logo.png";
 import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import Docker from "../../docker/Docker";
-import Dockerode from "dockerode"; // used for Dockerode.Container class
+// import Dockerode from "dockerode"; // used for Dockerode.Container class
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
@@ -24,15 +24,15 @@ const docker = new Docker(dockerode);
 
 export default function Launch(): ReactElement {
   const classes = useStyles();
-  const [pulling, setPulling] = React.useState<boolean>(false);
-  const [containerReady, setContainerReady] = React.useState<boolean>(false);
-  const [container, setContainer] = React.useState<null | Dockerode.Container>(null);
+  // const [pulling, setPulling] = React.useState<boolean>(false);
+  // const [containerReady, setContainerReady] = React.useState<boolean>(false);
+  // const [container, setContainer] = React.useState<null | Dockerode.Container>(null);
 
   const startContainer = async () => {
-    setPulling(true);
+    // setPulling(true);
     console.log("Pulling Axon image");
     await docker.pullImage();
-    setPulling(false);
+    // setPulling(false);
     console.log("Finished pulling.");
     // image downloaded
     const containers = await docker.getContainers();
@@ -42,8 +42,8 @@ export default function Launch(): ReactElement {
     }
     console.log("Creating container");
     const container = await docker.createContainer();
-    setContainer(container);
-    setContainerReady(true);
+    // setContainer(container);
+    // setContainerReady(true);
     console.log("Container created.");
     console.log("Running container");
     docker.runContainer(container);

@@ -66,16 +66,16 @@ export default class Docker {
     await Promise.all(
       containers.map(async (listContainer: { Id: string; State: string }) => {
         const container = await this.docker.getContainer(listContainer.Id);
-        console.log("Id: "+listContainer.Id + " State" + listContainer.State);
+        console.log("Id: " + listContainer.Id + " State" + listContainer.State);
         if (listContainer.State === "running") {
-          console.log("stopping "+listContainer.Id)
+          console.log("stopping " + listContainer.Id);
           await container.stop();
         }
-        console.log("removing "+listContainer.Id);
+        console.log("removing " + listContainer.Id);
         try {
           await container.remove();
         } catch (e) {
-          console.log("Stopping main axon container")
+          console.log("Stopping main axon container");
         }
       })
     );
