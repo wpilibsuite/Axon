@@ -1,5 +1,6 @@
 import * as Dockerode from "dockerode";
 import { Container, ContainerCreateOptions } from "dockerode";
+const fs = window.require("fs");
 
 export const CONTAINER_MOUNT_PATH = "/wpi-data";
 export const VOLUME_NAME = "wpilib-axon-volume";
@@ -7,7 +8,7 @@ export const VOLUME_NAME = "wpilib-axon-volume";
 export default class Docker {
   readonly docker: Dockerode;
   mount: string;
-  readonly image = { name: "wpilib/axon:edge", tag: "edge" };
+  readonly image = { name: "wpilib/axon", tag: "edge" };
 
   constructor(docker: Dockerode) {
     this.docker = docker;
@@ -19,19 +20,7 @@ export default class Docker {
    */
   async isConnected(): Promise<boolean> {
     try {
-      await this.docker.ping();
-    } catch (e) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Checks if our image is downloaded.
-   */
-  async isImageReady(): Promise<boolean> {
-    try {
-      await this.docker.getImage(`${this.image.name}:${this.image.tag}`).inspect();
+      console.log(await this.docker.ping()+" ping");
     } catch (e) {
       return false;
     }
@@ -41,20 +30,19 @@ export default class Docker {
   /**
    * Checks if our container is created
    */
-  async isContainerReady(): Promise<boolean> {
+  async getContainers(): Promise<Dockerode.ContainerInfo[] | null> {
     try {
-      await this.docker.getContainer(this.image.name).inspect();
+      const containers = await this.docker.listContainers({
+        all: true,
+        filters: {
+          label: ["axon=main"]
+        }
+      });
+      console.log(containers);
+      return containers;
     } catch (e) {
-      return false;
+      return null;
     }
-    return true;
-  }
-
-  /**
-   * Gets the created container
-   */
-  async getContainer(): Promise<Container> {
-    return this.docker.getContainer(this.image.name);
   }
 
   /**
@@ -72,7 +60,7 @@ export default class Docker {
     const containers = await this.docker.listContainers({
       all: true,
       filters: {
-        label: ["wpilib=ml"]
+        label: ["axon=main"]
       }
     });
     await Promise.all(
@@ -113,14 +101,14 @@ export default class Docker {
    * @param ports The ports to expose
    */
   async createContainer(): Promise<Container> {
-    console.info(`Creating container ${this.image.name}`);
+    console.log(`Creating container ${this.image.name}`);
     const ports = ["3000", "4000"];
 
     const options: ContainerCreateOptions = {
       Image: `${this.image.name}:${this.image.tag}`,
-      name: `${this.image.name}`,
+      name: `axon`,
       Labels: {
-        wpilib: "ml",
+        axon: "main",
         "wpilib-ml-name": this.image.name
       },
       AttachStdin: false,
@@ -136,9 +124,11 @@ export default class Docker {
       },
       ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))
     };
+    console.log(`Options created for ${this.image.name}:${this.image.tag}`);
 
     const container = await this.docker.createContainer(options);
-    (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(process.stdout);
+    const logFile = fs.createWriteStream("log.txt"); // todo track down this file
+    (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(logFile);
 
     return container;
   }

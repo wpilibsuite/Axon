@@ -3,8 +3,11 @@ import { Container, Grid, IconButton, Tooltip, Typography } from "@material-ui/c
 import logo from "../../assets/logo.png";
 import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
-import Dockerode from "dockerode";
 import Docker from "../../docker/Docker";
+import Dockerode from "dockerode";
+
+const Dockerode2 = window.require("dockerode");
+
 
 const useStyles = makeStyles((theme) => ({
   logo: {
@@ -17,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const dockerode = new Dockerode();
+const dockerode = new Dockerode2({ socketPath: "/var/run/docker.sock" });
 const docker = new Docker(dockerode);
 
 export default function Launch(): ReactElement {
@@ -26,42 +29,25 @@ export default function Launch(): ReactElement {
   const [containerReady, setContainerReady] = React.useState<boolean>(false);
   const [container, setContainer] = React.useState<null | Dockerode.Container>(null);
 
-  const startContainer = () => {
-    docker.isImageReady().then((value) => {
-      // image not yet downloaded
-      if (!value) {
-        // Pull image
-        setPulling(true);
-        console.log("Pulling Axon image");
-        docker.pullImage().then(() => {
-          setPulling(false);
-          console.log("Finished pulling.");
-        });
-      } else {
-        console.log("Image exists.");
-        setPulling(false);
-        // image downloaded
-        docker.isContainerReady().then((value) => {
-          setContainerReady(value);
-          if (!value) {
-            console.log("Creating container");
-            docker.createContainer().then((container) => {
-              setContainer(container);
-              setContainerReady(true);
-              console.log("Container created.");
-              console.log("Running container");
-              docker.runContainer(container);
-            });
-          } else {
-            console.log("Container exists.");
-            docker.getContainer().then((container) => {
-              console.log("Running container");
-              docker.runContainer(container);
-            });
-          }
-        });
-      }
-    });
+  const startContainer = async () => {
+    setPulling(true);
+    console.log("Pulling Axon image");
+    await docker.pullImage();
+    setPulling(false);
+    console.log("Finished pulling.");
+    // image downloaded
+    const containers = await docker.getContainers();
+    if (containers === null || containers.length === 0) {
+      docker.createContainer().then((container) => {
+        setContainer(container);
+        setContainerReady(true);
+        console.log("Container created.");
+        console.log("Running container");
+        docker.runContainer(container);
+      });
+    } else {
+      console.log("Container exists");
+    }
   };
 
   return (

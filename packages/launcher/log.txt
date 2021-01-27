@@ -1,0 +1,8 @@
+[2K[1G[1myarn run v1.22.5[22m
+[2K[1G[2m$ concurrently --kill-others-on-fail "yarn workspace client serve" "yarn workspace server start"[22m
+[90m[2m[0][22m[39m [2K[1G[2m$ serve -s build -l 3000[22m
+[90m[2m[1][22m[39m [2K[1G[2m$ ts-node src/index.ts[22m
+[90m[2m[0][22m[39m [35mINFO:[39m Accepting connections at http://localhost:3000
+[90m[2m[1][22m[39m (sequelize) Warning: SQLite does not support 'INTEGER' with UNSIGNED or ZEROFILL. Plain 'INTEGER' will be used instead. 
+[90m[2m[1][22m[39m >> Check: https://www.sqlite.org/datatype3.html
+[90m[2m[1][22m[39m Serving http://localhost:4000.
