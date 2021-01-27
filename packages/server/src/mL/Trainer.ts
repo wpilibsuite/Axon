@@ -135,7 +135,7 @@ export default class Trainer {
     this.status = TrainStatus.Extracting;
 
     console.info(`${this.project.id}: Trainer extracting dataset`);
-    this.container = await this.docker.createContainer(this.project, Trainer.images.dataset);
+    this.container = await this.docker.createContainer(this.project, this.project.id, Trainer.images.dataset);
     await this.docker.runContainer(this.container);
     console.info(`${this.project.id}: Trainer extracted dataset`);
   }
@@ -149,8 +149,10 @@ export default class Trainer {
 
     this.status = TrainStatus.Training;
 
-    const metricsContainer = await this.docker.createContainer(this.project, Trainer.images.metrics, ["6006/tcp"]);
-    this.container = await this.docker.createContainer(this.project, Trainer.images.train);
+    const metricsContainer = await this.docker.createContainer(this.project, this.project.id, Trainer.images.metrics, [
+      "6006/tcp"
+    ]);
+    this.container = await this.docker.createContainer(this.project, this.project.id, Trainer.images.train);
 
     await metricsContainer.start();
     await this.docker.runContainer(this.container);
