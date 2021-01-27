@@ -27,26 +27,25 @@ export default function Launch(): ReactElement {
   const [container, setContainer] = React.useState<null | Dockerode.Container>(null);
 
   const startContainer = () => {
-    docker.isImageReady().then(value => {
+    docker.isImageReady().then((value) => {
       // image not yet downloaded
       if (!value) {
         // Pull image
         setPulling(true);
         console.log("Pulling Axon image");
         docker.pullImage().then(() => {
-            setPulling(false);
-            console.log("Finished pulling.");
-          }
-        );
+          setPulling(false);
+          console.log("Finished pulling.");
+        });
       } else {
         console.log("Image exists.");
         setPulling(false);
         // image downloaded
-        docker.isContainerReady().then(value => {
+        docker.isContainerReady().then((value) => {
           setContainerReady(value);
           if (!value) {
             console.log("Creating container");
-            docker.createContainer().then(container => {
+            docker.createContainer().then((container) => {
               setContainer(container);
               setContainerReady(true);
               console.log("Container created.");
@@ -55,11 +54,10 @@ export default function Launch(): ReactElement {
             });
           } else {
             console.log("Container exists.");
-            docker.getContainer().then(container => {
-                console.log("Running container");
-                docker.runContainer(container);
-              }
-            );
+            docker.getContainer().then((container) => {
+              console.log("Running container");
+              docker.runContainer(container);
+            });
           }
         });
       }

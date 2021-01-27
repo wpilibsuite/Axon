@@ -54,10 +54,8 @@ export default class Docker {
    * Gets the created container
    */
   async getContainer(): Promise<Container> {
-      return this.docker.getContainer(this.image.name);
+    return this.docker.getContainer(this.image.name);
   }
-
-
 
   /**
    * Get the docker version number.
@@ -78,7 +76,7 @@ export default class Docker {
       }
     });
     await Promise.all(
-      containers.map(async (listContainer: { Id: string; State: string; }) => {
+      containers.map(async (listContainer: { Id: string; State: string }) => {
         const container = await this.docker.getContainer(listContainer.Id);
         if (listContainer.State === "running") await container.stop();
         await container.remove();
@@ -123,7 +121,7 @@ export default class Docker {
       name: `${this.image.name}`,
       Labels: {
         wpilib: "ml",
-        "wpilib-ml-name": this.image.name,
+        "wpilib-ml-name": this.image.name
       },
       AttachStdin: false,
       AttachStdout: true,
