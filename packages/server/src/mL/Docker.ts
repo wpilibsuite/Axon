@@ -36,7 +36,7 @@ export default class Docker {
    */
   async isConnected(): Promise<boolean> {
     try {
-      console.log("Docker ping: "+await this.docker.ping());
+      console.log("Docker ping: " + (await this.docker.ping()));
     } catch (e) {
       return false;
     }

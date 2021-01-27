@@ -8,7 +8,6 @@ import Dockerode from "dockerode";
 
 const Dockerode2 = window.require("dockerode");
 
-
 const useStyles = makeStyles((theme) => ({
   logo: {
     height: 200,

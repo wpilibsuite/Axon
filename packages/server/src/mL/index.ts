@@ -28,7 +28,7 @@ export default class MLService {
     this.dockerState = DockerState.ScanningForDocker;
     if (!(await this.docker.isConnected())) {
       this.dockerState = DockerState.NoDocker;
-      console.log("Docker not connected.")
+      console.log("Docker not connected.");
       return;
     }
 
