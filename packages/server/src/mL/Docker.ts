@@ -118,17 +118,17 @@ export default class Docker {
    * @param image The image to base this container on
    * @param ports The ports to expose
    */
-  async createContainer(project: Project, image: DockerImage, ports: [string?] = []): Promise<Container> {
+  async createContainer(project: Project, id: string, image: DockerImage, ports: [string?] = []): Promise<Container> {
     console.info(`${project.id}: Launching container ${image.name}`);
 
     const options: ContainerCreateOptions = {
       Cmd: [Docker.containerProjectPath(project)],
       Image: `${image.name}:${image.tag}`,
-      name: `wpilib-${image.name.replace(/\//g, "_")}-${project.id}`,
+      name: `wpilib-${image.name.replace(/\//g, "_")}-${id}`,
       Labels: {
         wpilib: "ml",
         "wpilib-ml-name": image.name,
-        "wpilib-ml-id": project.id
+        "wpilib-ml-id": id
       },
       AttachStdin: false,
       AttachStdout: true,

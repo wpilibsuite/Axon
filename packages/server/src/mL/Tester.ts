@@ -103,7 +103,9 @@ export default class Tester {
    */
   public async testModel(): Promise<void> {
     if (this.cancelled) return;
-    this.container = await this.docker.createContainer(this.project, Tester.images.test, [this.streamPort]);
+    this.container = await this.docker.createContainer(this.project, this.test.id, Tester.images.test, [
+      this.streamPort
+    ]);
     await this.docker.runContainer(this.container);
   }
 

@@ -4,9 +4,9 @@ import logo from "../../assets/logo.png";
 import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import Docker from "../../docker/Docker";
-import Dockerode from "dockerode";
+import Dockerode from "dockerode"; // used for Dockerode.Container class
 
-const Dockerode2 = window.require("dockerode");
+const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
 const useStyles = makeStyles((theme) => ({
   logo: {
