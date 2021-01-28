@@ -3,6 +3,9 @@ import * as path from "path";
 import * as fs from "fs";
 import { createWriteStream, unlink } from "fs";
 import * as mkdirp from "mkdirp";
+import * as unzipper from "unzipper";
+import * as tar from "tar";
+import { imageSize as sizeOf } from "image-size";
 import { glob } from "glob";
 import { LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import { Sequelize } from "sequelize";
@@ -105,39 +108,60 @@ export class DatasetService extends DataSource {
   }
 
   private async listImages(id: string): Promise<LabeledImage[]> {
-    const imageMetaPaths = glob.sync(`${this.path}/${id}/*/ann/*.json`);
-    return Promise.all(
-      imageMetaPaths
-        .map(
-          async (metaPath): Promise<SuperviselyImage> => {
+    const name = (await Dataset.findByPk(id)).name;
+
+    if (name.slice(name.length - 4) === ".tar") {
+      const imageMetaPaths = glob.sync(`${this.path}/${id}/*/ann/*.json`);
+      return Promise.all(
+        imageMetaPaths
+          .map(
+            async (metaPath): Promise<SuperviselyImage> => {
+              return {
+                imagePath: metaPath
+                  .replace("/usr/src/app/packages/server/data/datasets", "datasets")
+                  .replace("ann", "img")
+                  .replace(/\.[^/.]+$/, ""),
+                annotation: JSON.parse((await fs.promises.readFile(metaPath)).toString())
+              };
+            }
+          )
+          .map(
+            async (image): Promise<LabeledImage> => ({
+              path: (await image).imagePath,
+              size: (await image).annotation.size,
+              tags: (await image).annotation.tags.map((tag) => tag.name),
+              object_labels: (await image).annotation.objects.map(
+                (o): ObjectLabel => ({
+                  className: o.classTitle,
+                  points: o.points.exterior.map(
+                    (p): Point => ({
+                      x: p[0],
+                      y: p[1]
+                    })
+                  )
+                })
+              )
+            })
+          )
+      );
+    } else if (name.slice(name.length - 4) === ".zip") {
+      const imagePaths = glob.sync(`${this.path}/${id}/**/*.jpg`);
+      return Promise.all(
+        imagePaths.map(
+          async (imagePath): Promise<LabeledImage> => {
+            const dimensions = await sizeOf(imagePath);
             return {
-              imagePath: metaPath
-                .replace("/usr/src/app/packages/server/data/datasets", "datasets")
-                .replace("ann", "img")
-                .replace(/\.[^/.]+$/, ""),
-              annotation: JSON.parse((await fs.promises.readFile(metaPath)).toString())
+              path: imagePath.replace("/usr/src/app/packages/server/data/datasets", "datasets"),
+              size: { width: dimensions.width, height: dimensions.height },
+              tags: [],
+              object_labels: []
             };
           }
         )
-        .map(
-          async (image): Promise<LabeledImage> => ({
-            path: (await image).imagePath,
-            size: (await image).annotation.size,
-            tags: (await image).annotation.tags.map((tag) => tag.name),
-            object_labels: (await image).annotation.objects.map(
-              (o): ObjectLabel => ({
-                className: o.classTitle,
-                points: o.points.exterior.map(
-                  (p): Point => ({
-                    x: p[0],
-                    y: p[1]
-                  })
-                )
-              })
-            )
-          })
-        )
-    );
+      );
+    } else {
+      return [];
+    }
   }
 
   private async upload(id: string, name: string, stream: fs.ReadStream) {
@@ -157,6 +181,8 @@ export class DatasetService extends DataSource {
       stream.pipe(writeStream);
     });
 
-    //await tar.extract({ file: savePath, cwd: extractPath, strip: 1 }); // TODO Discuss extracting tar duplicate here
+    if (name.slice(name.length - 4) === ".tar") await tar.extract({ file: savePath, cwd: extractPath, strip: 1 });
+    if (name.slice(name.length - 4) === ".zip")
+      fs.createReadStream(savePath).pipe(unzipper.Extract({ path: savePath.replace(".zip", "") }));
   }
 }
