@@ -181,7 +181,7 @@ export class DatasetService extends DataSource {
       stream.pipe(writeStream);
     });
 
-    if (name.slice(name.length - 4) === ".tar") await tar.extract({ file: savePath, cwd: extractPath, strip: 1 }); 
+    if (name.slice(name.length - 4) === ".tar") await tar.extract({ file: savePath, cwd: extractPath, strip: 1 });
     if (name.slice(name.length - 4) === ".zip")
       fs.createReadStream(savePath).pipe(unzipper.Extract({ path: savePath.replace(".zip", "") }));
   }
