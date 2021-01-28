@@ -20,8 +20,11 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const dockerode = new Dockerode2({ socketPath: "/var/run/docker.sock" });
-const docker = new Docker(dockerode);
+const os = window.require("os");
+const platform = os.platform();
+const socket = { socketPath: platform.toLowerCase() === "windows" ? "/var/run/docker.sock" : "//var/run/docker.sock" };
+const dockerode = new Dockerode2(socket);
+const docker = new Docker(dockerode, socket);
 const localhost = new Localhost();
 
 export default function Launch(): ReactElement {

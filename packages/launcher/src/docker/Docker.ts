@@ -7,11 +7,13 @@ export const VOLUME_NAME = "wpilib-axon-volume";
 
 export default class Docker {
   readonly docker: Dockerode;
+  readonly socket: { socketPath: string };
   mount: string;
   readonly image = { name: "wpilib/axon", tag: "edge" };
 
-  constructor(docker: Dockerode) {
+  constructor(docker: Dockerode, socket: { socketPath: string }) {
     this.docker = docker;
+    this.socket = socket;
     this.mount = VOLUME_NAME;
   }
 
@@ -127,7 +129,7 @@ export default class Docker {
       Tty: true,
       Volumes: { [CONTAINER_MOUNT_PATH]: {} },
       HostConfig: {
-        Binds: [`${this.mount}:${CONTAINER_MOUNT_PATH}:rw`, "/var/run/docker.sock:/var/run/docker.sock"],
+        Binds: [`${this.mount}:${CONTAINER_MOUNT_PATH}:rw`, `${this.socket.socketPath}:/var/run/docker.sock`],
         PortBindings: Object.assign({}, ...ports.map((port) => ({ [port]: [{ HostPort: port.split("/")[0] }] })))
       },
       ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))
