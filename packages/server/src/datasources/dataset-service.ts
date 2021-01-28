@@ -5,6 +5,7 @@ import { createWriteStream, unlink } from "fs";
 import * as mkdirp from "mkdirp";
 import * as unzipper from "unzipper";
 import * as tar from "tar";
+import { imageSize as sizeOf } from "image-size";
 import { glob } from "glob";
 import { LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import { Sequelize } from "sequelize";
@@ -147,12 +148,15 @@ export class DatasetService extends DataSource {
       const imagePaths = glob.sync(`${this.path}/${id}/**/*.jpg`);
       return Promise.all(
         imagePaths.map(
-          async (imagePath): Promise<LabeledImage> => ({
-            path: imagePath.replace("/usr/src/app/packages/server/data/datasets", "datasets").replace(/\.[^/.]+$/, ""),
-            size: { width: 400, height: 400 },
-            tags: [],
-            object_labels: []
-          })
+          async (imagePath): Promise<LabeledImage> => {
+            const dimensions = await sizeOf(imagePath);
+            return {
+              path: imagePath.replace("/usr/src/app/packages/server/data/datasets", "datasets"),
+              size: { width: dimensions.width, height: dimensions.height },
+              tags: [],
+              object_labels: []
+            };
+          }
         )
       );
     } else {

@@ -24,6 +24,7 @@
     "glob": "^7.1.6",
     "graphql": "^15.1.0",
     "graphql-subscriptions": "^1.1.0",
+    "image-size": "^0.9.3",
     "koa": "^2.12.0",
     "koa-mount": "^4.0.0",
     "koa-static": "^5.0.0",
