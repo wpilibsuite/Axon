@@ -4,6 +4,7 @@ import logo from "../../assets/logo.png";
 import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import Docker from "../../docker/Docker";
+import Localhost from "../../docker/Localhost";
 // import Dockerode from "dockerode"; // used for Dockerode.Container class
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
@@ -21,6 +22,7 @@ const useStyles = makeStyles((theme) => ({
 
 const dockerode = new Dockerode2({ socketPath: "/var/run/docker.sock" });
 const docker = new Docker(dockerode);
+const localhost = new Localhost();
 
 export default function Launch(): ReactElement {
   const classes = useStyles();
@@ -47,6 +49,7 @@ export default function Launch(): ReactElement {
     console.log("Container created.");
     console.log("Running container");
     docker.runContainer(container);
+    localhost.waitForStart();
   };
 
   return (
