@@ -137,7 +137,8 @@ export default class Docker {
     console.log(`Options created for ${this.image.name}:${this.image.tag}`);
 
     const container = await this.docker.createContainer(options);
-    const logFile = fs.createWriteStream("log.txt"); // todo track down this file
+    const logFilePath = window.require("electron-log").transports.file.getFile().path;
+    const logFile = fs.createWriteStream(logFilePath);
     (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(logFile);
 
     return container;
