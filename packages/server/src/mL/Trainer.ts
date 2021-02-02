@@ -157,7 +157,9 @@ export default class Trainer {
     await metricsContainer.start();
     await this.docker.runContainer(this.container);
 
-    await metricsContainer.stop();
+    if ((await metricsContainer.inspect()).State.Running) {
+      await metricsContainer.stop();
+    }
     await metricsContainer.remove();
 
     this.status = TrainStatus.Stopped;
