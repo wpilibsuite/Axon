@@ -233,16 +233,18 @@ export default class Trainer {
   }
 
   public async stop(): Promise<void> {
-    if (this.container && (await this.container.inspect()).State.Running) await this.container.kill({ force: true });
+    if (this.container && (await this.container.inspect()).State.Running) this.container.kill({ force: true });
     this.status = TrainStatus.Stopped;
   }
 
   public async pause(): Promise<void> {
+    if (this.status == TrainStatus.Stopped) return;
     if (this.container && (await this.container.inspect()).State.Running) this.container.pause();
     this.paused = true;
   }
 
   public async resume(): Promise<void> {
+    if (this.status == TrainStatus.Stopped) return;
     if (this.container) if ((await this.container.inspect()).State.Paused) this.container.unpause();
     this.paused = false;
   }
