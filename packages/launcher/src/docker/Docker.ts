@@ -139,7 +139,7 @@ export default class Docker {
 
     const container = await this.docker.createContainer(options);
     const logFilePath = window.require("electron-log").transports.file.getFile().path;
-    console.log("Log file path: "+logFilePath);
+    console.log("Log file path: " + logFilePath);
     const logFile = fs.createWriteStream(logFilePath);
     (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(logFile);
 

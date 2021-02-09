@@ -22,7 +22,9 @@ const useStyles = makeStyles((theme) => ({
 
 const os = window.require("os");
 const platform = os.platform();
-const socket = { socketPath: platform.toLowerCase().startsWith("win") ? "//./pipe/docker_engine" : "/var/run/docker.sock" };
+const socket = {
+  socketPath: platform.toLowerCase().startsWith("win") ? "//./pipe/docker_engine" : "/var/run/docker.sock"
+};
 const dockerode = new Dockerode2(socket);
 const docker = new Docker(dockerode, socket);
 const localhost = new Localhost();
