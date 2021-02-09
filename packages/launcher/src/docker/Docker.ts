@@ -130,7 +130,7 @@ export default class Docker {
       Tty: true,
       Volumes: { [CONTAINER_MOUNT_PATH]: {} },
       HostConfig: {
-        Binds: [`${this.mount}:${CONTAINER_MOUNT_PATH}:rw`, `${this.socket.socketPath}:/var/run/docker.sock`],
+        Binds: [`${this.mount}:${CONTAINER_MOUNT_PATH}:rw`, `/var/run/docker.sock:/var/run/docker.sock`],
         PortBindings: Object.assign({}, ...ports.map((port) => ({ [port]: [{ HostPort: port.split("/")[0] }] })))
       },
       ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))
@@ -139,6 +139,7 @@ export default class Docker {
 
     const container = await this.docker.createContainer(options);
     const logFilePath = window.require("electron-log").transports.file.getFile().path;
+    console.log("Log file path: "+logFilePath);
     const logFile = fs.createWriteStream(logFilePath);
     (await container.attach({ stream: true, stdout: true, stderr: true })).pipe(logFile);
 
