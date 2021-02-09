@@ -29,12 +29,15 @@
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
     "@types/electron-devtools-installer": "^2.2.0",
+    "dockerode": "^2.3.1",
     "electron-devtools-installer": "^3.1.1",
     "electron-is-dev": "^1.2.0",
+    "electron-log": "^4.3.1",
     "electron-reload": "^1.5.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-router-dom": "^5.2.0"
+    "react-router-dom": "^5.2.0",
+    "wait-on": "^5.2.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^4.2.4",
@@ -60,8 +63,7 @@
     "eslint-plugin-react": "^7.20.3",
     "eslint-plugin-react-hooks": "^4.0.8",
     "react-scripts": "3.4.1",
-    "typescript": "^3.9.6",
-    "wait-on": "^5.2.0"
+    "typescript": "^3.9.6"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -71,6 +73,7 @@
     "eject": "react-scripts eject",
     "postinstall": "electron-builder install-app-deps",
     "electron:dev": "concurrently \"PORT=2000 BROWSER=none yarn start\" \"wait-on http://localhost:2000 && tsc -p electron -w\" \"wait-on http://localhost:2000 && tsc -p electron && electron .\"",
+    "electron:dev:win": "concurrently \"set PORT=2000 BROWSER=none && yarn start\" \"wait-on http://localhost:2000 && tsc -p electron -w\" \"wait-on http://localhost:2000 && tsc -p electron && electron .\"",
     "electron:build": "yarn build && tsc -p electron && electron-builder"
   },
   "browserslist": {

@@ -182,3 +182,4 @@ build/
 # Electron
 
 dist/
+log.txt

@@ -27,7 +27,6 @@ function createWindow() {
 
   // Hot Reloading
   if (isDev) {
-    // 'node_modules/.bin/electronPath'
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     require("electron-reload")(__dirname, {
       electron: path.join(__dirname, "..", "..", "node_modules", ".bin", "electron"),
