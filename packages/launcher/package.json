@@ -72,6 +72,7 @@
     "eject": "react-scripts eject",
     "postinstall": "electron-builder install-app-deps",
     "electron:dev": "concurrently \"PORT=2000 BROWSER=none yarn start\" \"wait-on http://localhost:2000 && tsc -p electron -w\" \"wait-on http://localhost:2000 && tsc -p electron && electron .\"",
+    "electron:dev:win": "concurrently \"set PORT=2000 BROWSER=none && yarn start\" \"wait-on http://localhost:2000 && tsc -p electron -w\" \"wait-on http://localhost:2000 && tsc -p electron && electron .\"",
     "electron:build": "yarn build && tsc -p electron && electron-builder"
   },
   "browserslist": {

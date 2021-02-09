@@ -87,6 +87,7 @@ export default class Docker {
    * Pull resources needed for training.
    */
   async pullImage(): Promise<void> {
+    console.log("Docker ping: " + (await this.docker.ping()));
     return new Promise<void>((resolve) => {
       console.info(`Pulling image ${this.image.name}:${this.image.tag}`);
       this.docker.pull(

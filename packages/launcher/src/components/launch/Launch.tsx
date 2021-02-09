@@ -22,16 +22,13 @@ const useStyles = makeStyles((theme) => ({
 
 const os = window.require("os");
 const platform = os.platform();
-const socket = { socketPath: platform.toLowerCase() === "windows" ? "/var/run/docker.sock" : "//var/run/docker.sock" };
+const socket = { socketPath: platform.toLowerCase().startsWith("win") ? "//./pipe/docker_engine" : "/var/run/docker.sock" };
 const dockerode = new Dockerode2(socket);
 const docker = new Docker(dockerode, socket);
 const localhost = new Localhost();
 
 export default function Launch(): ReactElement {
   const classes = useStyles();
-  // const [pulling, setPulling] = React.useState<boolean>(false);
-  // const [containerReady, setContainerReady] = React.useState<boolean>(false);
-  // const [container, setContainer] = React.useState<null | Dockerode.Container>(null);
 
   const startContainer = async () => {
     // setPulling(true);
