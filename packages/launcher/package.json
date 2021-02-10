@@ -11,10 +11,12 @@
   "build": {
     "extends": null,
     "files": [
-      "build/**/*"
+      "build/**/*",
+      "src/assets/*",
+      "build/icon.*"
     ],
     "directories": {
-      "buildResources": "assets"
+      "buildResources": "src/assets"
     },
     "electronVersion": "11.2.1",
     "appId": "edu.wpi.first.tools.Axon",

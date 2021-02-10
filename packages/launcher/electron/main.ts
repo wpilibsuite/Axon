@@ -6,7 +6,7 @@ import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-insta
 let win: BrowserWindow | null = null;
 
 function createWindow() {
-  const icoPath = __dirname + "/icon.png";
+  const icoPath = path.join(__dirname, "icon.png");
   win = new BrowserWindow({
     width: 600,
     height: 600,
