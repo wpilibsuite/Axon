@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, nativeImage } from "electron";
 import * as path from "path";
 import * as isDev from "electron-is-dev";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
@@ -6,13 +6,17 @@ import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-insta
 let win: BrowserWindow | null = null;
 
 function createWindow() {
+  const icoPath = __dirname+"/icon.png"
   win = new BrowserWindow({
     width: 600,
     height: 600,
     webPreferences: {
       nodeIntegration: true
-    }
+    },
+    icon: nativeImage.createFromPath(icoPath)
   });
+
+  console.log(icoPath);
 
   if (isDev) {
     win.loadURL("http://localhost:2000/index.html");

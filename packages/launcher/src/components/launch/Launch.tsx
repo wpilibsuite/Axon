@@ -53,6 +53,7 @@ export default function Launch(): ReactElement {
     docker.runContainer(container);
     localhost.waitForStart();
   };
+  const logFilePath = window.require("electron-log").transports.file.getFile().path;
 
   return (
     <Container>
