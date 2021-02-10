@@ -1,5 +1,6 @@
 {
   "name": "launcher",
+  "productName": "Axon",
   "version": "0.0.1",
   "private": true,
   "description": "Axon, a WPILib tool",
