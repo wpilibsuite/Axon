@@ -18,7 +18,6 @@
     },
     "electronVersion": "11.2.1",
     "appId": "edu.wpi.first.tools.Axon",
-    "productName": "Axon",
     "copyright": "Copyright (c) FIRST and other WPILib contributors.",
     "linux": {
       "target": "deb"
