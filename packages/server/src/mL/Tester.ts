@@ -87,7 +87,7 @@ export default class Tester {
    * @param videoPath the path to the mounted video to be used in the test
    */
   public async writeParameterFile(modelPath: string, videoPath: string): Promise<void> {
-    this.videoFilename = `${this.test.name}.mp4`;
+    this.videoFilename = `${this.test.id}.mp4`;
     const outputVidPath = path.posix.join(Docker.containerProjectPath(this.project), this.videoFilename);
     const testparameters = {
       "output-vid-path": outputVidPath,
@@ -119,7 +119,12 @@ export default class Tester {
 
     const OUTPUT_VID_PATH = path.posix.join(this.project.directory, this.videoFilename);
     const CUSTOM_VID_PATH = path.posix.join(ZIP_SRC, `${this.test.name}.mp4`);
-    if (!fs.existsSync(OUTPUT_VID_PATH)) Promise.reject("cant find output video");
+
+    if (!fs.existsSync(OUTPUT_VID_PATH)) {
+      console.log("Test failed. No output video found.");
+      this.cancelled = true;
+      return;
+    }
     await fs.promises.copyFile(OUTPUT_VID_PATH, CUSTOM_VID_PATH);
 
     this.test.fullPath = path.posix.join(this.test.directory, `${this.test.name}.zip`);

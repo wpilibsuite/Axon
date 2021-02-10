@@ -131,8 +131,8 @@ export default class MLService {
    */
   async stopTraining(project: Project): Promise<void> {
     const job = this.trainjobs.find((job) => job.project.id === project.id);
-    if (job === undefined) Promise.reject("no trainjob found");
-    await job.stop();
+    if (job === undefined) console.log("No trainjob found.");
+    else await job.stop();
   }
 
   /**
@@ -142,8 +142,8 @@ export default class MLService {
    */
   async stopTesting(testID: string): Promise<Test> {
     const job = this.testjobs.find((job) => job.test.id === testID);
-    if (job === undefined) Promise.reject("no testjob found");
-    return job.stop();
+    if (job === undefined) console.log("No testjob found.");
+    else return job.stop();
   }
 
   /**
@@ -154,8 +154,8 @@ export default class MLService {
    */
   async pauseTraining(project: Project): Promise<void> {
     const job = this.trainjobs.find((job) => job.project.id === project.id);
-    if (job === undefined) Promise.reject("no trainjob found");
-    await job.pause();
+    if (job === undefined) console.log("No trainjob found.");
+    else await job.pause();
   }
 
   /**
@@ -165,8 +165,8 @@ export default class MLService {
    */
   async resumeTraining(project: Project): Promise<void> {
     const job = this.trainjobs.find((job) => job.project.id === project.id);
-    if (job === undefined) Promise.reject("no trainjob found");
-    await job.resume();
+    if (job === undefined) console.log("No trainjob found.");
+    else await job.resume();
   }
 
   public async getTrainjobs(): Promise<Trainjob[]> {

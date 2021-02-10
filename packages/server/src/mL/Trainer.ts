@@ -157,7 +157,9 @@ export default class Trainer {
     await metricsContainer.start();
     await this.docker.runContainer(this.container);
 
-    await metricsContainer.stop();
+    if ((await metricsContainer.inspect()).State.Running) {
+      await metricsContainer.stop();
+    }
     await metricsContainer.remove();
 
     this.status = TrainStatus.Stopped;
@@ -231,16 +233,20 @@ export default class Trainer {
   }
 
   public async stop(): Promise<void> {
-    if (this.container && (await this.container.inspect()).State.Running) await this.container.kill({ force: true });
+    if (this.container && (await this.container.inspect()).State.Running) this.container.kill({ force: true });
     this.status = TrainStatus.Stopped;
   }
 
   public async pause(): Promise<void> {
+    if (this.status == TrainStatus.Stopped) return console.log("Cannot pause, training has stopped.");
+
     if (this.container && (await this.container.inspect()).State.Running) this.container.pause();
     this.paused = true;
   }
 
   public async resume(): Promise<void> {
+    if (this.status == TrainStatus.Stopped) return console.log("Cannot resume, training has stopped.");
+
     if (this.container) if ((await this.container.inspect()).State.Paused) this.container.unpause();
     this.paused = false;
   }

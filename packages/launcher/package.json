@@ -11,15 +11,11 @@
   "build": {
     "extends": null,
     "files": [
-      "build/**/*",
-      "assets/*"
+      "build/**/*"
     ],
     "directories": {
       "buildResources": "assets"
     },
-    "extraFiles": [
-      "assets"
-    ],
     "electronVersion": "11.2.1",
     "appId": "edu.wpi.first.tools.Axon",
     "copyright": "Copyright (c) FIRST and other WPILib contributors.",
