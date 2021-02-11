@@ -83,7 +83,7 @@ export default function Launch(): ReactElement {
     }
   };
   docker.isConnected().then((value) => {
-    setOpen(value && !clicked);
+    setOpen(!value && !clicked);
   });
 
   return (
