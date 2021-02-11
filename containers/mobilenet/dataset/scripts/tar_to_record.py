@@ -38,7 +38,6 @@ def main(dataset_paths, percent_eval, directory):
             percent_eval = 30
         json_to_csv.main(percent_eval)
         try:
-
             generate_tfrecord.main(TMP_PATH + "/train.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, "/home/")
             generate_tfrecord.main(TMP_PATH + "/eval.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, "/home/")
 

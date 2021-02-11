@@ -8,12 +8,15 @@ RUN cd / & mkdir tensorflow && \
     mv models /tensorflow/models
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nginx curl wget python python-tk apt-transport-https ca-certificates  \
+    apt-get install -y --no-install-recommends nginx curl wget python3 apt-transport-https ca-certificates  \
         build-essential cmake unzip yasm pkg-config libswscale-dev libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev \
         libjasper-dev libavformat-dev libhdf5-dev libpq-dev && \
     pip install Cython contextlib2 pillow matplotlib numpy hdf5storage h5py scipy && \
     mkdir -p /opt/ml/input/data/training && \
-    mkdir -p /opt/ml/model/
+    mkdir -p /opt/ml/model/ && \
+    python --version
+
+RUN python --version
 
 
 # Get protoc 3.0.0, rather than the old version already in the container
