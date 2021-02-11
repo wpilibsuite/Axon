@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { Container, Grid, IconButton, Tooltip, Typography } from "@material-ui/core";
+import {Container, Grid, IconButton, LinearProgress, Tooltip, Typography} from "@material-ui/core";
 import logo from "../../assets/logo.png";
 import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
@@ -31,28 +31,32 @@ const localhost = new Localhost();
 
 export default function Launch(): ReactElement {
   const classes = useStyles();
+  const [status, setStatus] = React.useState("OFF");
 
   const startContainer = async () => {
     // setPulling(true);
-    console.log("Pulling Axon image");
+    setStatus("Pulling Axon image");
     await docker.pullImage();
     // setPulling(false);
-    console.log("Finished pulling.");
+    setStatus("Finished pulling.");
     // image downloaded
     const containers = await docker.getContainers();
     if (containers !== null && containers.length > 0) {
-      console.log("Removing old containers");
+      setStatus("Removing old containers");
       await docker.reset();
     }
-    console.log("Creating container");
+    setStatus("Creating container");
     const container = await docker.createContainer();
     // setContainer(container);
     // setContainerReady(true);
     console.log("Container created.");
-    console.log("Running container");
-    docker.runContainer(container);
+    setStatus("Running container");
+    docker.runContainer(container).then(() => {
+      setStatus("OFF");
+    });
     localhost.waitForStart();
   };
+  const progress = status === "OFF" ? null : <LinearProgress/> ;
 
   return (
     <Container>
@@ -72,7 +76,12 @@ export default function Launch(): ReactElement {
             </IconButton>
           </Tooltip>
         </Grid>
+
+        <Grid item xs={12}>
+          {status !== "OFF" && <Typography>{status}</Typography>}
+        </Grid>
       </Grid>
+      {progress}
     </Container>
   );
 }
