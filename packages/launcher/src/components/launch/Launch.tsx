@@ -92,12 +92,10 @@ export default function Launch(): ReactElement {
       <Dialog
         open={open}
         onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Issue Connecting to Docker"}</DialogTitle>
+        <DialogTitle >{"Issue Connecting to Docker"}</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
+          <DialogContentText>
             Axon had trouble connecting to Docker. Please ensure Docker is installed. If this issue persists, file an
             issue{" "}
             <Link href="https://github.com/wpilibsuite/Axon/issues" onClick={preventDefault}>
