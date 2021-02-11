@@ -22,11 +22,10 @@ export default class Docker {
    */
   async isConnected(): Promise<boolean> {
     try {
-      console.log((await this.docker.ping()) + " ping");
+      return (await this.docker.ping()) === "OK";
     } catch (e) {
       return false;
     }
-    return true;
   }
 
   /**
