@@ -1,13 +1,12 @@
 import React, { ReactElement } from "react";
-import { Button, Container, Grid, IconButton, ListItem, Tooltip, Typography } from "@material-ui/core";
+import { Container, IconButton, Tooltip, Typography } from "@material-ui/core";
 import logo from "../../assets/logo.png";
-import { GetApp, PlayArrow } from "@material-ui/icons";
+import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import Docker from "../../docker/Docker";
 import Localhost from "../../docker/Localhost";
 import LogDownload from "./LogDownload";
 
-const fs = window.require("fs");
 // import Dockerode from "dockerode"; // used for Dockerode.Container class
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket

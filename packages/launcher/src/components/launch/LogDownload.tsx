@@ -1,14 +1,9 @@
 import React, { ReactElement } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Button, Container, Grid, IconButton, ListItem, Tooltip, Typography } from "@material-ui/core";
-import path from "path";
+import {IconButton} from "@material-ui/core";
 import { GetApp } from "@material-ui/icons";
 
 const fs = window.require("fs");
-const browser = window.require("browser");
-// import Dockerode from "dockerode"; // used for Dockerode.Container class
-
-const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
 const useStyles = makeStyles((theme) => ({
   logo: {
