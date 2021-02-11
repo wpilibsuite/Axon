@@ -47,7 +47,6 @@ export default function Launch(): ReactElement {
   const classes = useStyles();
   const [status, setStatus] = React.useState("OFF");
   const progress = status === "OFF" ? null : <LinearProgress />;
-  const preventDefault = (event) => event.preventDefault();
   const [open, setOpen] = React.useState(false);
   const [clicked, setClicked] = React.useState(false);
 
@@ -84,21 +83,18 @@ export default function Launch(): ReactElement {
     }
   };
   docker.isConnected().then((value) => {
-    setOpen(!value && !clicked);
+    setOpen(value && !clicked);
   });
 
   return (
     <Container>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-      >
-        <DialogTitle >{"Issue Connecting to Docker"}</DialogTitle>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>{"Issue Connecting to Docker"}</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Axon had trouble connecting to Docker. Please ensure Docker is installed. If this issue persists, file an
             issue{" "}
-            <Link href="https://github.com/wpilibsuite/Axon/issues" onClick={preventDefault}>
+            <Link href="https://github.com/wpilibsuite/Axon/issues">
               here
             </Link>
             . Please include your log file.
