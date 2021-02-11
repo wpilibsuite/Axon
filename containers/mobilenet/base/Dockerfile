@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:1.12.0-rc2-devel
+FROM tensorflow/tensorflow:1.12.0-rc2-devel-py3
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -8,7 +8,7 @@ RUN cd / & mkdir tensorflow && \
     mv models /tensorflow/models
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends nginx curl wget python3 apt-transport-https ca-certificates  \
+    apt-get install -y --no-install-recommends nginx curl wget python3 python-tk apt-transport-https ca-certificates  \
         build-essential cmake unzip yasm pkg-config libswscale-dev libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev \
         libjasper-dev libavformat-dev libhdf5-dev libpq-dev && \
     pip install Cython contextlib2 pillow matplotlib numpy hdf5storage h5py scipy && \

@@ -2,6 +2,7 @@
 import os
 import shutil
 import argparse
+import sys
 
 import labels
 import modularized_model_main
@@ -16,6 +17,7 @@ def main(directory):
     Returns:
         None
     """
+    print("PYTHON VERSION: ",sys.version)
 
     # hyperparameters
     TRAIN_PATH = os.path.join(directory, 'train')
