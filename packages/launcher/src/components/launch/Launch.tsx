@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import {Container, Grid, IconButton, LinearProgress, Tooltip, Typography} from "@material-ui/core";
+import { Container, Grid, IconButton, LinearProgress, Tooltip, Typography } from "@material-ui/core";
 import logo from "../../assets/logo.png";
 import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
@@ -56,7 +56,7 @@ export default function Launch(): ReactElement {
     });
     localhost.waitForStart();
   };
-  const progress = status === "OFF" ? null : <LinearProgress/> ;
+  const progress = status === "OFF" ? null : <LinearProgress />;
 
   return (
     <Container>
