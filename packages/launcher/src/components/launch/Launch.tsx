@@ -93,11 +93,7 @@ export default function Launch(): ReactElement {
         <DialogContent>
           <DialogContentText>
             Axon had trouble connecting to Docker. Please ensure Docker is installed. If this issue persists, file an
-            issue{" "}
-            <Link href="https://github.com/wpilibsuite/Axon/issues">
-              here
-            </Link>
-            . Please include your log file.
+            issue <Link href="https://github.com/wpilibsuite/Axon/issues">here</Link>. Please include your log file.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
