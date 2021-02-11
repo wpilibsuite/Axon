@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import {IconButton} from "@material-ui/core";
+import { IconButton } from "@material-ui/core";
 import { GetApp } from "@material-ui/icons";
 
 const fs = window.require("fs");
