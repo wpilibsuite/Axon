@@ -96,9 +96,6 @@ export default function Launch(): ReactElement {
         console.log("Stopping container");
         await activeContainer.stop();
       }
-      console.log("Removing container");
-      activeContainer.remove();
-      setActiveContainer(null);
     }
   };
 
