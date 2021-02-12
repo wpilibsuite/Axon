@@ -54,7 +54,16 @@ def main(dataset_paths, percent_eval, directory):
 
         #Unzip the zip in correct dir
         with zipfile.ZipFile(dataset_paths[-1], 'r') as zip_file: # Unzip the file (Assuming 1 zip at this time)
-            zip_file.extractall(EXTRACT_PATH)
+            print "test1 "+EXTRACT_PATH+"/"+DATASET_NAME
+            zip_file.extractall(EXTRACT_PATH+"/"+DATASET_NAME)
+            from fnmatch import fnmatch
+
+            pattern = "*.csv"
+
+            for path, subdirs, files in os.walk(EXTRACT_PATH):
+                for name in files:
+                    if fnmatch(name, pattern):
+                        print("CSV:",os.path.join(path, name))
 
 
         #Generate the records
