@@ -1,5 +1,19 @@
 import React, { ReactElement } from "react";
-import { Container, Grid, IconButton, Tooltip, Typography } from "@material-ui/core";
+import {
+  Button,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Grid,
+  IconButton,
+  LinearProgress,
+  Link,
+  Tooltip,
+  Typography
+} from "@material-ui/core";
 import logo from "../../assets/logo.png";
 import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
@@ -31,31 +45,61 @@ const localhost = new Localhost();
 
 export default function Launch(): ReactElement {
   const classes = useStyles();
+  const [status, setStatus] = React.useState("OFF");
+  const progress = status === "OFF" ? null : <LinearProgress />;
+  const [open, setOpen] = React.useState(false);
+  const [clicked, setClicked] = React.useState(false);
+
+  const handleClose = () => {
+    setClicked(true);
+  };
 
   const startContainer = async () => {
-    // setPulling(true);
-    console.log("Pulling Axon image");
-    await docker.pullImage();
-    // setPulling(false);
-    console.log("Finished pulling.");
-    // image downloaded
-    const containers = await docker.getContainers();
-    if (containers !== null && containers.length > 0) {
-      console.log("Removing old containers");
-      await docker.reset();
+    const connected = await docker.isConnected();
+    if (connected) {
+      // setPulling(true);
+      setStatus("Pulling Axon image");
+      await docker.pullImage();
+      // setPulling(false);
+      setStatus("Finished pulling.");
+      // image downloaded
+      const containers = await docker.getContainers();
+      if (containers !== null && containers.length > 0) {
+        setStatus("Removing old containers");
+        await docker.reset();
+      }
+      setStatus("Creating container");
+      const container = await docker.createContainer();
+      // setContainer(container);
+      // setContainerReady(true);
+      console.log("Container created.");
+      setStatus("Running container");
+      docker.runContainer(container).then(() => {
+        setStatus("OFF");
+      });
+      localhost.waitForStart();
+    } else {
+      setClicked(false);
     }
-    console.log("Creating container");
-    const container = await docker.createContainer();
-    // setContainer(container);
-    // setContainerReady(true);
-    console.log("Container created.");
-    console.log("Running container");
-    docker.runContainer(container);
-    localhost.waitForStart();
   };
+  docker.isConnected().then((value) => {
+    setOpen(!value && !clicked);
+  });
 
   return (
     <Container>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>{"Issue Connecting to Docker"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Axon had trouble connecting to Docker. Please ensure Docker is installed. If this issue persists, file an
+            issue <Link href="https://github.com/wpilibsuite/Axon/issues">here</Link>. Please include your log file.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
       <Grid container spacing={6} direction="column" alignItems="center" justify="center">
         <Grid item xs={12}>
           <Typography variant="h3" gutterBottom>
@@ -72,7 +116,11 @@ export default function Launch(): ReactElement {
             </IconButton>
           </Tooltip>
         </Grid>
+        <Grid item xs={12}>
+          {status !== "OFF" && <Typography>{status}</Typography>}
+        </Grid>
       </Grid>
+      {progress}
     </Container>
   );
 }
