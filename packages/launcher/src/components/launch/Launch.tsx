@@ -21,7 +21,6 @@ import Localhost from "../../docker/Localhost";
 import Dockerode from "dockerode"; // used for Dockerode.Container class
 import StopIcon from "@material-ui/icons/Stop";
 import LogDownload from "./LogDownload";
-// import Dockerode from "dockerode"; // used for Dockerode.Container class
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
