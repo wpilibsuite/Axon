@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Grid,
   IconButton,
   LinearProgress,
   Link,
@@ -19,6 +18,8 @@ import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import Docker from "../../docker/Docker";
 import Localhost from "../../docker/Localhost";
+import LogDownload from "./LogDownload";
+
 // import Dockerode from "dockerode"; // used for Dockerode.Container class
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
@@ -31,6 +32,16 @@ const useStyles = makeStyles((theme) => ({
   start: {
     height: 50,
     width: 50
+  },
+  centered: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 10
+  },
+  inline: {
+    display: "inline-flex"
   }
 }));
 
@@ -100,26 +111,27 @@ export default function Launch(): ReactElement {
           <Button onClick={handleClose}>Cancel</Button>
         </DialogActions>
       </Dialog>
-      <Grid container spacing={6} direction="column" alignItems="center" justify="center">
-        <Grid item xs={12}>
-          <Typography variant="h3" gutterBottom>
-            Axon Launcher
-          </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <img src={logo} alt={logo} className={classes.logo} />
-        </Grid>
-        <Grid item xs={12}>
-          <Tooltip title={<h3>Start Axon in browser</h3>} placement={"right"}>
-            <IconButton onClick={startContainer}>
-              <PlayArrow className={classes.start} />
-            </IconButton>
-          </Tooltip>
-        </Grid>
-        <Grid item xs={12}>
-          {status !== "OFF" && <Typography>{status}</Typography>}
-        </Grid>
-      </Grid>
+      <div className={classes.centered}>
+        <Typography variant="h3" gutterBottom>
+          Axon Launcher
+        </Typography>
+      </div>
+      <div className={classes.centered}>
+        <img src={logo} alt={logo} className={classes.logo} />
+      </div>
+      <div className={classes.centered}>
+        <Tooltip title={<h3>Start Axon in browser</h3>} className={classes.inline}>
+          <IconButton onClick={startContainer}>
+            <PlayArrow className={classes.start} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={<h3>Download log file</h3>} className={classes.inline}>
+          <div>
+            <LogDownload />
+          </div>
+        </Tooltip>
+      </div>
+      <div className={classes.centered}>{status !== "OFF" && <Typography>{status}</Typography>}</div>
       {progress}
     </Container>
   );
