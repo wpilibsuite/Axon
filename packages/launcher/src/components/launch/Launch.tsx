@@ -131,9 +131,7 @@ export default function Launch(): ReactElement {
           </div>
         </Tooltip>
       </div>
-      <div className={classes.centered}>
-        {status !== "OFF" && <Typography>{status}</Typography>}
-      </div>
+      <div className={classes.centered}>{status !== "OFF" && <Typography>{status}</Typography>}</div>
       {progress}
     </Container>
   );
