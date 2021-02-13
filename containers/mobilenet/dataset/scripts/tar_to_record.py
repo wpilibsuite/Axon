@@ -24,6 +24,7 @@ def main(dataset_paths, percent_eval, directory):
         NORMAL_MODE = 0 # Not a tar file
 
     if NORMAL_MODE: # Perform working tar code
+        print("normal mode")
         try:
             for i in dataset_paths:
                 shutil.copy(i, join(EXTRACT_PATH, 'data.tar'))
@@ -54,21 +55,33 @@ def main(dataset_paths, percent_eval, directory):
 
         #Unzip the zip in correct dir
         with zipfile.ZipFile(dataset_paths[-1], 'r') as zip_file: # Unzip the file (Assuming 1 zip at this time)
-            zip_file.extractall(EXTRACT_PATH)
+            namelist = zip_file.namelist()[-1]
+            if any([namelist.startswith(i) for i in ["valid", "train", "test"]]):
+                zip_file.extractall(EXTRACT_PATH+"/"+DATASET_NAME)
+            else:
+                zip_file.extractall(EXTRACT_PATH)
+            from fnmatch import fnmatch
+
+            pattern = "*.csv"
+
+            for path, subdirs, files in os.walk(EXTRACT_PATH):
+                for name in files:
+                    if fnmatch(name, pattern):
+                        print("CSV:",os.path.join(path, name))
 
 
         #Generate the records
-        try:
-            print(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv")
-            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/test/")
-            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/")
+#         try:
+        print(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv")
+        generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/test/")
+        generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/")
 
-            print('main records generated')
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv") # Edge case of missing label in one csv
+        print('main records generated')
+        parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv") # Edge case of missing label in one csv
 
-            print(".\nRecords generated")
-        except ValueError:
-            print("The datasets provided do not have the same class labels. Please make sure that labels are spelt the same in both datasets, or label the same objects for both datasets.")
+        print(".\nRecords generated")
+#         except ValueError:
+#             print("The datasets provided do not have the same class labels. Please make sure that labels are spelt the same in both datasets, or label the same objects for both datasets.")
 
 
 if __name__ == "__main__":

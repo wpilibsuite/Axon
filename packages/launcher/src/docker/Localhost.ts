@@ -1,20 +1,12 @@
-const net = window.require("net");
+const waitOn = window.require("wait-on");
 export default class Localhost {
-  waitForStart(): void {
-    const server = net.createServer();
-
-    server.once("error", function (err: { message: string }) {
-      console.log(err.message);
+  async waitForStart(): Promise<void> {
+    await waitOn({
+      timeout: 10000,
+      resources: ["http://localhost:3000"]
     });
 
-    server.once("listening", function () {
-      // close the server if listening doesn't fail
-      server.close();
-      console.log("Server found");
-      const { shell } = window.require("electron");
-      shell.openExternal("http://localhost:3000");
-    });
-
-    server.listen(3000);
+    const { shell } = window.require("electron");
+    shell.openExternal("http://localhost:3000");
   }
 }

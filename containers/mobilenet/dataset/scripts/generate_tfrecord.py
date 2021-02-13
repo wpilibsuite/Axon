@@ -54,8 +54,8 @@ def create_tf_example(group, path, labels, operation_mode):
         xmaxs.append(row['xmax'] / width)
         ymins.append(row['ymin'] / height)
         ymaxs.append(row['ymax'] / height)
-        classes_text.append(row['class'].encode('utf8'))
-        classes.append(class_text_to_int(row['class'], labels))
+        classes_text.append(str(row['class']).encode('utf8'))
+        classes.append(class_text_to_int(str(row['class']), labels))
     tf_example = tf.train.Example(features=tf.train.Features(feature={
         'image/height': dataset_util.int64_feature(height),
         'image/width': dataset_util.int64_feature(width),
@@ -84,6 +84,7 @@ def main(input_csv, output_tfrecord, operation_mode, img_dir):
     examples = pd.read_csv(input_csv)
     grouped = split(examples, 'filename')
     labels = get_labels(operation_mode, input_csv)
+    print("LABELS", labels)
     for group in grouped:
         tf_example = create_tf_example(group, path, labels, operation_mode)
         writer.write(tf_example.SerializeToString())
