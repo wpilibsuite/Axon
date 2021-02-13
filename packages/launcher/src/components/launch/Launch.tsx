@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Grid,
   IconButton,
   LinearProgress,
   Link,
@@ -100,7 +99,7 @@ export default function Launch(): ReactElement {
 
   return (
     <Container>
-        <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{"Issue Connecting to Docker"}</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -132,11 +131,10 @@ export default function Launch(): ReactElement {
           </div>
         </Tooltip>
       </div>
-       <div className={classes.centered}>
+      <div className={classes.centered}>
         {status !== "OFF" && <Typography>{status}</Typography>}
         {progress}
       </div>
-
     </Container>
   );
 }
