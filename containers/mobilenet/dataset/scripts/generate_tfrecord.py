@@ -84,6 +84,7 @@ def main(input_csv, output_tfrecord, operation_mode, img_dir):
     examples = pd.read_csv(input_csv)
     grouped = split(examples, 'filename')
     labels = get_labels(operation_mode, input_csv)
+    print("LABELS", labels)
     for group in grouped:
         tf_example = create_tf_example(group, path, labels, operation_mode)
         writer.write(tf_example.SerializeToString())

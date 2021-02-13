@@ -24,6 +24,7 @@ def main(dataset_paths, percent_eval, directory):
         NORMAL_MODE = 0 # Not a tar file
 
     if NORMAL_MODE: # Perform working tar code
+        print("normal mode")
         try:
             for i in dataset_paths:
                 shutil.copy(i, join(EXTRACT_PATH, 'data.tar'))
@@ -70,17 +71,17 @@ def main(dataset_paths, percent_eval, directory):
 
 
         #Generate the records
-        try:
-            print(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv")
-            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/test/")
-            generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/")
+#         try:
+        print(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv")
+        generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/test/_annotations.csv", join(OUTPUT_PATH, 'eval.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/test/")
+        generate_tfrecord.main(EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv", join(OUTPUT_PATH, 'train.record'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/")
 
-            print('main records generated')
-            parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv") # Edge case of missing label in one csv
+        print('main records generated')
+        parse_meta.main(join(OUTPUT_PATH, 'map.pbtxt'), NORMAL_MODE, EXTRACT_PATH + "/" + DATASET_NAME + "/train/_annotations.csv") # Edge case of missing label in one csv
 
-            print(".\nRecords generated")
-        except ValueError:
-            print("The datasets provided do not have the same class labels. Please make sure that labels are spelt the same in both datasets, or label the same objects for both datasets.")
+        print(".\nRecords generated")
+#         except ValueError:
+#             print("The datasets provided do not have the same class labels. Please make sure that labels are spelt the same in both datasets, or label the same objects for both datasets.")
 
 
 if __name__ == "__main__":
