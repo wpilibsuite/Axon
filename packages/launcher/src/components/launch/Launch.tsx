@@ -133,8 +133,8 @@ export default function Launch(): ReactElement {
       </div>
       <div className={classes.centered}>
         {status !== "OFF" && <Typography>{status}</Typography>}
-        {progress}
       </div>
+      {progress}
     </Container>
   );
 }
