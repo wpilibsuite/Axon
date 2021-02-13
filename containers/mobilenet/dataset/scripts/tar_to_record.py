@@ -54,8 +54,11 @@ def main(dataset_paths, percent_eval, directory):
 
         #Unzip the zip in correct dir
         with zipfile.ZipFile(dataset_paths[-1], 'r') as zip_file: # Unzip the file (Assuming 1 zip at this time)
-            print("test1 "+EXTRACT_PATH+"/"+DATASET_NAME)
-            zip_file.extractall(EXTRACT_PATH+"/"+DATASET_NAME)
+            namelist = zip_file.namelist()[-1]
+            if any([namelist.startswith(i) for i in ["valid", "train", "test"]]):
+                zip_file.extractall(EXTRACT_PATH+"/"+DATASET_NAME)
+            else:
+                zip_file.extractall(EXTRACT_PATH)
             from fnmatch import fnmatch
 
             pattern = "*.csv"
