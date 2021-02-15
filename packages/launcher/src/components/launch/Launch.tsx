@@ -18,9 +18,9 @@ import { PlayArrow } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import Docker from "../../docker/Docker";
 import Localhost from "../../docker/Localhost";
+import Dockerode from "dockerode"; // used for Dockerode.Container class
+import StopIcon from "@material-ui/icons/Stop";
 import LogDownload from "./LogDownload";
-
-// import Dockerode from "dockerode"; // used for Dockerode.Container class
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
@@ -60,6 +60,7 @@ export default function Launch(): ReactElement {
   const progress = status === "OFF" ? null : <LinearProgress />;
   const [open, setOpen] = React.useState(false);
   const [clicked, setClicked] = React.useState(false);
+  const [activeContainer, setActiveContainer] = React.useState<Dockerode.Container | null>(null);
 
   const handleClose = () => {
     setClicked(true);
@@ -87,7 +88,9 @@ export default function Launch(): ReactElement {
       setStatus("Running container");
       docker.runContainer(container).then(() => {
         setStatus("OFF");
+        setActiveContainer(null);
       });
+      setActiveContainer(container);
       localhost.waitForStart();
     } else {
       setClicked(false);
@@ -96,6 +99,15 @@ export default function Launch(): ReactElement {
   docker.isConnected().then((value) => {
     setOpen(!value && !clicked);
   });
+
+  const stopContainer = async () => {
+    if (activeContainer !== null) {
+      if ((await activeContainer.inspect()).State.Running) {
+        console.log("Stopping container");
+        await activeContainer.stop();
+      }
+    }
+  };
 
   return (
     <Container>
@@ -120,11 +132,20 @@ export default function Launch(): ReactElement {
         <img src={logo} alt={logo} className={classes.logo} />
       </div>
       <div className={classes.centered}>
-        <Tooltip title={<h3>Start Axon in browser</h3>} className={classes.inline}>
-          <IconButton onClick={startContainer}>
-            <PlayArrow className={classes.start} />
-          </IconButton>
-        </Tooltip>
+        {status === "OFF" && (
+          <Tooltip title={<h3>Start Axon in browser</h3>} className={classes.inline}>
+            <IconButton onClick={startContainer}>
+              <PlayArrow className={classes.start} />
+            </IconButton>
+          </Tooltip>
+        )}
+        {status !== "OFF" && (
+          <Tooltip title={<h3>Stop Axon</h3>} placement={"right"}>
+            <IconButton onClick={stopContainer}>
+              <StopIcon className={classes.start} />
+            </IconButton>
+          </Tooltip>
+        )}
         <Tooltip title={<h3>Download log file</h3>} className={classes.inline}>
           <div>
             <LogDownload />
