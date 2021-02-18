@@ -79,7 +79,8 @@ export default class MLService {
    * @param checkpointID The ID of the checkpoint to be exported.
    * @param name The desired name of the exported file.
    */
-  async export(project: Project, checkpointID: string, name: string): Promise<void> {
+  async export(project: Project, checkpointID: string): Promise<void> {
+    const name = `${project.name}-${(await project.getExports()).length}`;
     const exporter: Exporter = new Exporter(project, this.docker, checkpointID, name);
     this.exportjobs.push(exporter);
 

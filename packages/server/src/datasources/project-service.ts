@@ -155,10 +155,10 @@ export class ProjectService extends DataSource {
     return project;
   }
 
-  async exportCheckpoint(id: string, checkpointID: string, name: string): Promise<Project> {
+  async exportCheckpoint(id: string, checkpointID: string): Promise<Project> {
     const project = await Project.findByPk(id);
     console.log(`Started export on checkpoint: ${checkpointID}`);
-    this.mLService.export(project, checkpointID, name);
+    this.mLService.export(project, checkpointID);
     return project;
   }
 
