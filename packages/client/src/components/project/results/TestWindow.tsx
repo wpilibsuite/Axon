@@ -32,7 +32,7 @@ export default function TestWindow(props: { exprt: Export; handler: () => void }
           <Typography variant="h4" style={{ display: "flex", justifyContent: "center" }}>
             Testing
           </Typography>
-          <Typography variant="h6" style={{ display: "flex", justifyContent: "center" }}>
+          <Typography variant="h6" style={{ display: "flex", justifyContent: "center", paddingBottom: "15px" }}>
             {`Model: ${props.exprt.name}`}
           </Typography>
           <TestInput exprt={props.exprt} active={active} setActive={setActive} />
