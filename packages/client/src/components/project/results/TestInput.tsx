@@ -53,7 +53,7 @@ export default function TestInput(props: {
       <FormControl style={{ width: "40%", display: "flex", justifyContent: "center" }}>
         <Tooltip title={tooltipMessage}>
           <span>
-            <Button variant="outlined" color="primary" onClick={handleTest} disabled={!videoID || props.active}>
+            <Button variant="contained" color="primary" onClick={handleTest} disabled={!videoID || props.active}>
               Test
             </Button>
           </span>
