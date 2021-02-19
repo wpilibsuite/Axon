@@ -93,7 +93,7 @@ function VideoSelect(props: {
 
   return (
     <>
-      <InputLabel>Select Video</InputLabel>
+      <InputLabel style={{ paddingLeft: "10px" }}>Select Video</InputLabel>
       <Select variant="outlined" onChange={props.onSelect}>
         {data.project?.videos.map((video) => (
           <MenuItem value={video.id} key={video.id}>

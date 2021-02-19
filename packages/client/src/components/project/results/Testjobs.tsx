@@ -54,7 +54,7 @@ export default function Testjobs(props: { exprtID: string; onComplete: (id: stri
           <ListItemIcon>
             <CircularProgress />
           </ListItemIcon>
-          <ListItemText primary={job.name} />
+          <ListItemText style={{ marginRight: "20px" }} primary={job.name} />
           <a
             href={`http://localhost:${job.streamPort}/stream.mjpg`}
             target="_blank"
