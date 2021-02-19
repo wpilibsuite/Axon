@@ -1,4 +1,4 @@
-import { Button, CircularProgress, List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
+import { Box, Button, CircularProgress, List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
 import { QueryTestjobs, QueryTestjobs_testjobs } from "./__generated__/QueryTestjobs";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import React, { useState } from "react";
@@ -64,13 +64,15 @@ export default function Testjobs(props: { exprtID: string; onComplete: (id: stri
               textDecoration: "none"
             }}
           >
-            <Button variant="outlined" color={"secondary"}>
+            <Button variant="contained" color="primary">
               View
             </Button>
           </a>
-          <Button variant="outlined" onClick={() => handleStop(job.testID)}>
-            Cancel
-          </Button>
+          <Box ml={1}>
+            <Button variant="outlined" onClick={() => handleStop(job.testID)}>
+              Cancel
+            </Button>
+          </Box>
         </ListItem>
       ))}
     </List>
