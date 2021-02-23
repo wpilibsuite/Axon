@@ -7,8 +7,6 @@ import tflite_runtime.interpreter as tflite
 from cscore import CameraServer, VideoSource, UsbCamera, MjpegServer
 from networktables import NetworkTablesInstance
 import cv2
-import tarfile
-from PIL import Image
 import collections
 import json
 import sys
@@ -94,40 +92,47 @@ class Tester:
     def __init__(self, config_parser):
         model_path = "model.tflite"
 
+        print("Initializing TFLite runtime interpreter")
         self.interpreter = tflite.Interpreter(model_path,
                                               experimental_delegates=[tflite.load_delegate('libedgetpu.so.1')])
+        self.interpreter.allocate_tensors()
 
-        parser = PBTXTParser("/tensorflow/models/research/map.pbtxt")
+        print("Getting labels")
+        parser = PBTXTParser("map.pbtxt")
         parser.parse()
-        self.labels = parser.file
+        self.labels = parser.get_labels()
 
-        self.input_video = cv2.VideoCapture(self.video_path)
-        width = self.input_video.get(cv2.CAP_PROP_FRAME_WIDTH)
-        height = self.input_video.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        fps = self.input_video.get(cv2.CAP_PROP_FPS)
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        self.output_video = cv2.VideoWriter(output_vid_path, fourcc, fps, (int(width), int(height)))
-        self.server = MJPEGServer(300, 300)
+        print("Connecting to Network Tables")
+        ntinst = NetworkTablesInstance.getDefault()
+        ntinst.startClientTeam(config_parser.team)
+        self.entry = ntinst.getTable("ML").getEntry("detections")
+
+        print("Starting camera server")
+        cs = CameraServer.getInstance()
+        camera = cs.startAutomaticCapture()
+        # print("Cameras:", config_parser.cameras)
+        camera_config = config_parser.cameras[0]
+        WIDTH, HEIGHT = camera_config["width"], camera_config["height"]
+        # print(WIDTH, HEIGHT, "DIMS")
+        camera.setResolution(WIDTH, HEIGHT)
+        self.cvSink = cs.getVideo()
+        self.img = np.zeros(shape=(HEIGHT, WIDTH, 3), dtype=np.uint8)
+        self.output = cs.putVideo("Axon", WIDTH, HEIGHT)
 
         self.frames = 0
 
     def run(self):
-        self.server.start()
-        print("MJPEG server started")
-
-        self.interpreter.allocate_tensors()
-
-        while self.input_video.isOpened():
+        print("Starting mainloop")
+        while True:
             start = time()
             # Acquire frame and resize to expected shape [1xHxWx3]
-            ret, frame = self.input_video.read()
+            ret, frame_cv2 = self.cvSink.grabFrame(self.img)
             if not ret:
-                break
+                print("Image failed")
+                continue
 
             # input
-            frame_cv2 = frame
-            frame = Image.fromarray(frame_cv2)
-            scale = self.set_input(frame)
+            scale = self.set_input(frame_cv2)
 
             # run inference
             self.interpreter.invoke()
@@ -147,14 +152,10 @@ class Tester:
 
                     frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale,
                                                  y_scale)
-
-            self.output_video.write(frame_cv2)
-            self.server.set_image(frame_cv2)
+            self.output.putFrame(frame_cv2)
             if self.frames % 1000 == 0:
                 print("Completed", self.frames, "frames. FPS:", (1 / (time() - start)))
             self.frames += 1
-
-        self.input_video.release()
 
     def label_frame(self, frame, object_name, box, score, x_scale, y_scale):
         ymin, xmin, ymax, xmax = box
@@ -197,8 +198,8 @@ class Tester:
           Actual resize ratio, which should be passed to `get_output` function.
         """
         width, height = self.input_size()
-        w, h = frame.size
-        new_img = np.reshape(frame.resize((300, 300)), (1, 300, 300, 3))
+        h, w, _ = frame.shape
+        new_img = np.reshape(cv2.resize(frame, (300, 300)), (1, 300, 300, 3))
         self.interpreter.set_tensor(self.interpreter.get_input_details()[0]['index'], np.copy(new_img))
         return width / w, height / h
 
