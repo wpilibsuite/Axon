@@ -106,6 +106,7 @@ class Tester:
         ntinst = NetworkTablesInstance.getDefault()
         ntinst.startClientTeam(config_parser.team)
         self.entry = ntinst.getTable("ML").getEntry("detections")
+        self.temp_entry = []
 
         print("Starting camera server")
         cs = CameraServer.getInstance()
@@ -115,6 +116,7 @@ class Tester:
         WIDTH, HEIGHT = camera_config["width"], camera_config["height"]
         # print(WIDTH, HEIGHT, "DIMS")
         camera.setResolution(WIDTH, HEIGHT)
+        camera.setExposureManual(50)
         self.cvSink = cs.getVideo()
         self.img = np.zeros(shape=(HEIGHT, WIDTH, 3), dtype=np.uint8)
         self.output = cs.putVideo("Axon", WIDTH, HEIGHT)
@@ -153,6 +155,8 @@ class Tester:
                     frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale,
                                                  y_scale)
             self.output.putFrame(frame_cv2)
+            self.entry.putString(json.dumps(self.temp_entry))
+            self.temp_entry = []
             if self.frames % 1000 == 0:
                 print("Completed", self.frames, "frames. FPS:", (1 / (time() - start)))
             self.frames += 1
@@ -171,6 +175,8 @@ class Tester:
             return frame
 
         ymin, xmin, ymax, xmax = int(bbox.ymin), int(bbox.xmin), int(bbox.ymax), int(bbox.xmax)
+        self.temp_entry.append({"label": object_name, "box": {"ymin": ymin, "xmin": xmin, "ymax": ymax, "xmax": xmax},
+                                "confidence": score})
 
         cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (10, 255, 0), 4)
 
