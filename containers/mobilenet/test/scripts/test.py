@@ -6,7 +6,6 @@ from time import time
 import tflite_runtime.interpreter as tflite
 import parse_hyperparams
 import tarfile
-from PIL import Image
 import collections
 
 from mjpegstreamer import MJPEGServer
@@ -63,14 +62,12 @@ class Tester:
         while self.input_video.isOpened():
             start = time()
             # Acquire frame and resize to expected shape [1xHxWx3]
-            ret, frame = self.input_video.read()
+            ret, frame_cv2 = self.input_video.read()
             if not ret:
                 break
 
             # input
-            frame_cv2 = frame
-            frame = Image.fromarray(frame_cv2)
-            scale = self.set_input(frame)
+            scale = self.set_input(frame_cv2)
 
             # run inference
             self.interpreter.invoke()
@@ -105,7 +102,6 @@ class Tester:
                     ymin=ymin,
                     xmax=xmax,
                     ymax=ymax).scale(x_scale, y_scale)
-
         height, width, channels = frame.shape
         # check bbox validity
         if not 0 <= ymin < ymax <= height or not 0 <= xmin < xmax <= width:
@@ -139,8 +135,8 @@ class Tester:
           Actual resize ratio, which should be passed to `get_output` function.
         """
         width, height = self.input_size()
-        w, h = frame.size
-        new_img = np.reshape(frame.resize((300, 300)), (1, 300, 300, 3))
+        h, w, _ = frame.shape
+        new_img = np.reshape(cv2.resize(frame, (300, 300)), (1,300,300,3))
         self.interpreter.set_tensor(self.interpreter.get_input_details()[0]['index'], np.copy(new_img))
         return width/w, height/h
 
