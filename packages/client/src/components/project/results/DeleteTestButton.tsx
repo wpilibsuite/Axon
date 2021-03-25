@@ -4,16 +4,16 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
 
-// const DELETE_TEST_MUTATION = gql`
-//   mutation DeleteTest($id: ID!) {
-//     deleteTest(id: $id) {
-//       id
-//     }
-//   }
-// `;
+const DELETE_TEST_MUTATION = gql`
+  mutation DeleteTest($id: ID!) {
+    deleteTest(id: $id) {
+      id
+    }
+  }
+`;
 
 export default function DeleteTestButton(props: { id: string; name: string }): ReactElement {
-  //   const [deleteTest] = useMutation(DELETE_TEST_MUTATION);
+  const [deleteTest] = useMutation(DELETE_TEST_MUTATION);
   const [deleting, setDeleting] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const apolloClient = useApolloClient();
@@ -27,7 +27,7 @@ export default function DeleteTestButton(props: { id: string; name: string }): R
   const handleDelete = async () => {
     setDeleting(true);
     handleClose();
-    // deleteTest({ variables: { id: props.id } }).then(() => apolloClient.resetStore().then(() => handleClose()));
+    deleteTest({ variables: { id: props.id } }).then(() => apolloClient.resetStore().then(() => handleClose()));
   };
 
   return (

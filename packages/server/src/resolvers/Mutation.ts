@@ -61,6 +61,10 @@ export const Mutation: MutationResolvers = {
   testModel: async (parent, { name, projectID, exportID, videoID }, { dataSources }) => {
     return dataSources.projectService.testModel(name, projectID, exportID, videoID);
   },
+  deleteTest: async (parent, { id }, { dataSources }) => {
+    console.log("tried to delete test");
+    return null;
+  },
   databaseTest: async (parent, { id }, { dataSources }) => {
     return dataSources.projectService.databaseTest(id);
   }

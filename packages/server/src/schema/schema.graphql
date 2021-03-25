@@ -41,6 +41,7 @@ type Mutation {
   saveVideo(projectID: ID!, name: String!, video: Upload!): Video
   exportCheckpoint(id: ID!, checkpointID: String!): Project
   testModel(name: String!, projectID: String!, exportID: String!, videoID: String!): Project
+  deleteTest(id: ID!): Test
   databaseTest(id: ID!): Project
 }
 
