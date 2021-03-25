@@ -1,5 +1,5 @@
-import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState, Test } from "../schema/__generated__/graphql";
-import { Project, Export, Checkpoint, Video } from "../store";
+import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState } from "../schema/__generated__/graphql";
+import { Project, Export, Checkpoint, Video, Test } from "../store";
 import { PROJECT_DATA_DIR } from "../constants";
 import { DataSource } from "apollo-datasource";
 import { createWriteStream, unlink } from "fs";
@@ -77,6 +77,18 @@ export class ProjectService extends DataSource {
     }
     await exprt.destroy();
     return exprt;
+  }
+
+  async deleteTest(id: string): Promise<Test> {
+    const test = await Test.findByPk(id);
+    try {
+      await new Promise((resolve) => rimraf(test.directory, resolve));
+    } catch (err) {
+      console.log("Could not remove test files. Double check ownership of test directory.");
+    }
+    await test.destroy();
+    console.log(`Test ${id} deleted.`);
+    return test;
   }
 
   async deleteProject(id: string): Promise<Project> {

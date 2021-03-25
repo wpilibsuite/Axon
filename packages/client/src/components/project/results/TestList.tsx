@@ -1,6 +1,7 @@
 import { List, ListItem, ListItemIcon, ListItemText, Typography } from "@material-ui/core";
 import { GetTests, GetTestsVariables } from "./__generated__/GetTests";
 import { CloudDownload } from "@material-ui/icons";
+import DeleteTestButton from "./DeleteTestButton";
 import { gql, useQuery } from "@apollo/client";
 import React from "react";
 
@@ -36,6 +37,7 @@ export default function TestList(props: { exprtID: string }): React.ReactElement
             </ListItemIcon>
           </a>
           <ListItemText>{test.name}</ListItemText>
+          <DeleteTestButton id={test.id} name={test.name} />
         </ListItem>
       ))}
     </List>
