@@ -87,6 +87,7 @@ export class ProjectService extends DataSource {
       console.log("Could not remove test files. Double check ownership of test directory.");
     }
     await test.destroy();
+    console.log(`Test ${id} deleted.`);
     return test;
   }
 
