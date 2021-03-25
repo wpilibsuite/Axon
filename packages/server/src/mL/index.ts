@@ -1,5 +1,5 @@
-import { Trainjob, Exportjob, Testjob, Test, DockerState } from "../schema/__generated__/graphql";
-import { Project } from "../store";
+import { Trainjob, Exportjob, Testjob, DockerState } from "../schema/__generated__/graphql";
+import { Project, Test } from "../store";
 import Exporter from "./Exporter";
 import Trainer from "./Trainer";
 import Tester from "./Tester";
