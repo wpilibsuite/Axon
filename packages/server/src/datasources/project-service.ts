@@ -1,5 +1,5 @@
-import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState, Test } from "../schema/__generated__/graphql";
-import { Project, Export, Checkpoint, Video } from "../store";
+import { ProjectUpdateInput, Trainjob, Testjob, Exportjob, DockerState } from "../schema/__generated__/graphql";
+import { Project, Export, Checkpoint, Video, Test } from "../store";
 import { PROJECT_DATA_DIR } from "../constants";
 import { DataSource } from "apollo-datasource";
 import { createWriteStream, unlink } from "fs";
@@ -79,6 +79,18 @@ export class ProjectService extends DataSource {
     return exprt;
   }
 
+  async deleteTest(id: string): Promise<Test> {
+    const test = await Test.findByPk(id);
+    try {
+      await new Promise((resolve) => rimraf(test.directory, resolve));
+    } catch (err) {
+      console.log("Could not remove test files. Double check ownership of test directory.");
+    }
+    await test.destroy();
+    console.log(`Test ${id} deleted.`);
+    return test;
+  }
+
   async deleteProject(id: string): Promise<Project> {
     const project = await Project.findByPk(id);
     await new Promise((resolve) => rimraf(project.directory, resolve));
@@ -155,10 +167,10 @@ export class ProjectService extends DataSource {
     return project;
   }
 
-  async exportCheckpoint(id: string, checkpointID: string, name: string): Promise<Project> {
+  async exportCheckpoint(id: string, checkpointID: string): Promise<Project> {
     const project = await Project.findByPk(id);
     console.log(`Started export on checkpoint: ${checkpointID}`);
-    this.mLService.export(project, checkpointID, name);
+    this.mLService.export(project, checkpointID);
     return project;
   }
 

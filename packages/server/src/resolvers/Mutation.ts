@@ -55,11 +55,14 @@ export const Mutation: MutationResolvers = {
     console.log(filename);
     return dataSources.projectService.saveVideo(projectID, name, filename, createReadStream());
   },
-  exportCheckpoint: async (parent, { id, checkpointID, name }, { dataSources }) => {
-    return dataSources.projectService.exportCheckpoint(id, checkpointID, name);
+  exportCheckpoint: async (parent, { id, checkpointID }, { dataSources }) => {
+    return dataSources.projectService.exportCheckpoint(id, checkpointID);
   },
   testModel: async (parent, { name, projectID, exportID, videoID }, { dataSources }) => {
     return dataSources.projectService.testModel(name, projectID, exportID, videoID);
+  },
+  deleteTest: async (parent, { id }, { dataSources }) => {
+    return dataSources.projectService.deleteTest(id);
   },
   databaseTest: async (parent, { id }, { dataSources }) => {
     return dataSources.projectService.databaseTest(id);

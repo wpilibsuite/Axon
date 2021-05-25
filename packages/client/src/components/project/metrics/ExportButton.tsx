@@ -6,8 +6,8 @@ import { gql } from "@apollo/client";
 type Checkpoint = GetCheckpoints_project_checkpoints;
 
 const EXPORT_CHECKPOINT_MUTATION = gql`
-  mutation exportCheckpoint($id: ID!, $checkpointID: String!, $name: String!) {
-    exportCheckpoint(id: $id, checkpointID: $checkpointID, name: $name) {
+  mutation exportCheckpoint($id: ID!, $checkpointID: String!) {
+    exportCheckpoint(id: $id, checkpointID: $checkpointID) {
       id
     }
   }
@@ -16,10 +16,9 @@ const EXPORT_CHECKPOINT_MUTATION = gql`
 export function ExportButton(props: { id: string; selected: Checkpoint | null; onExport: () => void }): ReactElement {
   const [exportCheckpoint] = useMutation(EXPORT_CHECKPOINT_MUTATION);
   const handleExport = () => {
-    const name = `STEP-${props.selected?.step}-${new Date().getHours()}-${new Date().getMinutes()}`;
     const checkpointID = props.selected?.id;
     const id = props.id;
-    exportCheckpoint({ variables: { id, checkpointID, name } }).catch((err) => {
+    exportCheckpoint({ variables: { id, checkpointID } }).catch((err) => {
       console.log(err);
     });
     props.onExport();
