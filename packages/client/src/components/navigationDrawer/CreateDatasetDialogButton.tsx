@@ -45,6 +45,7 @@ const useStyles = makeStyles((theme) => ({
 export default function CreateDatasetDialogButton(): ReactElement {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
+  const [keys, setKeys] = React.useState(["cat", "dog"]);
   // const [creating, setCreating] = React.useState(false);
   // const apolloClient = useApolloClient();
   //
@@ -56,14 +57,25 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const handleClose = () => {
     setOpen(false);
   };
+  const append = () => {
+    // keys.push("");
+    console.log("append");
+    setKeys(keys.concat([""]));
+  };
 
   return (
     <>
       <Dialog open={open}>
         <DialogTitle>Create Dataset from OpenImages</DialogTitle>
         <DialogContent dividers>
-          <TextField placeholder={"Segway"} />
-          <IconButton style={{ justifyContent: "center" }}>
+          {keys.map((obj: string) => {
+            return (
+              <div key={obj}>
+                <TextField key={obj} placeholder={obj} />
+              </div>
+            );
+          })}
+          <IconButton style={{ justifyContent: "center" }} onClick={append}>
             <ControlPoint />
           </IconButton>
         </DialogContent>
