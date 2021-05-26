@@ -40,7 +40,7 @@ const CREATE_DATASET_MUTATION = gql`
   }
 `;
 
-export default function AddDatasetDialogButton(): ReactElement {
+export default function UploadDatasetDialogButton(): ReactElement {
   const classes = useStyles();
   const [uploading, setUploading] = React.useState(false);
   const [uploadDataset] = useMutation(CREATE_DATASET_MUTATION);
@@ -61,13 +61,13 @@ export default function AddDatasetDialogButton(): ReactElement {
 
   return (
     <TreeItem
-      nodeId={"addbuttondataset"}
+      nodeId={"uploadbuttondataset"}
       label={
         <Button component={"label"} className={classes.button}>
           <div className={classes.labelRoot}>
             {React.createElement(AddIcon, { className: classes.labelIcon })}
             <input type="file" style={{ display: "none" }} required onChange={onChange} key={Date.now()} />
-            <Typography variant={"body1"}> Add Dataset</Typography>
+            <Typography variant={"body1"}> Upload Dataset</Typography>
           </div>
         </Button>
       }
