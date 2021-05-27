@@ -90,11 +90,18 @@ class BBox(collections.namedtuple('BBox', ['xmin', 'ymin', 'xmax', 'ymax'])):
 
 class Tester:
     def __init__(self, config_parser):
-        model_path = "model.tflite"
+
+
 
         print("Initializing TFLite runtime interpreter")
-        self.interpreter = tflite.Interpreter(model_path,
-                                              experimental_delegates=[tflite.load_delegate('libedgetpu.so.1')])
+        try:
+            model_path = "model.tflite"
+            self.interpreter = tflite.Interpreter(model_path, experimental_delegates=[tflite.load_delegate('libedgetpu.so.1')])
+        except:
+            print("Failed to create Interpreter with Coral, switching to unoptimized")
+            model_path = "unoptimized.tflite"
+            self.interpreter = tflite.Interpreter(model_path)
+
         self.interpreter.allocate_tensors()
 
         print("Getting labels")
@@ -116,11 +123,11 @@ class Tester:
         WIDTH, HEIGHT = camera_config["width"], camera_config["height"]
         # print(WIDTH, HEIGHT, "DIMS")
         camera.setResolution(WIDTH, HEIGHT)
-        camera.setExposureManual(50)
+        #camera.setExposureManual(50)
         self.cvSink = cs.getVideo()
         self.img = np.zeros(shape=(HEIGHT, WIDTH, 3), dtype=np.uint8)
         self.output = cs.putVideo("Axon", WIDTH, HEIGHT)
-
+        print("Using Port Number " + str(cs.kBasePort + 1))
         self.frames = 0
 
     def run(self):
@@ -152,14 +159,16 @@ class Tester:
                     if class_id not in range(len(self.labels)):
                         continue
 
+                    # print("Object Detected!");
                     frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale,
                                                  y_scale)
             self.output.putFrame(frame_cv2)
-            self.entry.putString(json.dumps(self.temp_entry))
+            self.entry.setString(json.dumps(self.temp_entry))
             self.temp_entry = []
-            if self.frames % 1000 == 0:
+            if self.frames % 100 == 0:
                 print("Completed", self.frames, "frames. FPS:", (1 / (time() - start)))
             self.frames += 1
+            #print("Running Frame " + str(self.frames))
 
     def label_frame(self, frame, object_name, box, score, x_scale, y_scale):
         ymin, xmin, ymax, xmax = box
