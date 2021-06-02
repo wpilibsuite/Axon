@@ -122,8 +122,8 @@ jobs:
         with:
           push: ${{ env.push }}
           load: ${{ !env.push }}
-          context: containers/utils/openimages
-          file: containers/utils/openimages/Dockerfile
+          context: containers/mobilenet/openimages
+          file: containers/mobilenet/openimages/Dockerfile
           tags: ${{ steps.openimages_docker_meta.outputs.tags }}
           labels: ${{ steps.openimages_docker_meta.outputs.labels }}
           build-args: |
