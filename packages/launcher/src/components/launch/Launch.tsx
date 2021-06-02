@@ -20,7 +20,6 @@ import Docker from "../../docker/Docker";
 import Localhost from "../../docker/Localhost";
 import Dockerode from "dockerode"; // used for Dockerode.Container class
 import StopIcon from "@material-ui/icons/Stop";
-import LogDownload from "./LogDownload";
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
@@ -146,11 +145,6 @@ export default function Launch(): ReactElement {
             </IconButton>
           </Tooltip>
         )}
-        <Tooltip title={<h3>Download log file</h3>} className={classes.inline}>
-          <div>
-            <LogDownload />
-          </div>
-        </Tooltip>
       </div>
       <div className={classes.centered}>{status !== "OFF" && <Typography>{status}</Typography>}</div>
       {progress}
