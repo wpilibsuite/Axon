@@ -82,7 +82,11 @@ export class DatasetService extends DataSource {
     return images;
   }
 
-  async createDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
+  async createDataset(classes: string[], maxImages: number): Promise<Dataset> {
+
+  }
+
+  async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
     const dataset = Dataset.build({ name: filename });
     dataset.path = `datasets/${dataset.id}/${filename}`;
     await this.upload(dataset.id, dataset.name, stream).then(() => dataset.save());

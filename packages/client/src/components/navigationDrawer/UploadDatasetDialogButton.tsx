@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
 
 const ADD_DATASET_MUTATION = gql`
   mutation AddDataset($file: Upload!) {
-    createDataset(upload: $file) {
+    addDataset(upload: $file) {
       id
     }
   }

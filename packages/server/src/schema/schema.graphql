@@ -19,7 +19,8 @@ type Query {
 type Mutation {
   resetDocker: Boolean!
 
-  createDataset(upload: Upload!): Dataset
+  createDataset(classes: [String!]!, maxImages: Int!): Dataset
+  addDataset(upload: Upload!): Dataset
   renameDataset(id: ID!, newName: String!): Dataset
   deleteDataset(id: ID!): Dataset
 
@@ -146,6 +147,14 @@ type Project {
   checkpoints: [Checkpoint!]!
   exports: [Export!]!
   videos: [Video!]!
+}
+
+enum DatasetCreateStatus {
+  Idle
+  Preparing
+  Downloading
+  AddingToRegistry
+  Done
 }
 
 enum TrainStatus {
