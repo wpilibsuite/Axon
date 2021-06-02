@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const CREATE_DATASET_MUTATION = gql`
+const ADD_DATASET_MUTATION = gql`
   mutation AddDataset($file: Upload!) {
     createDataset(upload: $file) {
       id
@@ -43,7 +43,7 @@ const CREATE_DATASET_MUTATION = gql`
 export default function UploadDatasetDialogButton(): ReactElement {
   const classes = useStyles();
   const [uploading, setUploading] = React.useState(false);
-  const [uploadDataset] = useMutation(CREATE_DATASET_MUTATION);
+  const [uploadDataset] = useMutation(ADD_DATASET_MUTATION);
   const apolloClient = useApolloClient();
 
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

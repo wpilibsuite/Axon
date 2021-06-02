@@ -1,7 +1,6 @@
 import React, { ReactElement } from "react";
 import {
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -11,10 +10,11 @@ import {
   TextField,
   Typography
 } from "@material-ui/core";
-import { useApolloClient } from "@apollo/client";
+// import gql from "graphql-tag";
+// import { useApolloClient, useMutation } from "@apollo/client";
 import { TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
-import { Add, ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
+import { ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   item: {
@@ -39,13 +39,30 @@ const useStyles = makeStyles((theme) => ({
   },
   button: {
     textTransform: "none"
+  },
+  mainContainer: {
+    width: "400px"
+  },
+  textfield: {
+    width: "100%"
   }
 }));
+
+// const CREATE_PROJECT_MUTATION = gql`
+//   mutation AddProject($name: String!) {
+//     createProject(name: $name) {
+//       id
+//     }
+//   }
+// `;
 
 export default function CreateDatasetDialogButton(): ReactElement {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
-  const [keys, setKeys] = React.useState(["cat", "dog"]);
+  const [keys, setKeys] = React.useState([""]);
+  const [errors, setErrors] = React.useState([false])
+  // const [createDataset] = useMutation(CREATE_PROJECT_MUTATION);
+  // const apolloClient = useApolloClient();
   // const [creating, setCreating] = React.useState(false);
   // const apolloClient = useApolloClient();
   //
@@ -59,7 +76,9 @@ export default function CreateDatasetDialogButton(): ReactElement {
   };
   const append = () => {
     const test: string[] = [...keys];
-    setKeys(test.concat([" "]));
+    setKeys(test.concat([""]));
+    const testErrors: boolean[] = [...errors];
+    setErrors(testErrors.concat([false]));
   };
   const update = (index: number, element: string) => {
     const test: string[] = [...keys];
@@ -70,44 +89,64 @@ export default function CreateDatasetDialogButton(): ReactElement {
     const test: string[] = [...keys];
     test.splice(index, 1);
     setKeys(test);
+    const testErrors: boolean[] = [...errors];
+    testErrors.splice(index, 1);
+    setErrors(testErrors);
   };
+
+  const handleCreate = () => {
+    let error = false;
+    const testErrors: boolean[] = [...errors];
+    for (let i = 0; i < keys.length; i++) {
+      testErrors[i] = keys[i].length === 0;
+      error = error || testErrors[i];
+    }
+    setErrors(testErrors);
+    if (!error) {
+      console.log("set");
+    }
+  }
 
   return (
     <>
       <Dialog open={open}>
         <DialogTitle>Create Dataset from OpenImages</DialogTitle>
-        <DialogContent dividers>
-          <Grid container alignItems="center" justify="center" style={{ maxWidth: "400px" }}>
-            {keys.map((obj: string, index: number) => {
-              return (
-                <>
-                  <Grid item xs={2} key={index}>
-                    <IconButton onClick={() => remove(index)}>
-                      <RemoveCircleOutline />
-                    </IconButton>
-                  </Grid>
-                  <Grid item xs={10}>
-                    <TextField
-                      key={index}
-                      placeholder={obj}
-                      onChange={(event) => update(index, event.target.value)}
-                      style={{ width: "100%" }}
-                    />
-                  </Grid>
-                </>
-              );
-            })}
-            <Grid item xs={12}>
-              <IconButton style={{ justifyContent: "center" }} onClick={append}>
-                <ControlPoint />
-              </IconButton>
+        <form autoComplete={"off"}>
+          <DialogContent dividers>
+            <Grid container alignItems="center" justify="center" className={classes.mainContainer}>
+              {keys.map((obj: string, index: number) => {
+                return (
+                  <>
+                    <Grid item xs={2} key={index}>
+                      <IconButton onClick={() => remove(index)}>
+                        <RemoveCircleOutline />
+                      </IconButton>
+                    </Grid>
+                    <Grid item xs={10}>
+                      <TextField
+                        error={errors[index]}
+                        helperText={errors[index]?"Please enter a class name or remove this field.":""}
+                        key={index}
+                        placeholder={"Type class name here"}
+                        onChange={(event) => update(index, event.target.value)}
+                        className={classes.textfield}
+                      />
+                    </Grid>
+                  </>
+                );
+              })}
+              <Grid item xs={12}>
+                <IconButton onClick={append}>
+                  <ControlPoint />
+                </IconButton>
+              </Grid>
             </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Close</Button>
-          <Button autoFocus>Create</Button>
-        </DialogActions>
+          </DialogContent>
+          <DialogActions>
+            <Button variant={"contained"} onClick={handleClose}>Cancel</Button>
+            <Button variant={"contained"} color={"primary"} autoFocus onClick={handleCreate}>Create</Button>
+          </DialogActions>
+        </form>
       </Dialog>
       <TreeItem
         nodeId={"createbuttondataset"}
