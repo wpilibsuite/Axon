@@ -162,7 +162,6 @@ class Tester:
                     if class_id not in range(len(self.labels)):
                         continue
 
-                    # print("Object Detected!");
                     frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale,
                                                  y_scale)
             self.output.putFrame(frame_cv2)
@@ -173,7 +172,6 @@ class Tester:
             if self.frames % 10 == 0:
                 self.fps_entry.setNumber((1 / (time() - start)))
             self.frames += 1
-            #print("Running Frame " + str(self.frames))
 
     def label_frame(self, frame, object_name, box, score, x_scale, y_scale):
         ymin, xmin, ymax, xmax = box
