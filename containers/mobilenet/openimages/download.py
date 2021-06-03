@@ -101,21 +101,24 @@ class OpenImagesDownloader:
         labels = [i.lower() for i in self.labels]
         for key in self.image_data.keys():
             entry = all_labels_df.loc[key]
-            height = self.image_data[key]["height"]
-            width = self.image_data[key]["width"]
-            if type(entry) == pandas.DataFrame:
-                for row in entry.iterrows():
-                    box = {i.lower(): row[1][i] for i in ["XMin", "XMax", "YMin", "YMax"]}
-                    label = self.label_map[row[1]["LabelName"]].lower()
+            try:
+                height = self.image_data[key]["height"]
+                width = self.image_data[key]["width"]
+                if type(entry) == pandas.DataFrame:
+                    for row in entry.iterrows():
+                        box = {i.lower(): row[1][i] for i in ["XMin", "XMax", "YMin", "YMax"]}
+                        label = self.label_map[row[1]["LabelName"]].lower()
+                        if label in labels:
+                            print(label)
+                            self.parse_line(key + '.jpg', label, height, width, box)
+                else:
+                    box = {i.lower(): entry.get(i) for i in ["XMin", "XMax", "YMin", "YMax"]}
+                    label = self.label_map[entry.get("LabelName")].lower()
                     if label in labels:
                         print(label)
                         self.parse_line(key + '.jpg', label, height, width, box)
-            else:
-                box = {i.lower(): entry.get(i) for i in ["XMin", "XMax", "YMin", "YMax"]}
-                label = self.label_map[entry.get("LabelName")].lower()
-                if label in labels:
-                    print(label)
-                    self.parse_line(key + '.jpg', label, height, width, box)
+            except KeyError:
+                pass
 
         print("creating subfolders")
         self.create_subfolders("train")
