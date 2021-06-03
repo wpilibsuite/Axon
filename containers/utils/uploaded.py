@@ -97,10 +97,12 @@ class Tester:
         try:
             model_path = "model.tflite"
             self.interpreter = tflite.Interpreter(model_path, experimental_delegates=[tflite.load_delegate('libedgetpu.so.1')])
+            self.hardware_type = "Coral Edge TPU"
         except:
             print("Failed to create Interpreter with Coral, switching to unoptimized")
             model_path = "unoptimized.tflite"
             self.interpreter = tflite.Interpreter(model_path)
+            self.hardware_type = "Unoptimized"
 
         self.interpreter.allocate_tensors()
 
@@ -114,6 +116,10 @@ class Tester:
         ntinst.startClientTeam(config_parser.team)
         ntinst.startDSClient()
         self.entry = ntinst.getTable("ML").getEntry("detections")
+
+        self.coral_entry = ntinst.getTable("ML").getEntry("coral")
+        self.fps_entry = ntinst.getTable("ML").getEntry("fps")
+        self.resolution_entry = ntinst.getTable("ML").getEntry("resolution")
         self.temp_entry = []
 
         print("Starting camera server")
@@ -126,6 +132,9 @@ class Tester:
         self.img = np.zeros(shape=(HEIGHT, WIDTH, 3), dtype=np.uint8)
         self.output = cs.putVideo("Axon", WIDTH, HEIGHT)
         self.frames = 0
+
+        self.coral_entry.setString(self.hardware_type)
+        self.resolution_entry.setString(str(WIDTH) + ", " + str(HEIGHT))
 
     def run(self):
         print("Starting mainloop")
@@ -163,6 +172,8 @@ class Tester:
             self.temp_entry = []
             if self.frames % 100 == 0:
                 print("Completed", self.frames, "frames. FPS:", (1 / (time() - start)))
+            if self.frames % 10 == 0:
+                self.fps_entry.setNumber((1 / (time() - start)))
             self.frames += 1
 
     def label_frame(self, frame, object_name, box, score, x_scale, y_scale):
