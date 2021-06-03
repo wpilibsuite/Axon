@@ -112,22 +112,19 @@ class Tester:
         print("Connecting to Network Tables")
         ntinst = NetworkTablesInstance.getDefault()
         ntinst.startClientTeam(config_parser.team)
+        ntinst.startDSClient()
         self.entry = ntinst.getTable("ML").getEntry("detections")
         self.temp_entry = []
 
         print("Starting camera server")
         cs = CameraServer.getInstance()
         camera = cs.startAutomaticCapture()
-        # print("Cameras:", config_parser.cameras)
         camera_config = config_parser.cameras[0]
         WIDTH, HEIGHT = camera_config["width"], camera_config["height"]
-        # print(WIDTH, HEIGHT, "DIMS")
         camera.setResolution(WIDTH, HEIGHT)
-        #camera.setExposureManual(50)
         self.cvSink = cs.getVideo()
         self.img = np.zeros(shape=(HEIGHT, WIDTH, 3), dtype=np.uint8)
         self.output = cs.putVideo("Axon", WIDTH, HEIGHT)
-        print("Using Port Number " + str(cs.kBasePort + 1))
         self.frames = 0
 
     def run(self):
@@ -159,7 +156,6 @@ class Tester:
                     if class_id not in range(len(self.labels)):
                         continue
 
-                    # print("Object Detected!");
                     frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale,
                                                  y_scale)
             self.output.putFrame(frame_cv2)
@@ -168,7 +164,6 @@ class Tester:
             if self.frames % 100 == 0:
                 print("Completed", self.frames, "frames. FPS:", (1 / (time() - start)))
             self.frames += 1
-            #print("Running Frame " + str(self.frames))
 
     def label_frame(self, frame, object_name, box, score, x_scale, y_scale):
         ymin, xmin, ymax, xmax = box
