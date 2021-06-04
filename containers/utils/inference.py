@@ -49,31 +49,18 @@ def read_config(config_file):
 class PBTXTParser:
     def __init__(self, path):
         self.path = path
-        self.file = None
+        self.label_map = []
 
     def parse(self):
         with open(self.path, 'r') as f:
-            self.file = ''.join([i.replace('item', '') for i in f.readlines()])
-            blocks = []
-            obj = ""
-            for i in self.file:
-                if i == '}':
-                    obj += i
-                    blocks.append(obj)
-                    obj = ""
-                else:
-                    obj += i
-            self.file = blocks
-            label_map = {}
-            for obj in self.file:
-                obj = [i for i in obj.split('\n') if i]
-                i = int(obj[1].split()[1]) - 1
-                name = obj[2].split()[1][1:-1]
-                label_map.update({i: name})
-            self.file = label_map
+            file = [i.replace("\n", '') for i in f.readlines()]
+            for line in file:
+                if line.startswith("name"):
+                    name = line.split(": ")[1].strip('"').rstrip('"')
+                    self.label_map.append(name)
 
     def get_labels(self):
-        return self.file
+        return self.label_map
 
 
 def log_object(obj, labels):
