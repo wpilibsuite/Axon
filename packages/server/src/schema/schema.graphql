@@ -19,7 +19,7 @@ type Query {
 type Mutation {
   resetDocker: Boolean!
 
-  createDataset(classes: [String!]!, maxImages: Int!): Dataset
+  createDataset(classes: [String!]!, maxImages: Int!): Int
   addDataset(upload: Upload!): Dataset
   renameDataset(id: ID!, newName: String!): Dataset
   deleteDataset(id: ID!): Dataset

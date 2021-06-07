@@ -60,7 +60,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const [keys, setKeys] = React.useState([""]);
-  const [errors, setErrors] = React.useState([false])
+  const [errors, setErrors] = React.useState([false]);
   // const [createDataset] = useMutation(CREATE_PROJECT_MUTATION);
   // const apolloClient = useApolloClient();
   // const [creating, setCreating] = React.useState(false);
@@ -105,7 +105,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
     if (!error) {
       console.log("set");
     }
-  }
+  };
 
   return (
     <>
@@ -125,7 +125,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
                     <Grid item xs={10}>
                       <TextField
                         error={errors[index]}
-                        helperText={errors[index]?"Please enter a class name or remove this field.":""}
+                        helperText={errors[index] ? "Please enter a class name or remove this field." : ""}
                         key={index}
                         placeholder={"Type class name here"}
                         onChange={(event) => update(index, event.target.value)}
@@ -143,8 +143,12 @@ export default function CreateDatasetDialogButton(): ReactElement {
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button variant={"contained"} onClick={handleClose}>Cancel</Button>
-            <Button variant={"contained"} color={"primary"} autoFocus onClick={handleCreate}>Create</Button>
+            <Button variant={"contained"} onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button variant={"contained"} color={"primary"} autoFocus onClick={handleCreate}>
+              Create
+            </Button>
           </DialogActions>
         </form>
       </Dialog>

@@ -8,7 +8,7 @@ import * as path from "path";
 import * as fs from "fs";
 
 type DatasetCreateParameters = {
-  "classes": string[];
+  classes: string[];
   "max-images": number;
 };
 
@@ -28,8 +28,7 @@ export default class DatasetCreator {
 
   /**
    * Extracts the dataset file so that the dataset can be used by the training container.
-   */  public async createDataset(): Promise<void> {
-
+   */ public async createDataset(): Promise<void> {
     this.status = DatasetCreateStatus.Downloading;
 
     console.info(`${this.project.id}: Trainer extracting dataset`);
@@ -37,5 +36,4 @@ export default class DatasetCreator {
     await this.docker.runContainer(this.container);
     console.info(`${this.project.id}: Trainer extracted dataset`);
   }
-
 }

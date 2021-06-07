@@ -11,6 +11,7 @@ import { LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphq
 import { Sequelize } from "sequelize";
 import { Dataset } from "../store";
 import rimraf = require("rimraf");
+import MLService from "../mL";
 
 interface SuperviselyMeta {
   classes: {
@@ -46,13 +47,14 @@ interface SuperviselyImage {
 }
 
 export class DatasetService extends DataSource {
+  private readonly mLService: MLService;
   private readonly path: string;
   private store: Sequelize;
 
-  constructor(store: Sequelize, path: string) {
+  constructor(store: Sequelize, mLService: MLService, path: string) {
     super();
-
     this.path = path;
+    this.mLService = mLService;
     this.store = store;
   }
 
@@ -82,8 +84,11 @@ export class DatasetService extends DataSource {
     return images;
   }
 
-  async createDataset(classes: string[], maxImages: number): Promise<Dataset> {
-
+  async createDataset(classes: string[], maxImages: number): Promise<number> {
+    return new Promise((resolve, reject) => {
+      console.log("Create Dataset mutation");
+      return;
+    });
   }
 
   async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
