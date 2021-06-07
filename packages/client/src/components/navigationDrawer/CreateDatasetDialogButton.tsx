@@ -15,6 +15,7 @@ import { useApolloClient, useMutation } from "@apollo/client";
 import { TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
 import { ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
+import { Text } from "recharts";
 
 const useStyles = makeStyles((theme) => ({
   item: {
@@ -61,6 +62,8 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [keys, setKeys] = React.useState([""]);
   const [errors, setErrors] = React.useState([false]);
+  const [maxNumber, setNumber] = React.useState(0);
+  const [numberError, setNumberError] = React.useState(false);
   const [createDataset] = useMutation(CREATE_DATASET_MUTATION);
   // const apolloClient = useApolloClient();
   // const [creating, setCreating] = React.useState(false);
@@ -101,9 +104,16 @@ export default function CreateDatasetDialogButton(): ReactElement {
       error = error || testErrors[i];
     }
     setErrors(testErrors);
+    if (isNaN(maxNumber) || maxNumber <= 0) {
+      setNumberError(true);
+      error = true;
+    } else {
+      setNumberError(false);
+    }
+
     if (!error) {
       console.log("set");
-      await createDataset({variables: {classes: ["testClass"], maxImages: 4}})
+      await createDataset({variables: {classes: keys, maxImages: maxNumber}})
     }
   };
 
@@ -114,19 +124,21 @@ export default function CreateDatasetDialogButton(): ReactElement {
         <DialogTitle>Create Dataset from OpenImages</DialogTitle>
         <form autoComplete={"off"}>
           <DialogContent dividers>
-            <Grid container alignItems="center" justify="center" className={classes.mainContainer}>
+            <Grid container className={classes.mainContainer}>
               {keys.map((obj: string, index: number) => {
                 return (
                   <>
-                    <Grid item xs={2} key={index}>
-                      <IconButton onClick={() => remove(index)}>
-                        <RemoveCircleOutline />
-                      </IconButton>
-                    </Grid>
+                    {index === 0 ? <Grid item xs={2}/> :
+                      <Grid item xs={2} key={index}>
+                        <IconButton onClick={() => remove(index)}>
+                          <RemoveCircleOutline />
+                        </IconButton>
+                      </Grid>
+                    }
                     <Grid item xs={10}>
                       <TextField
                         error={errors[index]}
-                        helperText={errors[index] ? "Please enter a class name or remove this field." : ""}
+                        helperText={errors[index] ? "Please enter a class name or remove this field." : "Class name"}
                         key={index}
                         placeholder={"Type class name here"}
                         onChange={(event) => update(index, event.target.value)}
@@ -140,6 +152,16 @@ export default function CreateDatasetDialogButton(): ReactElement {
                 <IconButton onClick={append}>
                   <ControlPoint />
                 </IconButton>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  error={numberError}
+                  helperText={"Number of images per class"}
+                  placeholder={"1000"}
+                  type={"number"}
+                  className={classes.textfield}
+                  onChange={(event) => setNumber(parseInt(event.target.value))}
+                />
               </Grid>
             </Grid>
           </DialogContent>

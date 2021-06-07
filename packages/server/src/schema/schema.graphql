@@ -52,6 +52,7 @@ enum DockerState {
   TRAIN_PULL
   EXPORT_PULL
   TEST_PULL
+  CREATE_PULL
   READY
 }
 

@@ -4,6 +4,7 @@ import Exporter from "./Exporter";
 import Trainer from "./Trainer";
 import Tester from "./Tester";
 import Docker from "./Docker";
+import Creator from "./Creator";
 
 export default class MLService {
   private dockerState: DockerState;
@@ -42,6 +43,9 @@ export default class MLService {
 
     this.dockerState = DockerState.TestPull;
     await this.docker.pullImages(Object.values(Tester.images));
+
+    this.dockerState = DockerState.CreatePull;
+    await this.docker.pullImages(Object.values(Creator.images))
 
     this.dockerState = DockerState.Ready;
   }
