@@ -90,11 +90,20 @@ class BBox(collections.namedtuple('BBox', ['xmin', 'ymin', 'xmax', 'ymax'])):
 
 class Tester:
     def __init__(self, config_parser):
-        model_path = "model.tflite"
+
+
 
         print("Initializing TFLite runtime interpreter")
-        self.interpreter = tflite.Interpreter(model_path,
-                                              experimental_delegates=[tflite.load_delegate('libedgetpu.so.1')])
+        try:
+            model_path = "model.tflite"
+            self.interpreter = tflite.Interpreter(model_path, experimental_delegates=[tflite.load_delegate('libedgetpu.so.1')])
+            self.hardware_type = "Coral Edge TPU"
+        except:
+            print("Failed to create Interpreter with Coral, switching to unoptimized")
+            model_path = "unoptimized.tflite"
+            self.interpreter = tflite.Interpreter(model_path)
+            self.hardware_type = "Unoptimized"
+
         self.interpreter.allocate_tensors()
 
         print("Getting labels")
@@ -105,23 +114,27 @@ class Tester:
         print("Connecting to Network Tables")
         ntinst = NetworkTablesInstance.getDefault()
         ntinst.startClientTeam(config_parser.team)
+        ntinst.startDSClient()
         self.entry = ntinst.getTable("ML").getEntry("detections")
+
+        self.coral_entry = ntinst.getTable("ML").getEntry("coral")
+        self.fps_entry = ntinst.getTable("ML").getEntry("fps")
+        self.resolution_entry = ntinst.getTable("ML").getEntry("resolution")
         self.temp_entry = []
 
         print("Starting camera server")
         cs = CameraServer.getInstance()
         camera = cs.startAutomaticCapture()
-        # print("Cameras:", config_parser.cameras)
         camera_config = config_parser.cameras[0]
         WIDTH, HEIGHT = camera_config["width"], camera_config["height"]
-        # print(WIDTH, HEIGHT, "DIMS")
         camera.setResolution(WIDTH, HEIGHT)
-        camera.setExposureManual(50)
         self.cvSink = cs.getVideo()
         self.img = np.zeros(shape=(HEIGHT, WIDTH, 3), dtype=np.uint8)
         self.output = cs.putVideo("Axon", WIDTH, HEIGHT)
-
         self.frames = 0
+
+        self.coral_entry.setString(self.hardware_type)
+        self.resolution_entry.setString(str(WIDTH) + ", " + str(HEIGHT))
 
     def run(self):
         print("Starting mainloop")
@@ -155,10 +168,12 @@ class Tester:
                     frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale,
                                                  y_scale)
             self.output.putFrame(frame_cv2)
-            self.entry.putString(json.dumps(self.temp_entry))
+            self.entry.setString(json.dumps(self.temp_entry))
             self.temp_entry = []
-            if self.frames % 1000 == 0:
+            if self.frames % 100 == 0:
                 print("Completed", self.frames, "frames. FPS:", (1 / (time() - start)))
+            if self.frames % 10 == 0:
+                self.fps_entry.setNumber((1 / (time() - start)))
             self.frames += 1
 
     def label_frame(self, frame, object_name, box, score, x_scale, y_scale):
