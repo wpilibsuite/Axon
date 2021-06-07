@@ -10,8 +10,8 @@ import {
   TextField,
   Typography
 } from "@material-ui/core";
-// import gql from "graphql-tag";
-// import { useApolloClient, useMutation } from "@apollo/client";
+import gql from "graphql-tag";
+import { useApolloClient, useMutation } from "@apollo/client";
 import { TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
 import { ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
@@ -48,23 +48,22 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-// const CREATE_PROJECT_MUTATION = gql`
-//   mutation AddProject($name: String!) {
-//     createProject(name: $name) {
-//       id
-//     }
-//   }
-// `;
+const CREATE_DATASET_MUTATION = gql`
+  mutation CreateDataset($classes: [String!]!, $maxImages: Int!) {
+    createDataset(classes: $classes, maxImages: $maxImages) {
+      success
+    }
+  }
+`;
 
 export default function CreateDatasetDialogButton(): ReactElement {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const [keys, setKeys] = React.useState([""]);
   const [errors, setErrors] = React.useState([false]);
-  // const [createDataset] = useMutation(CREATE_PROJECT_MUTATION);
+  const [createDataset] = useMutation(CREATE_DATASET_MUTATION);
   // const apolloClient = useApolloClient();
   // const [creating, setCreating] = React.useState(false);
-  // const apolloClient = useApolloClient();
   //
   //
   // if (creating) {
@@ -94,7 +93,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
     setErrors(testErrors);
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     let error = false;
     const testErrors: boolean[] = [...errors];
     for (let i = 0; i < keys.length; i++) {
@@ -104,8 +103,10 @@ export default function CreateDatasetDialogButton(): ReactElement {
     setErrors(testErrors);
     if (!error) {
       console.log("set");
+      await createDataset({variables: {classes: ["testClass"], maxImages: 4}})
     }
   };
+
 
   return (
     <>

@@ -7,7 +7,7 @@ import * as unzipper from "unzipper";
 import * as tar from "tar";
 import { imageSize as sizeOf } from "image-size";
 import { glob } from "glob";
-import { LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
+import { CreateJob, LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import { Sequelize } from "sequelize";
 import { Dataset } from "../store";
 import rimraf = require("rimraf");
@@ -84,10 +84,10 @@ export class DatasetService extends DataSource {
     return images;
   }
 
-  async createDataset(classes: string[], maxImages: number): Promise<number> {
+  async createDataset(classes: string[], maxImages: number): Promise<CreateJob> {
     return new Promise((resolve, reject) => {
       console.log("Create Dataset mutation");
-      return;
+      return 5;
     });
   }
 

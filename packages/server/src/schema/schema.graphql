@@ -19,7 +19,7 @@ type Query {
 type Mutation {
   resetDocker: Boolean!
 
-  createDataset(classes: [String!]!, maxImages: Int!): Int
+  createDataset(classes: [String!]!, maxImages: Int!): CreateJob
   addDataset(upload: Upload!): Dataset
   renameDataset(id: ID!, newName: String!): Dataset
   deleteDataset(id: ID!): Dataset
@@ -188,6 +188,10 @@ type Testjob {
   exportID: String!
   projectID: String!
   streamPort: String!
+}
+
+type CreateJob {
+    success: Int!
 }
 
 input ProjectUpdateInput {
