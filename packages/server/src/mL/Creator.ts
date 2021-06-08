@@ -1,8 +1,7 @@
 import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
 import Docker from "./Docker";
-import { Project, Checkpoint } from "../store";
+import { Checkpoint } from "../store";
 import { Container } from "dockerode";
-import * as rimraf from "rimraf";
 import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
@@ -17,125 +16,46 @@ export default class Creator {
     openimages: { name: "wpilib/axon-openimages", tag: process.env.AXON_VERSION || "edge" }
   };
 
+  readonly classes: string[];
+  readonly maxImages: number;
+
   private container: Container;
   private status: TrainStatus;
   readonly docker: Docker;
+  readonly directory: string;
 
-  public constructor(docker: Docker) {
+  public constructor(docker: Docker, classes: string[], maxImages: number, directory: string) {
     this.status = TrainStatus.Idle;
     this.docker = docker;
+    this.classes = classes;
+    this.maxImages = maxImages;
+    this.directory = directory;
   }
 
   /**
    * Create the training parameter file in the container's mounted directory to control the container.
    */
   public async writeParameterFile(): Promise<void> {
-    do if (await this.stopped()) return;
-    while (this.paused);
 
     this.status = TrainStatus.Writing;
 
-    const DATASETPATHS = (await this.project.getDatasets()).map((dataset) =>
-      path.posix.join(Docker.containerProjectPath(this.project), "dataset", path.basename(dataset.path))
-    );
-
-    const INITCKPT =
-      this.project.initialCheckpoint !== "default"
-        ? path.posix.join("checkpoints", this.project.initialCheckpoint)
-        : this.project.initialCheckpoint;
-
-    const trainParameters: TrainParameters = {
-      "eval-frequency": this.project.evalFrequency,
-      "percent-eval": this.project.percentEval,
-      "batch-size": this.project.batchSize,
-      "dataset-path": DATASETPATHS,
-      name: this.project.name,
-      epochs: this.lastEpoch,
-      checkpoint: INITCKPT
+    const createParameters: CreateParameters = {
+      "classes": this.classes,
+      "maxImages": this.maxImages
     };
 
-    const HYPERPARAMETER_FILE_PATH = path.posix.join(this.project.directory, "hyperparameters.json");
-    await fs.promises.writeFile(HYPERPARAMETER_FILE_PATH, JSON.stringify(trainParameters));
-  }
-
-  /**
-   * Clean the container's mounted directory if a training has already taken place.
-   */
-  public async handleOldData(): Promise<void> {
-    do if (await this.stopped()) return;
-    while (this.paused);
-
-    this.status = TrainStatus.Cleaning;
-
-    /* remove old train dir to clear eval files */
-    const OLD_TRAIN_DIR = path.posix.join(this.project.directory, "train");
-    if (fs.existsSync(OLD_TRAIN_DIR)) {
-      await new Promise((resolve) => rimraf(OLD_TRAIN_DIR, resolve));
-      console.log(`old train dir ${OLD_TRAIN_DIR} removed`);
-    }
-
-    /* get rid of old metrics file so the old metrics are not read */
-    const OLD_METRICS_FILE = path.posix.join(this.project.directory, "metrics.json");
-    if (fs.existsSync(OLD_METRICS_FILE)) {
-      fs.unlinkSync(OLD_METRICS_FILE);
-    }
-
-    const project = await Project.findByPk(this.project.id);
-    await project.setCheckpoints([]);
-  }
-
-  /**
-   * Move datasets and custom initial checkpoints to the mounted directory.
-   */
-  public async moveDataToMount(): Promise<void> {
-    do if (await this.stopped()) return;
-    while (this.paused);
-
-    this.status = TrainStatus.Moving;
-
-    for (const dataset of await this.project.getDatasets())
-      await fs.promises.copyFile(
-        path.posix.join("data", dataset.path),
-        path.posix.join(this.project.directory, "dataset", path.basename(dataset.path))
-      );
-    console.log("datasets copied");
-
-    //custom checkpoints not yet supported by gui
-    if (this.project.initialCheckpoint != "default") {
-      if (!fs.existsSync(path.posix.join(this.project.directory, "checkpoints")))
-        await mkdirp(path.posix.join(this.project.directory, "checkpoints"));
-
-      const ckptPath = path.posix.join("data", "checkpoints", this.project.initialCheckpoint);
-      const ckptMount = path.posix.join(this.project.directory, "checkpoints", this.project.initialCheckpoint);
-      await Trainer.copyCheckpoint(ckptPath, ckptMount);
-    }
-  }
-
-  /**
-   * Extracts the dataset file so that the dataset can be used by the training container.
-   */
-  public async extractDataset(): Promise<void> {
-    do if (await this.stopped()) return;
-    while (this.paused);
-
-    this.status = TrainStatus.Extracting;
-
-    console.info(`${this.project.id}: Trainer extracting dataset`);
-    this.container = await this.docker.createContainer(this.project, this.project.id, Trainer.images.dataset);
-    await this.docker.runContainer(this.container);
-    console.info(`${this.project.id}: Trainer extracted dataset`);
+    const HYPERPARAMETER_FILE_PATH = path.posix.join(this.directory, "hyperparameters.json");
+    await fs.promises.writeFile(HYPERPARAMETER_FILE_PATH, JSON.stringify(createParameters));
   }
 
   /**
    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
    */
   public async trainModel(): Promise<void> {
-    do if (await this.stopped()) return;
-    while (this.paused);
 
     this.status = TrainStatus.Training;
 
-    const metricsContainer = await this.docker.createContainer(this.project, this.project.id, Trainer.images.metrics, [
+    const metricsContainer = await this.docker.createContainerProjectless(this.directory, this.id, Trainer.images.metrics, [
       "6006/tcp"
     ]);
     this.container = await this.docker.createContainer(this.project, this.project.id, Trainer.images.train);

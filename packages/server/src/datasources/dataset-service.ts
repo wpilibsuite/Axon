@@ -89,6 +89,10 @@ export class DatasetService extends DataSource {
     const id = uuidv4();
     const directory = `create/${id}`;
     await mkdirp(directory);
+    await this.mLService.create(classes, maxImages, directory);
+
+    //TODO: delete create directory when done
+
     return new Promise((resolve, reject) => {
       console.log("Create Dataset mutation");
       console.log(classes);

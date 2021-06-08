@@ -128,6 +128,12 @@ export default class MLService {
     console.info(`${tester.test.id}: Test complete`);
   }
 
+  async create(classes: string[], maxImages: number, directory: string): Promise<void> {
+    const creator: Creator = new Creator(this.docker, classes, maxImages, directory);
+
+    await creator.writeParameterFile();
+  }
+
   /**
    * Stop the training of a project.
    * Can only be resumed from an eval checkpoint.

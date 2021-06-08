@@ -121,8 +121,24 @@ export default class Docker {
   async createContainer(project: Project, id: string, image: DockerImage, ports: [string?] = []): Promise<Container> {
     console.info(`${project.id}: Launching container ${image.name}`);
 
+    return this.createContainerProjectless(Docker.containerProjectPath(project), id, image, ports);
+  }
+
+  /**
+   * Create a container for the provided project with the given image. Opens and binds ports as provided.
+   *
+   * If the container already exists (as known by its name), it will remove that container first.
+   *
+   * @param directory directory to run container
+   * @param id id of process
+   * @param image The image to base this container on
+   * @param ports The ports to expose
+   */
+  async createContainerProjectless(directory: string, id: string, image: DockerImage, ports: [string?] = []): Promise<Container> {
+    console.info(`${id}: Launching container ${image.name}`);
+
     const options: ContainerCreateOptions = {
-      Cmd: [Docker.containerProjectPath(project)],
+      Cmd: [directory],
       Image: `${image.name}:${image.tag}`,
       name: `wpilib-${image.name.replace(/\//g, "_")}-${id}`,
       Labels: {
