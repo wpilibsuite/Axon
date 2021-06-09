@@ -11,8 +11,8 @@ import React, { ReactElement, useState } from "react";
 import { Button, IconButton, Tooltip, Typography } from "@material-ui/core";
 import { PlayCircleFilled } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
+import { GET_HYPERPARAMETERS } from "./Parameters";
 import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
-import Parameters from "./Parameters";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -32,32 +32,12 @@ const START_TRAINING = gql`
   }
 `;
 
-Parameters.fragments = {
-  hyperparameters: gql`
-    fragment Hyperparameters on Project {
-      id
-      epochs
-      batchSize
-      evalFrequency
-      percentEval
-    }
-  `
-};
-const GET_HYPERPARAMETERS2 = gql`
-  query GetHyperparameters($id: ID!) {
-    project(id: $id) {
-      ...Hyperparameters
-    }
-  }
-  ${Parameters.fragments.hyperparameters}
-`;
-
 export function StartButton(props: { id: string }): ReactElement {
   const classes = useStyles();
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [starting, setStarting] = useState(false);
 
-  const parameters = useQuery<GetHyperparameters, GetHyperparametersVariables>(GET_HYPERPARAMETERS2, {
+  const parameters = useQuery<GetHyperparameters, GetHyperparametersVariables>(GET_HYPERPARAMETERS, {
     variables: {
       id: props.id
     }

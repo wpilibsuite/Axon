@@ -20,7 +20,7 @@ Parameters.fragments = {
   `
 };
 
-const GET_HYPERPARAMETERS = gql`
+export const GET_HYPERPARAMETERS = gql`
   query GetHyperparameters($id: ID!) {
     project(id: $id) {
       ...Hyperparameters
