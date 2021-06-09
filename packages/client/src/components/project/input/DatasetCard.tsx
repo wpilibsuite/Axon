@@ -36,6 +36,10 @@ const useStyles = makeStyles((theme: Theme) =>
     media: {
       height: 0,
       paddingTop: "75%" // 4:3
+    },
+    box: {
+      wordBreak: "break-word",
+      maxWidth: 225
     }
   })
 );
@@ -69,6 +73,7 @@ export function DatasetCard(props: { projectId: string; dataset: GetDatasets_dat
   return (
     <Card className={classes.root}>
       <CardHeader
+        className={classes.box}
         action={
           <Checkbox
             onChange={handleOnSelect}

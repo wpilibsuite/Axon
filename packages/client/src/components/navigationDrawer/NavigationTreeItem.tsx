@@ -26,6 +26,10 @@ const useStyles = makeStyles((theme) => ({
   labelText: {
     fontWeight: "inherit",
     flexGrow: 1
+  },
+  dataset: {
+    wordWrap: "break-word",
+    maxWidth: 100
   }
 }));
 
@@ -45,7 +49,9 @@ export default function NavigationTreeItem({ text, nodeId, icon }: ProjectListPr
       label={
         <div className={classes.labelRoot}>
           {React.createElement(icon, { className: classes.labelIcon })}
-          <Typography variant={"body1"}>{text}</Typography>
+          <Typography variant={"body1"} className={classes.dataset}>
+            {text}
+          </Typography>
         </div>
       }
     />
