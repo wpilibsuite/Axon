@@ -5,7 +5,6 @@ import { GetDatasets_datasets } from "./__generated__/GetDatasets";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { SetDatasetInProject, SetDatasetInProjectVariables } from "./__generated__/SetDatasetInProject";
 import { GetProject, GetProjectVariables } from "./__generated__/GetProject";
-import { blue } from "@material-ui/core/colors";
 
 const SET_DATASET_TO_PROJECT = gql`
   mutation SetDatasetInProject($projectId: ID!, $datasetId: ID!, $isIncluded: Boolean!) {
