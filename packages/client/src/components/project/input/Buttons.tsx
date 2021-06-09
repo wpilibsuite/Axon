@@ -11,6 +11,8 @@ import React, { ReactElement, useState } from "react";
 import { Button, IconButton, Tooltip } from "@material-ui/core";
 import { PlayCircleFilled } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
+import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
+import Parameters from "./Parameters";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -30,20 +32,47 @@ const START_TRAINING = gql`
   }
 `;
 
+const GET_HYPERPARAMETERS = gql`
+  query GetHyperparameters($id: ID!) {
+    project(id: $id) {
+      ...Hyperparameters
+    }
+  }
+  ${Parameters.fragments.hyperparameters}
+`;
+
 export function StartButton(props: { id: string }): ReactElement {
   const classes = useStyles();
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [starting, setStarting] = useState(false);
 
+  const parameters = useQuery<GetHyperparameters, GetHyperparametersVariables>(GET_HYPERPARAMETERS, {
+    variables: {
+      id: props.id
+    }
+  });
+
+  if (parameters.loading) {
+    return <p>Loading Parameters...</p>;
+  }
+  if (parameters.error) {
+    return <p>Parameter Error :(</p>;
+  }
+
   const handleClick = () => {
-    startTraining({ variables: { id: props.id } });
-    setStarting(true);
+    if (parameters.data?.project?.epochs || 0 <= 0 || parameters.data?.project?.batchSize || 0 <= 0
+      || parameters.data?.project?.evalFrequency || 0 <= 0 || parameters.data?.project?.percentEval || 0<= 0 ){
+      
+    } else {
+      startTraining({ variables: { id: props.id } });
+      setStarting(true);
+    }
   };
 
-  const { data, loading, error } = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
-  if (loading) return <p>connecting to trainer</p>;
-  if (error) return <p>cant connect to trainer</p>;
-  if (data?.dockerState === DockerState.TRAIN_PULL) return <p>no train image yet</p>;
+  const dockerState = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
+  if (dockerState.loading) return <p>connecting to trainer</p>;
+  if (dockerState.error) return <p>cant connect to trainer</p>;
+  if (dockerState.data?.dockerState === DockerState.TRAIN_PULL) return <p>no train image yet</p>;
   if (starting) return <Button>Starting...</Button>;
 
   return (
