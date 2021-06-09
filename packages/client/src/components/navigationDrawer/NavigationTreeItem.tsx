@@ -49,7 +49,9 @@ export default function NavigationTreeItem({ text, nodeId, icon }: ProjectListPr
       label={
         <div className={classes.labelRoot}>
           {React.createElement(icon, { className: classes.labelIcon })}
-          <Typography variant={"body1"} className={classes.dataset}>{text}</Typography>
+          <Typography variant={"body1"} className={classes.dataset}>
+            {text}
+          </Typography>
         </div>
       }
     />

@@ -22,13 +22,12 @@ const GET_DATASETS = gql`
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      maxWidth: "25ch",
+      maxWidth: "25ch"
     }
   })
 );
 
 export default function Datasets(props: { id: string; selected: GetProjectData_project_datasets[] }): ReactElement {
-
   const classes = useStyles();
 
   const { data, loading, error } = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);

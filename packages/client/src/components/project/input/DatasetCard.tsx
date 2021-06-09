@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     media: {
       height: 0,
-      paddingTop: "75%", // 4:3
+      paddingTop: "75%" // 4:3
     },
     box: {
       wordBreak: "break-word",
