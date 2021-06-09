@@ -31,5 +31,5 @@ jobs:
         run: yarn launch:build
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.artifact-name }}
-          path: packages/launcher/dist/*.{{ matrix.extension}}
+          name: axon-installer-${{ matrix.artifact-name }}.{{ matrix.extension }}
+          path: packages/launcher/dist/*.{{ matrix.extension }}
