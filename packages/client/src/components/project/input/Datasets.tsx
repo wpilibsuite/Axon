@@ -1,10 +1,11 @@
 import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
 import { GetDatasets } from "./__generated__/GetDatasets";
-import { TextField } from "@material-ui/core";
+import { createStyles, TextField, Theme } from "@material-ui/core";
 import React, { ReactElement } from "react";
 import { DatasetCard } from "./DatasetCard";
 import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
+import { makeStyles } from "@material-ui/core/styles";
 
 const GET_DATASETS = gql`
   query GetDatasets {
@@ -18,7 +19,18 @@ const GET_DATASETS = gql`
   }
 `;
 
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      maxWidth: "25ch",
+    }
+  })
+);
+
 export default function Datasets(props: { id: string; selected: GetProjectData_project_datasets[] }): ReactElement {
+
+  const classes = useStyles();
+
   const { data, loading, error } = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);
   const datasetNames = props.selected.map((dataset) => dataset.name);
 
@@ -32,6 +44,7 @@ export default function Datasets(props: { id: string; selected: GetProjectData_p
 
   return (
     <TextField
+      className={classes.root}
       select
       margin={"normal"}
       label="Datasets"

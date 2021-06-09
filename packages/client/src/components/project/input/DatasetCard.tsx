@@ -5,6 +5,7 @@ import { GetDatasets_datasets } from "./__generated__/GetDatasets";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { SetDatasetInProject, SetDatasetInProjectVariables } from "./__generated__/SetDatasetInProject";
 import { GetProject, GetProjectVariables } from "./__generated__/GetProject";
+import { blue } from "@material-ui/core/colors";
 
 const SET_DATASET_TO_PROJECT = gql`
   mutation SetDatasetInProject($projectId: ID!, $datasetId: ID!, $isIncluded: Boolean!) {
@@ -35,7 +36,11 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     media: {
       height: 0,
-      paddingTop: "75%" // 4:3
+      paddingTop: "75%", // 4:3
+    },
+    box: {
+      wordBreak: "break-word",
+      maxWidth: 225
     }
   })
 );
@@ -69,6 +74,7 @@ export function DatasetCard(props: { projectId: string; dataset: GetDatasets_dat
   return (
     <Card className={classes.root}>
       <CardHeader
+        className={classes.box}
         action={
           <Checkbox
             onChange={handleOnSelect}

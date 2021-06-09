@@ -1,4 +1,4 @@
-import { LinearProgress, Typography, Box, Grid } from "@material-ui/core";
+import { LinearProgress, Typography, Box, Grid, Theme, createStyles } from "@material-ui/core";
 import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
 import { StartButton, StopButton, PauseButton } from "./Buttons";
 import { TrainStatus } from "../../../__generated__/globalTypes";
@@ -6,6 +6,7 @@ import { GetTrainjobs } from "./__generated__/GetTrainjobs";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
 import Parameters from "./Parameters";
+import { makeStyles } from "@material-ui/core/styles";
 
 const GET_TRAINJOBS = gql`
   query GetTrainjobs {
