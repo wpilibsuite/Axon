@@ -18,7 +18,7 @@ jobs:
         run: yarn launch:build
       - uses: actions/upload-artifact@v2
         with:
-          name: axon-windows-x64
+          name: axon-installer-windows-x64.exe
           path: packages/launcher/dist/*.exe
 
   build-macos:
@@ -36,7 +36,7 @@ jobs:
         run: yarn launch:build
       - uses: actions/upload-artifact@v2
         with:
-          name: axon-macos
+          name: axon-installer-macos.dmg
           path: packages/launcher/dist/*.dmg
 
   build-linux:
@@ -54,5 +54,5 @@ jobs:
         run: yarn launch:build
       - uses: actions/upload-artifact@v2
         with:
-          name: axon-ubuntu
+          name: axon-installer-ubuntu.deb
           path: packages/launcher/dist/*.deb
