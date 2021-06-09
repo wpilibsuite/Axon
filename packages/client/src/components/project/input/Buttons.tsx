@@ -32,7 +32,18 @@ const START_TRAINING = gql`
   }
 `;
 
-const GET_HYPERPARAMETERS = gql`
+Parameters.fragments = {
+  hyperparameters: gql`
+    fragment Hyperparameters on Project {
+      id
+      epochs
+      batchSize
+      evalFrequency
+      percentEval
+    }
+  `
+};
+const GET_HYPERPARAMETERS2 = gql`
   query GetHyperparameters($id: ID!) {
     project(id: $id) {
       ...Hyperparameters
@@ -46,7 +57,7 @@ export function StartButton(props: { id: string }): ReactElement {
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [starting, setStarting] = useState(false);
 
-  const parameters = useQuery<GetHyperparameters, GetHyperparametersVariables>(GET_HYPERPARAMETERS, {
+  const parameters = useQuery<GetHyperparameters, GetHyperparametersVariables>(GET_HYPERPARAMETERS2, {
     variables: {
       id: props.id
     }
