@@ -90,12 +90,6 @@ class BBox(collections.namedtuple('BBox', ['xmin', 'ymin', 'xmax', 'ymax'])):
 
 class Tester:
     def __init__(self, config_parser):
-<<<<<<< HEAD
-=======
-
-
-
->>>>>>> 1cd641554a578ab51262b7dba72b6d17387c6538
         print("Initializing TFLite runtime interpreter")
         try:
             model_path = "model.tflite"
