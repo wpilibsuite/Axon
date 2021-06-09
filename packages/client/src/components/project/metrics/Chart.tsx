@@ -80,7 +80,7 @@ export default function Chart(props: {
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="step" label={{ value: "Epoch", position: "bottom", fontSize: 15, fill: "white" }} />
-          <YAxis label={{ value: "Precision", position: "insideLeft", angle: -90, fontSize: 15, fill:"white" }} />
+          <YAxis label={{ value: "Precision", position: "insideLeft", angle: -90, fontSize: 15, fill: "white" }} />
           <Tooltip />
           <Legend align="left" />
 
