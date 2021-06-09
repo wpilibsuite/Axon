@@ -7,8 +7,8 @@ import * as path from "path";
 import * as fs from "fs";
 
 type CreateParameters = {
-  classes: string[];
-  maxImages: number;
+  labels: string[];
+  limit: number;
 };
 
 export default class Creator {
@@ -29,7 +29,7 @@ export default class Creator {
     this.docker = docker;
     this.classes = classes;
     this.maxImages = maxImages;
-    this.directory = `/wpi-data/create/${id}`;
+    this.directory = `data/create/${id}`;
     this.id = id;
   }
 
@@ -40,8 +40,8 @@ export default class Creator {
     this.status = TrainStatus.Writing;
 
     const createParameters: CreateParameters = {
-      classes: this.classes,
-      maxImages: this.maxImages
+      labels: this.classes,
+      limit: this.maxImages
     };
 
     const HYPERPARAMETER_FILE_PATH = path.posix.join(this.directory, "data.json");
@@ -55,7 +55,7 @@ export default class Creator {
   public async createDataset(): Promise<void> {
     this.status = TrainStatus.Training;
 
-    const container = await this.docker.createContainerProjectless("/wpi-data", this.id, Creator.images.openimages);
+    const container = await this.docker.createContainerProjectless(`${this.id}`, this.id, Creator.images.openimages);
 
     await this.docker.runContainer(container);
     this.status = TrainStatus.Stopped;

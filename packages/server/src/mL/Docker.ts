@@ -19,6 +19,7 @@ export default class Docker {
 
     /* someone come up with a better way to do this */
     this.mount = DATA_DIR === "/usr/src/app/packages/server/data" ? VOLUME_NAME : DATA_DIR;
+    console.log("data dir " + DATA_DIR);
   }
 
   /**

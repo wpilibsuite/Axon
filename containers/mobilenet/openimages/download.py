@@ -115,7 +115,7 @@ class OpenImagesDownloader:
                     box = {i.lower(): entry.get(i) for i in ["XMin", "XMax", "YMin", "YMax"]}
                     label = self.label_map[entry.get("LabelName")].lower()
                     if label in labels:
-                        print(label)
+#                         print(label)
                         self.parse_line(key + '.jpg', label, height, width, box)
             except KeyError:
                 pass
@@ -142,7 +142,7 @@ class OpenImagesDownloader:
             for directory in "train test".split():
                 for folderName, subfolders, filenames in os.walk("tar/" + directory):
                     for filename in filenames:
-                        print(filename)
+#                         print(filename)
                         # create complete filepath of file in directory
                         file = os.path.join(directory, filename)
                         # Add file to zip
@@ -151,8 +151,8 @@ class OpenImagesDownloader:
 
 
 if __name__ == "__main__":
-    print("dir", os.listdir(os.getcwd()))
-    downloader = OpenImagesDownloader("data.json")
+    data = "/wpi-data/create/{}/data.json".format(sys.argv[1])
+    downloader = OpenImagesDownloader(data)
     downloader.download()
     downloader.create_csv()
     print("Making archive")
