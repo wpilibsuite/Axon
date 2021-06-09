@@ -12,7 +12,6 @@ import {
 import { GetCheckpoints, GetCheckpoints_project_checkpoints } from "./__generated__/GetCheckpoints";
 import { gql, useQuery } from "@apollo/client";
 import React from "react";
-import { grey } from "@material-ui/core/colors";
 
 type Checkpoint = GetCheckpoints_project_checkpoints;
 
