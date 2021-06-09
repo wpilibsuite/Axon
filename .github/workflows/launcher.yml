@@ -3,19 +3,9 @@ name: Launcher
 on: [push, pull_request]
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            artifact-name: Win64
-          - os: ubuntu-latest
-            artifact-name: Linux
-          - os: macos-latest
-            artifact-name: macOS
-    name: "Build - ${{ matrix.artifact-name }}"
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    name: "Build - Windows"
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js 14
@@ -28,5 +18,41 @@ jobs:
         run: yarn launch:build
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.artifact-name }}
-          path: packages/launcher/dist
+          name: axon-windows-x64
+          path: packages/launcher/dist/*.exe
+
+  build-macos:
+    name: "Build - MacOS"
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - name: Install Packages
+        run: yarn --network-timeout 500000
+      - name: Build
+        run: yarn launch:build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: axon-macos
+          path: packages/launcher/dist/*.dmg
+
+  build-linux:
+    name: "Build - Ubuntu"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - name: Install Packages
+        run: yarn --network-timeout 500000
+      - name: Build
+        run: yarn launch:build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: axon-ubuntu
+          path: packages/launcher/dist/*.deb
