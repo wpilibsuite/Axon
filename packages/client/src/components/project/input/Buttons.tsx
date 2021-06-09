@@ -8,7 +8,7 @@ import { GetTrainjobs_trainjobs } from "./__generated__/GetTrainjobs";
 import { GET_DOCKER_STATE } from "../../trainerStatus/TrainerStatus";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import React, { ReactElement, useState } from "react";
-import { Button, IconButton, Tooltip } from "@material-ui/core";
+import { Button, IconButton, Tooltip, Typography } from "@material-ui/core";
 import { PlayCircleFilled } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
@@ -52,24 +52,33 @@ export function StartButton(props: { id: string }): ReactElement {
     }
   });
 
-  if (parameters.loading) {
-    return <p>Loading Parameters...</p>;
-  }
-  if (parameters.error) {
-    return <p>Parameter Error :(</p>;
-  }
+  const dockerState = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
 
   const handleClick = () => {
-    if (parameters.data?.project?.epochs || 0 <= 0 || parameters.data?.project?.batchSize || 0 <= 0
-      || parameters.data?.project?.evalFrequency || 0 <= 0 || parameters.data?.project?.percentEval || 0<= 0 ){
-      
-    } else {
+    if (
+      !(
+        (parameters.data?.project?.epochs || 0) <= 0 ||
+        (parameters.data?.project?.batchSize || 0) <= 0 ||
+        (parameters.data?.project?.evalFrequency || 0) <= 0 ||
+        (parameters.data?.project?.percentEval || 0) <= 0
+      )
+    ) {
       startTraining({ variables: { id: props.id } });
       setStarting(true);
     }
   };
 
-  const dockerState = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
+  if (
+    (parameters.data?.project?.epochs || 0) <= 0 ||
+    (parameters.data?.project?.batchSize || 0) <= 0 ||
+    (parameters.data?.project?.evalFrequency || 0) <= 0 ||
+    (parameters.data?.project?.percentEval || 0) <= 0
+  ) {
+    return <Button> Invalid Parameters </Button>;
+  }
+
+  if (parameters.loading) return <p>Loading Parameters...</p>;
+  if (parameters.error) return <p>Parameter Error :(</p>;
   if (dockerState.loading) return <p>connecting to trainer</p>;
   if (dockerState.error) return <p>cant connect to trainer</p>;
   if (dockerState.data?.dockerState === DockerState.TRAIN_PULL) return <p>no train image yet</p>;
