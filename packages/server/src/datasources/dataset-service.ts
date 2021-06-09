@@ -8,8 +8,8 @@ import * as tar from "tar";
 import { imageSize as sizeOf } from "image-size";
 import { glob } from "glob";
 import { CreateJob, LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
-import { Sequelize} from "sequelize";
-import {v4 as uuidv4} from 'uuid';
+import { Sequelize } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
 import { Dataset } from "../store";
 import rimraf = require("rimraf");
 import MLService from "../mL";
@@ -96,7 +96,7 @@ export class DatasetService extends DataSource {
     return new Promise((resolve, reject) => {
       console.log("Create Dataset mutation");
       console.log(classes);
-      console.log("Images: "+maxImages);
+      console.log("Images: " + maxImages);
       return 5;
     });
   }

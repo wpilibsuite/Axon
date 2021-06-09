@@ -7,8 +7,8 @@ import * as path from "path";
 import * as fs from "fs";
 
 type CreateParameters = {
-  "classes": string[];
-  "maxImages": number;
+  classes: string[];
+  maxImages: number;
 };
 
 export default class Creator {
@@ -36,12 +36,11 @@ export default class Creator {
    * Create the training parameter file in the container's mounted directory to control the container.
    */
   public async writeParameterFile(): Promise<void> {
-
     this.status = TrainStatus.Writing;
 
     const createParameters: CreateParameters = {
-      "classes": this.classes,
-      "maxImages": this.maxImages
+      classes: this.classes,
+      maxImages: this.maxImages
     };
 
     const HYPERPARAMETER_FILE_PATH = path.posix.join(this.directory, "hyperparameters.json");
@@ -52,12 +51,14 @@ export default class Creator {
    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
    */
   public async trainModel(): Promise<void> {
-
     this.status = TrainStatus.Training;
 
-    const metricsContainer = await this.docker.createContainerProjectless(this.directory, this.id, Trainer.images.metrics, [
-      "6006/tcp"
-    ]);
+    const metricsContainer = await this.docker.createContainerProjectless(
+      this.directory,
+      this.id,
+      Trainer.images.metrics,
+      ["6006/tcp"]
+    );
     this.container = await this.docker.createContainer(this.project, this.project.id, Trainer.images.train);
 
     await metricsContainer.start();

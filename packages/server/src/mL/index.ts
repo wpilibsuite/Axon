@@ -45,7 +45,7 @@ export default class MLService {
     await this.docker.pullImages(Object.values(Tester.images));
 
     this.dockerState = DockerState.CreatePull;
-    await this.docker.pullImages(Object.values(Creator.images))
+    await this.docker.pullImages(Object.values(Creator.images));
 
     this.dockerState = DockerState.Ready;
   }

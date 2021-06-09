@@ -134,7 +134,12 @@ export default class Docker {
    * @param image The image to base this container on
    * @param ports The ports to expose
    */
-  async createContainerProjectless(directory: string, id: string, image: DockerImage, ports: [string?] = []): Promise<Container> {
+  async createContainerProjectless(
+    directory: string,
+    id: string,
+    image: DockerImage,
+    ports: [string?] = []
+  ): Promise<Container> {
     console.info(`${id}: Launching container ${image.name}`);
 
     const options: ContainerCreateOptions = {

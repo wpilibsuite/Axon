@@ -113,10 +113,9 @@ export default function CreateDatasetDialogButton(): ReactElement {
 
     if (!error) {
       console.log("set");
-      await createDataset({variables: {classes: keys, maxImages: maxNumber}})
+      await createDataset({ variables: { classes: keys, maxImages: maxNumber } });
     }
   };
-
 
   return (
     <>
@@ -128,13 +127,15 @@ export default function CreateDatasetDialogButton(): ReactElement {
               {keys.map((obj: string, index: number) => {
                 return (
                   <>
-                    {index === 0 ? <Grid item xs={2}/> :
+                    {index === 0 ? (
+                      <Grid item xs={2} />
+                    ) : (
                       <Grid item xs={2} key={index}>
                         <IconButton onClick={() => remove(index)}>
                           <RemoveCircleOutline />
                         </IconButton>
                       </Grid>
-                    }
+                    )}
                     <Grid item xs={10}>
                       <TextField
                         error={errors[index]}
