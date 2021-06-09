@@ -12,6 +12,7 @@ import {
 import { GetCheckpoints, GetCheckpoints_project_checkpoints } from "./__generated__/GetCheckpoints";
 import { gql, useQuery } from "@apollo/client";
 import React from "react";
+import { grey } from "@material-ui/core/colors";
 
 type Checkpoint = GetCheckpoints_project_checkpoints;
 
@@ -78,8 +79,8 @@ export default function Chart(props: {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="step" /*label={{ value: "Epoch", position: "insideBottom" }}*/ />
-          <YAxis /* label={{ value: "Percent", position: "left", angle: -90 }}*/ />
+          <XAxis dataKey="step" label={{ value: "Epoch", position: "bottom", fontSize: 15, fill: "white" }} />
+          <YAxis label={{ value: "Precision", position: "insideLeft", angle: -90, fontSize: 15, fill:"white" }} />
           <Tooltip />
           <Legend align="left" />
 
