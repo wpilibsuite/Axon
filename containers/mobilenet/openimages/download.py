@@ -151,8 +151,8 @@ class OpenImagesDownloader:
 
 
 if __name__ == "__main__":
-    data_json = sys.argv[1]
-    downloader = OpenImagesDownloader(data_json)
+    print("dir", os.listdir(os.getcwd()))
+    downloader = OpenImagesDownloader("data.json")
     downloader.download()
     downloader.create_csv()
     print("Making archive")

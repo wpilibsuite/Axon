@@ -87,9 +87,10 @@ export class DatasetService extends DataSource {
 
   async createDataset(classes: string[], maxImages: number): Promise<CreateJob> {
     const id = uuidv4();
-    const directory = `create/${id}`;
+    const directory = `/wpi-data/create/${id}`;
+    console.log("CWD:"+process.cwd())
     await mkdirp(directory);
-    await this.mLService.create(classes, maxImages, directory);
+    await this.mLService.create(classes, maxImages, directory, id);
 
     //TODO: delete create directory when done
 

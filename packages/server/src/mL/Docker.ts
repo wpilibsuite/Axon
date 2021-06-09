@@ -140,7 +140,7 @@ export default class Docker {
     image: DockerImage,
     ports: [string?] = []
   ): Promise<Container> {
-    console.info(`${id}: Launching container ${image.name}`);
+    console.info(`${id}: Launching container ${image.name}, ${directory}`);
 
     const options: ContainerCreateOptions = {
       Cmd: [directory],
