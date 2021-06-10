@@ -58,7 +58,7 @@ export function StartButton(props: { id: string; selected: GetProjectData_projec
         (parameters.data?.project?.evalFrequency || 0) <= 0 ||
         (parameters.data?.project?.percentEval || 0) <= 0
       ) &&
-      datasetNames.length != 0
+      datasetNames.length !== 0
     ) {
       startTraining({ variables: { id: props.id } });
       setStarting(true);
@@ -74,7 +74,7 @@ export function StartButton(props: { id: string; selected: GetProjectData_projec
     return <Button> Invalid Parameters </Button>;
   }
 
-  if (datasetNames.length == 0) {
+  if (datasetNames.length === 0) {
     return <Button> Requires Dataset </Button>;
   }
 
