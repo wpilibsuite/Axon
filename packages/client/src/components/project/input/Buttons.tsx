@@ -12,7 +12,10 @@ import { Button, IconButton, Tooltip } from "@material-ui/core";
 import { PlayCircleFilled } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import { GET_HYPERPARAMETERS } from "./Parameters";
+import { GET_DATASETS } from "./Datasets";
+import { GetDatasets } from "./__generated__/GetDatasets";
 import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
+import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -32,7 +35,7 @@ const START_TRAINING = gql`
   }
 `;
 
-export function StartButton(props: { id: string }): ReactElement {
+export function StartButton(props: { id: string; selected: GetProjectData_project_datasets[] }): ReactElement {
   const classes = useStyles();
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [starting, setStarting] = useState(false);
@@ -44,6 +47,8 @@ export function StartButton(props: { id: string }): ReactElement {
   });
 
   const dockerState = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
+  const datasets = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);
+  const datasetNames = props.selected.map((dataset) => dataset.name);
 
   const handleClick = () => {
     if (
@@ -52,7 +57,8 @@ export function StartButton(props: { id: string }): ReactElement {
         (parameters.data?.project?.batchSize || 0) <= 0 ||
         (parameters.data?.project?.evalFrequency || 0) <= 0 ||
         (parameters.data?.project?.percentEval || 0) <= 0
-      )
+      ) &&
+      datasetNames.length != 0
     ) {
       startTraining({ variables: { id: props.id } });
       setStarting(true);
@@ -68,6 +74,12 @@ export function StartButton(props: { id: string }): ReactElement {
     return <Button> Invalid Parameters </Button>;
   }
 
+  if (datasetNames.length == 0) {
+    return <Button> Requires Dataset </Button>;
+  }
+
+  if (datasets.loading) return <p>Loading Datasets...</p>;
+  if (datasets.error) return <p>Dataset Error :(</p>;
   if (parameters.loading) return <p>Loading Parameters...</p>;
   if (parameters.error) return <p>Parameter Error :(</p>;
   if (dockerState.loading) return <p>connecting to trainer</p>;
