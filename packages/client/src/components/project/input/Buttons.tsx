@@ -50,32 +50,28 @@ export function StartButton(props: { id: string; selected: GetProjectData_projec
   const datasets = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);
   const datasetNames = props.selected.map((dataset) => dataset.name);
 
+  function isValidParameters() {
+    return !(
+      (parameters.data?.project?.epochs || 0) <= 0 ||
+      (parameters.data?.project?.batchSize || 0) <= 0 ||
+      (parameters.data?.project?.evalFrequency || 0) <= 0 ||
+      (parameters.data?.project?.percentEval || 0) <= 0
+    );
+  }
+
   const handleClick = () => {
-    if (
-      !(
-        (parameters.data?.project?.epochs || 0) <= 0 ||
-        (parameters.data?.project?.batchSize || 0) <= 0 ||
-        (parameters.data?.project?.evalFrequency || 0) <= 0 ||
-        (parameters.data?.project?.percentEval || 0) <= 0
-      ) &&
-      datasetNames.length !== 0
-    ) {
+    if (isValidParameters() && datasetNames.length !== 0) {
       startTraining({ variables: { id: props.id } });
       setStarting(true);
     }
   };
 
-  if (
-    (parameters.data?.project?.epochs || 0) <= 0 ||
-    (parameters.data?.project?.batchSize || 0) <= 0 ||
-    (parameters.data?.project?.evalFrequency || 0) <= 0 ||
-    (parameters.data?.project?.percentEval || 0) <= 0
-  ) {
-    return <Button> Invalid Parameters </Button>;
+  if (!isValidParameters()) {
+    return <Button disabled> Invalid Parameters </Button>;
   }
 
   if (datasetNames.length === 0) {
-    return <Button> Requires Dataset </Button>;
+    return <Button disabled> Requires Dataset </Button>;
   }
 
   if (datasets.loading) return <p>Loading Datasets...</p>;
