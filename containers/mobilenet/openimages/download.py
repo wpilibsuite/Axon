@@ -20,7 +20,11 @@ class OpenImagesDownloader:
         Set up attributes, parse JSON
         :param data_json:
         """
-        assert os.path.isfile(data_json)
+        try:
+            assert os.path.isfile(data_json)
+        except AssertionError:
+            print("Not Found:", data_json)
+            sys.exit(1)
         with open(data_json) as file:
             self.data = json.load(file)
         self.labels = self.data["labels"]
@@ -109,7 +113,7 @@ class OpenImagesDownloader:
                         box = {i.lower(): row[1][i] for i in ["XMin", "XMax", "YMin", "YMax"]}
                         label = self.label_map[row[1]["LabelName"]].lower()
                         if label in labels:
-                            print(label)
+#                             print(label)
                             self.parse_line(key + '.jpg', label, height, width, box)
                 else:
                     box = {i.lower(): entry.get(i) for i in ["XMin", "XMax", "YMin", "YMax"]}
@@ -138,7 +142,7 @@ class OpenImagesDownloader:
                 # self.label_frame("tar/" + row["filename"], row["class"], row["xmin"], row["xmax"], row["ymin"], row["ymax"])
 
     def make_zip(self):
-        with ZipFile("dataset.zip", 'w') as zipFile:
+        with ZipFile("/wpi-data/create/{}/dataset.zip".format(sys.argv[1]), 'w') as zipFile:
             for directory in "train test".split():
                 for folderName, subfolders, filenames in os.walk("tar/" + directory):
                     for filename in filenames:
@@ -147,7 +151,7 @@ class OpenImagesDownloader:
                         file = os.path.join(directory, filename)
                         # Add file to zip
                         zipFile.write("tar/" + directory + '/' + filename, file)
-        print("done.")
+        print(sys.argv[1]+"/dataset.zip")
 
 
 if __name__ == "__main__":
