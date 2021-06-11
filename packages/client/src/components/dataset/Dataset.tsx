@@ -1,6 +1,15 @@
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
-import { Container, GridList, GridListTile, IconButton, Menu, Toolbar, Typography } from "@material-ui/core";
+import {
+  CircularProgress,
+  Container,
+  GridList,
+  GridListTile,
+  IconButton,
+  Menu,
+  Toolbar,
+  Typography
+} from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
@@ -61,7 +70,12 @@ export default function Dataset(props: { id: string }): ReactElement {
     setAnchorEl(null);
   };
 
-  if (loading) return <p>LOADING</p>;
+  if (loading)
+    return (
+      <div>
+        <CircularProgress style={{ color: "#FFFFFF", marginLeft: 50 }} />{" "}
+      </div>
+    );
   if (error || !data || !data.dataset) return <p>ERROR</p>;
   return (
     <Container>

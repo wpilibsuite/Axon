@@ -5,7 +5,7 @@ import gql from "graphql-tag";
 import { TreeItem, TreeView } from "@material-ui/lab";
 import { useQuery } from "@apollo/client";
 import NavigationTreeItem from "./NavigationTreeItem";
-import { Tooltip, Typography } from "@material-ui/core";
+import { Tooltip, Typography, CircularProgress } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import AddDatasetDialogButton from "./AddDatasetDialogButton";
@@ -29,6 +29,13 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     padding: theme.spacing(0.5, 0)
+  },
+  loader: {
+    color: "#FFFFFF",
+    maxHeight: 25,
+    maxWidth: 25,
+    marginTop: 20,
+    marginLeft: 75
   }
 }));
 
@@ -67,8 +74,19 @@ export default function LinkList(): ReactElement {
   const datasets = useQuery<TreeGetDatasetList, TreeGetDatasetList>(GET_DATASETS);
   const projects = useQuery<TreeGetProjectList, TreeGetProjectList>(GET_PROJECTS);
 
-  if (datasets.loading || projects.loading) return <p>LOADING</p>;
-  if (datasets.error || projects.error || !datasets.data || !projects.data) return <p>ERROR</p>;
+  if (datasets.loading || projects.loading)
+    return (
+      <div>
+        <CircularProgress className={classes.loader} />{" "}
+      </div>
+    );
+  if (!datasets.data || !projects.data)
+    return (
+      <div>
+        <CircularProgress className={classes.loader} />{" "}
+      </div>
+    );
+  if (datasets.error || projects.error) return <p>ERROR</p>;
 
   return (
     <TreeView defaultCollapseIcon={<ExpandMore />} defaultExpandIcon={<ChevronRight />} defaultExpanded={["1", "2"]}>

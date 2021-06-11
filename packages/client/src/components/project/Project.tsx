@@ -1,5 +1,5 @@
 import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
-import { Grid, Typography } from "@material-ui/core";
+import { CircularProgress, Grid, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
@@ -63,7 +63,12 @@ export default function Project(props: { id: string }): ReactElement {
     pollInterval: 3000
   });
 
-  if (loading) return <p>LOADING</p>;
+  if (loading)
+    return (
+      <div>
+        <CircularProgress style={{ color: "#FFFFFF", marginLeft: 50 }} />{" "}
+      </div>
+    );
   if (error) return <p>{error.message}</p>;
 
   if (data?.project) {
