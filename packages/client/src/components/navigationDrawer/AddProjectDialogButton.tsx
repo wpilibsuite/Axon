@@ -49,7 +49,7 @@ export default function AddProjectDialogButton(): ReactElement {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
-  const [createProject, {error, data}] = useMutation(CREATE_PROJECT_MUTATION);
+  const [createProject] = useMutation(CREATE_PROJECT_MUTATION);
   const apolloClient = useApolloClient();
 
   const handleClickOpen = () => {
@@ -61,7 +61,6 @@ export default function AddProjectDialogButton(): ReactElement {
   const handleCreate = () => {
     createProject({ variables: { name } }).then(() => {
       apolloClient.resetStore();
-      window.location.assign(`http://localhost:3000/projects/${data.id}`);
     });
     handleClose();
   };

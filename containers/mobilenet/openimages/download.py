@@ -157,7 +157,7 @@ class OpenImagesDownloader:
 if __name__ == "__main__":
     data = "/wpi-data/create/{}/data.json".format(sys.argv[1])
     downloader = OpenImagesDownloader(data)
-    downloader.download()
-    downloader.create_csv()
+#     downloader.download()
+#     downloader.create_csv()
     print("Making archive")
-    downloader.make_zip()
+#     downloader.make_zip()

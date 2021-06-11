@@ -11,8 +11,8 @@ import { CreateJob, LabeledImage, ObjectLabel, Point } from "../schema/__generat
 import { Sequelize } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { Dataset } from "../store";
-import rimraf = require("rimraf");
 import MLService from "../mL";
+import rimraf = require("rimraf");
 
 interface SuperviselyMeta {
   classes: {
@@ -93,12 +93,10 @@ export class DatasetService extends DataSource {
 
     //TODO: delete create directory when done
 
-    return new Promise((resolve, reject) => {
-      console.log("Create Dataset mutation");
-      console.log(classes);
-      console.log("Images: " + maxImages);
-      return 5;
-    });
+    return {
+      success: 1,
+      createID: id
+    };
   }
 
   async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {

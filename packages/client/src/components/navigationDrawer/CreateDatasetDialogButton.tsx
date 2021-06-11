@@ -15,7 +15,7 @@ import { useApolloClient, useMutation } from "@apollo/client";
 import { TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
 import { ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
-import { Text } from "recharts";
+import { create } from "domain";
 
 const useStyles = makeStyles((theme) => ({
   item: {
@@ -48,6 +48,9 @@ const useStyles = makeStyles((theme) => ({
     width: "100%"
   }
 }));
+type Created = {
+  success: number
+}
 
 const CREATE_DATASET_MUTATION = gql`
   mutation CreateDataset($classes: [String!]!, $maxImages: Int!) {
@@ -64,7 +67,14 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const [errors, setErrors] = React.useState([false]);
   const [maxNumber, setNumber] = React.useState(0);
   const [numberError, setNumberError] = React.useState(false);
-  const [createDataset] = useMutation(CREATE_DATASET_MUTATION);
+  const [link, setLink] = React.useState("");
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const [createDataset, data] = useMutation<Created>(CREATE_DATASET_MUTATION, {onCompleted({createDataset}) {
+    console.log(createDataset);
+    setLink(createDataset.createID);
+    }});
   // const apolloClient = useApolloClient();
   // const [creating, setCreating] = React.useState(false);
   //
@@ -173,6 +183,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
             <Button variant={"contained"} color={"primary"} autoFocus onClick={handleCreate}>
               Create
             </Button>
+            {link === "" ? <p>None</p>:<Button target={"_blank"} href={`http://localhost:4000/create/${link}/dataset.zip`}>Download</Button> }
           </DialogActions>
         </form>
       </Dialog>
