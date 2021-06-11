@@ -66,7 +66,14 @@ export default function AddDatasetDialogButton(): ReactElement {
         <Button component={"label"} className={classes.button}>
           <div className={classes.labelRoot}>
             {React.createElement(AddIcon, { className: classes.labelIcon })}
-            <input type="file" style={{ display: "none" }} required onChange={onChange} key={Date.now()} />
+            <input
+              type="file"
+              accept=".zip, .tar.gz"
+              style={{ display: "none" }}
+              required
+              onChange={onChange}
+              key={Date.now()}
+            />
             <Typography variant={"body1"}> Add Dataset</Typography>
           </div>
         </Button>
