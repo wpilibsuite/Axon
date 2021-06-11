@@ -48,14 +48,17 @@ const useStyles = makeStyles((theme) => ({
     width: "100%"
   }
 }));
+
 type Created = {
-  success: number
+  success: number;
+  createID: string;
 }
 
 const CREATE_DATASET_MUTATION = gql`
   mutation CreateDataset($classes: [String!]!, $maxImages: Int!) {
     createDataset(classes: $classes, maxImages: $maxImages) {
       success
+        createID
     }
   }
 `;
@@ -71,7 +74,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const [createDataset, data] = useMutation<Created>(CREATE_DATASET_MUTATION, {onCompleted({createDataset}) {
+  const [createDataset] = useMutation<Created>(CREATE_DATASET_MUTATION, {onCompleted({createDataset}) {
     console.log(createDataset);
     setLink(createDataset.createID);
     }});
