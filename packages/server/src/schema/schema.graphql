@@ -193,6 +193,7 @@ type Testjob {
 
 type CreateJob {
   success: Int!
+  createID: String!
 }
 
 input ProjectUpdateInput {

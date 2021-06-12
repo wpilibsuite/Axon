@@ -1,8 +1,5 @@
-import { DockerImage, Trainjob, TrainStatus } from "../schema/__generated__/graphql";
+import { DockerImage, TrainStatus } from "../schema/__generated__/graphql";
 import Docker from "./Docker";
-import { Checkpoint } from "../store";
-import { Container } from "dockerode";
-import * as mkdirp from "mkdirp";
 import * as path from "path";
 import * as fs from "fs";
 
