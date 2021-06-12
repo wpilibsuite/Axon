@@ -1,26 +1,25 @@
 import React, { ReactElement } from "react";
 import {
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Grid,
   IconButton,
+  Link,
   TextField,
+  Tooltip,
   Typography
 } from "@material-ui/core";
 import gql from "graphql-tag";
 import { useMutation } from "@apollo/client";
 import { TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
-import { ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
+import { CloudDownload, ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
-  item: {
-    paddingTop: 10,
-    paddingLeft: 10
-  },
   link: {
     textDecoration: "none",
     color: theme.palette.text.primary
@@ -33,10 +32,6 @@ const useStyles = makeStyles((theme) => ({
   labelIcon: {
     marginRight: theme.spacing(1)
   },
-  labelText: {
-    fontWeight: "inherit",
-    flexGrow: 1
-  },
   button: {
     textTransform: "none"
   },
@@ -45,6 +40,13 @@ const useStyles = makeStyles((theme) => ({
   },
   textfield: {
     width: "100%"
+  },
+  largeIcon: {
+    width: 100,
+    height: 100
+  },
+  openImageInfo: {
+    paddingBottom: 15
   }
 }));
 
@@ -52,6 +54,12 @@ type Created = {
   success: number;
   createID: string;
 };
+
+enum CreateState {
+  Entering,
+  Creating,
+  Done
+}
 
 const CREATE_DATASET_MUTATION = gql`
   mutation CreateDataset($classes: [String!]!, $maxImages: Int!) {
@@ -67,28 +75,31 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [keys, setKeys] = React.useState([""]);
   const [errors, setErrors] = React.useState([false]);
-  const [maxNumber, setNumber] = React.useState(0);
+  const [maxNumber, setMaxNumber] = React.useState(0);
   const [numberError, setNumberError] = React.useState(false);
-  const [link, setLink] = React.useState("");
+  const [createID, setCreateID] = React.useState("");
+  const [createState, setCreateState] = React.useState(CreateState.Entering);
 
   const [createDataset] = useMutation<Created>(CREATE_DATASET_MUTATION, {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     onCompleted({ createDataset }) {
       console.log(createDataset);
-      setLink(createDataset.createID);
+      setCreateID(createDataset.createID);
+      setCreateState(CreateState.Done);
     }
   });
-  // const apolloClient = useApolloClient();
-  // const [creating, setCreating] = React.useState(false);
-  //
-  //
-  // if (creating) {
-  //   return <CircularProgress />;
-  // }
 
   const handleClose = () => {
+    if (createState === CreateState.Entering) {
+      setKeys([""]);
+      setErrors([false]);
+      setCreateID("");
+      setMaxNumber(0);
+      setNumberError(false);
+    }
     setOpen(false);
+    setCreateState(CreateState.Entering);
   };
   const append = () => {
     const test: string[] = [...keys];
@@ -126,9 +137,145 @@ export default function CreateDatasetDialogButton(): ReactElement {
     }
 
     if (!error) {
-      console.log("set");
+      setCreateState(CreateState.Creating);
       await createDataset({ variables: { classes: keys, maxImages: maxNumber } });
     }
+  };
+
+  const getContents = () => {
+    if (createState === CreateState.Entering) {
+      return getEnteringContents();
+    } else if (createState === CreateState.Creating) {
+      return getCreatingContents();
+    } else if (createState === CreateState.Done) {
+      return getDoneContents();
+    }
+  };
+
+  const getEnteringContents = () => {
+    return (
+      <Grid container className={classes.mainContainer}>
+        <Grid item xs={12}>
+          <Typography className={classes.openImageInfo}>
+            This tool creates custom datasets from {}
+            <Link
+              rel={"noopener noreferrer"}
+              href={
+                "https://storage.googleapis.com/openimages/web/visualizer/index.html?set=train&type=detection&c=%2Fm%2F01yrx"
+              }
+              target={"_blank"}
+            >
+              OpenImages
+            </Link>
+            . Check the {}
+            <Link
+              rel={"noopener noreferrer"}
+              href={
+                "https://storage.googleapis.com/openimages/web/visualizer/index.html?set=train&type=detection&c=%2Fm%2F01yrx"
+              }
+              target={"_blank"}
+            >
+              OpenImages website
+            </Link>
+            {} for valid class names.
+          </Typography>
+        </Grid>
+        {keys.map((obj: string, index: number) => {
+          return (
+            <>
+              {index === 0 ? (
+                <Grid item xs={2} />
+              ) : (
+                <Grid item xs={2}>
+                  <IconButton onClick={() => remove(index)}>
+                    <RemoveCircleOutline />
+                  </IconButton>
+                </Grid>
+              )}
+              <Grid item xs={10}>
+                <TextField
+                  error={errors[index]}
+                  helperText={errors[index] ? "Please enter a class name or remove this field." : "Class name"}
+                  placeholder={"Type class name here"}
+                  onChange={(event) => update(index, event.target.value)}
+                  className={classes.textfield}
+                />
+              </Grid>
+            </>
+          );
+        })}
+        <Grid item xs={12}>
+          <IconButton onClick={append}>
+            <ControlPoint />
+          </IconButton>
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            error={numberError}
+            helperText={"Number of images per class"}
+            placeholder={"1000"}
+            type={"number"}
+            className={classes.textfield}
+            onChange={(event) => setMaxNumber(parseInt(event.target.value))}
+          />
+        </Grid>
+      </Grid>
+    );
+  };
+
+  const getCreatingContents = () => {
+    return (
+      <Typography variant={"body1"}>
+        This will take a while to download and process the requested images. Please wait.
+      </Typography>
+    );
+  };
+
+  const getDoneContents = () => {
+    return (
+      <Grid container justify={"center"}>
+        <Tooltip title={"Download new dataset"}>
+          <IconButton target={"_blank"} href={`http://localhost:4000/create/${createID}/dataset.zip`}>
+            <CloudDownload className={classes.largeIcon} />
+          </IconButton>
+        </Tooltip>
+      </Grid>
+    );
+  };
+
+  const getActions = () => {
+    if (createState === CreateState.Entering) {
+      return getEnteringActions();
+    } else if (createState === CreateState.Creating) {
+      return getCreatingActions();
+    } else if (createState === CreateState.Done) {
+      return getDoneActions();
+    }
+  };
+
+  const getEnteringActions = () => {
+    return (
+      <>
+        <Button variant={"contained"} onClick={handleClose}>
+          Cancel
+        </Button>
+        <Button variant={"contained"} color={"primary"} autoFocus onClick={handleCreate}>
+          Create
+        </Button>
+      </>
+    );
+  };
+
+  const getCreatingActions = () => {
+    return <CircularProgress />;
+  };
+
+  const getDoneActions = () => {
+    return (
+      <Button variant={"contained"} onClick={handleClose}>
+        Close
+      </Button>
+    );
   };
 
   return (
@@ -136,65 +283,8 @@ export default function CreateDatasetDialogButton(): ReactElement {
       <Dialog open={open}>
         <DialogTitle>Create Dataset from OpenImages</DialogTitle>
         <form autoComplete={"off"}>
-          <DialogContent dividers>
-            <Grid container className={classes.mainContainer}>
-              {keys.map((obj: string, index: number) => {
-                return (
-                  <>
-                    {index === 0 ? (
-                      <Grid item xs={2} />
-                    ) : (
-                      <Grid item xs={2} key={index}>
-                        <IconButton onClick={() => remove(index)}>
-                          <RemoveCircleOutline />
-                        </IconButton>
-                      </Grid>
-                    )}
-                    <Grid item xs={10}>
-                      <TextField
-                        error={errors[index]}
-                        helperText={errors[index] ? "Please enter a class name or remove this field." : "Class name"}
-                        key={index}
-                        placeholder={"Type class name here"}
-                        onChange={(event) => update(index, event.target.value)}
-                        className={classes.textfield}
-                      />
-                    </Grid>
-                  </>
-                );
-              })}
-              <Grid item xs={12}>
-                <IconButton onClick={append}>
-                  <ControlPoint />
-                </IconButton>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  error={numberError}
-                  helperText={"Number of images per class"}
-                  placeholder={"1000"}
-                  type={"number"}
-                  className={classes.textfield}
-                  onChange={(event) => setNumber(parseInt(event.target.value))}
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button variant={"contained"} onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button variant={"contained"} color={"primary"} autoFocus onClick={handleCreate}>
-              Create
-            </Button>
-            {link === "" ? (
-              <p>None</p>
-            ) : (
-              <Button target={"_blank"} href={`http://localhost:4000/create/${link}/dataset.zip`}>
-                Download
-              </Button>
-            )}
-          </DialogActions>
+          <DialogContent dividers>{getContents()}</DialogContent>
+          <DialogActions>{getActions()}</DialogActions>
         </form>
       </Dialog>
       <TreeItem
