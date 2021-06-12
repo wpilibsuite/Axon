@@ -3,7 +3,7 @@ import sys
 from glob import glob
 import os
 from os.path import basename
-from shutil import copyfile
+from shutil import copyfile, rmtree
 import cv2
 import pandas
 from openimages.download import download_dataset
@@ -153,6 +153,11 @@ class OpenImagesDownloader:
                         zipFile.write("tar/" + directory + '/' + filename, file)
         print(sys.argv[1]+"/dataset.zip")
 
+   def clean():
+       rmtree("data")
+       rmtree("tar")
+       print("Cleanup finished")
+
 
 if __name__ == "__main__":
     data = "/wpi-data/create/{}/data.json".format(sys.argv[1])
@@ -161,3 +166,4 @@ if __name__ == "__main__":
     downloader.create_csv()
     print("Making archive")
     downloader.make_zip()
+    downloader.clean()
