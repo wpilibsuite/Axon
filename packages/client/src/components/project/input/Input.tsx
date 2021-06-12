@@ -37,7 +37,7 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
             <Parameters id={props.id} datasets={props.datasets} />
           </Grid>
           <Grid item xs={1}>
-            <StartButton id={props.id} />
+            <StartButton id={props.id} selected={props.datasets} />
           </Grid>
         </Grid>
       </>
