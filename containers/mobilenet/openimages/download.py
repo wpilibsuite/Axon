@@ -153,10 +153,10 @@ class OpenImagesDownloader:
                         zipFile.write("tar/" + directory + '/' + filename, file)
         print(sys.argv[1]+"/dataset.zip")
 
-   def clean():
-       rmtree("data")
-       rmtree("tar")
-       print("Cleanup finished")
+    def clean(self):
+        rmtree("data")
+        rmtree("tar")
+        print("Cleanup finished")
 
 
 if __name__ == "__main__":

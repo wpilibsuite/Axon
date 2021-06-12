@@ -91,13 +91,11 @@ export default function CreateDatasetDialogButton(): ReactElement {
   });
 
   const handleClose = () => {
-    if (createState === CreateState.Entering) {
-      setKeys([""]);
-      setErrors([false]);
-      setCreateID("");
-      setMaxNumber(0);
-      setNumberError(false);
-    }
+    setKeys([""]);
+    setErrors([false]);
+    setCreateID("");
+    setMaxNumber(0);
+    setNumberError(false);
     setOpen(false);
     setCreateState(CreateState.Entering);
   };
