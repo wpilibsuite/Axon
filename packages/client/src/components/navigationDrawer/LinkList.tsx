@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ReactElement } from "react";
-import { ChevronRight, ExpandMore, Folder, Info, PermMedia } from "@material-ui/icons";
+import { ChevronRight, ExpandMore, Folder, Info, PermMedia, Settings } from "@material-ui/icons";
 import gql from "graphql-tag";
 import { TreeItem, TreeView } from "@material-ui/lab";
 import { useQuery } from "@apollo/client";
@@ -12,6 +12,7 @@ import AddDatasetDialogButton from "./AddDatasetDialogButton";
 import AddProjectDialogButton from "./AddProjectDialogButton";
 import { TreeGetProjectList } from "./__generated__/TreeGetProjectList";
 import { TreeGetDatasetList } from "./__generated__/TreeGetDatasetList";
+import SettingsDialogButton from "./settings/SettingsDialogButton";
 
 const useStyles = makeStyles((theme) => ({
   item: {
@@ -53,7 +54,7 @@ const GET_DATASETS = gql`
   }
 `;
 
-let number = 4;
+let number = 5;
 
 function getNext(): string {
   const temp = number;
@@ -108,9 +109,10 @@ export default function LinkList(): ReactElement {
         ))}
         <AddProjectDialogButton />
       </TreeItem>
-      <Link to={"/about"} className={classes.link}>
-        <NavigationTreeItem text={"About"} nodeId={"3"} icon={Info} />
+      <Link to={"/docs"} className={classes.link}>
+        <NavigationTreeItem text={"Docs"} nodeId={"3"} icon={Info} />
       </Link>
+      <SettingsDialogButton nodeId={"4"} />
     </TreeView>
   );
 }

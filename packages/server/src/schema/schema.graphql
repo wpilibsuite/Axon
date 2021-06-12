@@ -18,6 +18,7 @@ type Query {
 
 type Mutation {
   resetDocker: Boolean!
+  resetVolume(reset: Int!): Reset!
 
   createDataset(upload: Upload!): Dataset
   renameDataset(id: ID!, newName: String!): Dataset
@@ -128,6 +129,10 @@ type Test {
   fullPath: String!
   directory: String!
   downloadPath: String!
+}
+
+type Reset {
+  id: Int!
 }
 
 type Project {

@@ -41,7 +41,7 @@ export default function DeleteDatasetDialogButton(props: {
     if (confirmation === props.dataset.name) {
       deleteDataset({ variables: { id: props.dataset.id } }).then(() => {
         apolloClient.resetStore().then(() => {
-          window.location.href = "/about";
+          window.location.href = "/docs";
           handleClose();
         });
       });

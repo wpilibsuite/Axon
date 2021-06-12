@@ -41,7 +41,7 @@ export default function DeleteProjectDialogButton(props: {
     if (confirmation === props.project.name) {
       deleteProject({ variables: { id: props.project.id } }).then(() => {
         apolloClient.resetStore().then(() => {
-          window.location.href = "/about";
+          window.location.href = "/docs";
           handleClose();
         });
       });
