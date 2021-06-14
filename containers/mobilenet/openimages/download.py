@@ -27,7 +27,8 @@ class OpenImagesDownloader:
             sys.exit(1)
         with open(data_json) as file:
             self.data = json.load(file)
-        self.labels = self.data["labels"]
+        # will error if not in Title Case
+        self.labels = [i.title() for i in self.data["labels"]]
         print(self.labels)
         assert type(self.labels) == list
         self.limit = self.data["limit"]
@@ -88,10 +89,6 @@ class OpenImagesDownloader:
             os.mkdir("tar/test")
         except FileExistsError:
             pass
-        try:
-            os.mkdir("out")
-        except FileExistsError:
-            pass
         for image_path in self.images:
             image = cv2.imread(image_path)
             height, width, channels = image.shape
@@ -113,13 +110,11 @@ class OpenImagesDownloader:
                         box = {i.lower(): row[1][i] for i in ["XMin", "XMax", "YMin", "YMax"]}
                         label = self.label_map[row[1]["LabelName"]].lower()
                         if label in labels:
-#                             print(label)
                             self.parse_line(key + '.jpg', label, height, width, box)
                 else:
                     box = {i.lower(): entry.get(i) for i in ["XMin", "XMax", "YMin", "YMax"]}
                     label = self.label_map[entry.get("LabelName")].lower()
                     if label in labels:
-#                         print(label)
                         self.parse_line(key + '.jpg', label, height, width, box)
             except KeyError:
                 pass
@@ -139,14 +134,12 @@ class OpenImagesDownloader:
                 csv.write("{},{},{},{},{},{},{},{}\n".format(row["filename"], row["width"], row["height"], row["class"],
                                                              row["xmin"], row["ymin"], row["xmax"], row["ymax"]))
                 copyfile("tar/" + row["filename"], "tar/" + name + '/' + row["filename"])
-                # self.label_frame("tar/" + row["filename"], row["class"], row["xmin"], row["xmax"], row["ymin"], row["ymax"])
 
     def make_zip(self):
         with ZipFile("/wpi-data/create/{}/dataset.zip".format(sys.argv[1]), 'w') as zipFile:
             for directory in "train test".split():
                 for folderName, subfolders, filenames in os.walk("tar/" + directory):
                     for filename in filenames:
-#                         print(filename)
                         # create complete filepath of file in directory
                         file = os.path.join(directory, filename)
                         # Add file to zip
