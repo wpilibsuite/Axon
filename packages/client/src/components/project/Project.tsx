@@ -24,6 +24,10 @@ const useStyles = makeStyles((theme) => ({
   largeIcon: {
     width: 60,
     height: 60
+  },
+  progress: {
+    color: "#FFFFFF",
+    marginLeft: 50
   }
 }));
 
@@ -63,7 +67,7 @@ export default function Project(props: { id: string }): ReactElement {
     pollInterval: 3000
   });
 
-  if (loading) return <CircularProgress style={{ color: "#FFFFFF", marginLeft: 50 }} />;
+  if (loading) return <CircularProgress className={classes.progress} />;
   if (error) return <p>{error.message}</p>;
 
   if (data?.project) {
