@@ -63,12 +63,7 @@ export default function Project(props: { id: string }): ReactElement {
     pollInterval: 3000
   });
 
-  if (loading)
-    return (
-      <div>
-        <CircularProgress style={{ color: "#FFFFFF", marginLeft: 50 }} />{" "}
-      </div>
-    );
+  if (loading) return <CircularProgress style={{ color: "#FFFFFF", marginLeft: 50 }} />;
   if (error) return <p>{error.message}</p>;
 
   if (data?.project) {

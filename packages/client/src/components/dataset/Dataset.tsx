@@ -70,12 +70,7 @@ export default function Dataset(props: { id: string }): ReactElement {
     setAnchorEl(null);
   };
 
-  if (loading)
-    return (
-      <div>
-        <CircularProgress style={{ color: "#FFFFFF", marginLeft: 50 }} />{" "}
-      </div>
-    );
+  if (loading) return <CircularProgress style={{ color: "#FFFFFF", marginLeft: 50 }} />;
   if (error || !data || !data.dataset) return <p>ERROR</p>;
   return (
     <Container>
