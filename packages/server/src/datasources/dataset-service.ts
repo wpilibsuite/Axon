@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Dataset } from "../store";
 import MLService from "../mL";
 import rimraf = require("rimraf");
+import Creator from "../mL/Creator";
 
 interface SuperviselyMeta {
   classes: {
@@ -90,11 +91,19 @@ export class DatasetService extends DataSource {
     const directory = `data/create/${id}`;
     await mkdirp(directory);
     const success = await this.mLService.create(classes, maxImages, directory, id);
+    if (success.success) {
+      return {
+        success: 1,
+        createID: id
+      };
+    } else {
+      return {
+        success: 0,
+        createID: success.failingLabel
+      }
+    }
 
-    return {
-      success: success,
-      createID: id
-    };
+
   }
 
   async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {

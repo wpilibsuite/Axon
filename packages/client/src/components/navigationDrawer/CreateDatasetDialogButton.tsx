@@ -87,8 +87,8 @@ export default function CreateDatasetDialogButton(): ReactElement {
     // @ts-ignore
     onCompleted({ createDataset }) {
       console.log(createDataset);
+      setCreateID(createDataset.createID);
       if (createDataset.success === 1) {
-        setCreateID(createDataset.createID);
         setCreateState(CreateState.Done);
       } else {
         // class name not valid
@@ -153,22 +153,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
     } else if (createState === CreateState.Creating) {
       return getCreatingContents();
     } else if (createState === CreateState.Failed) {
-      return (
-        <Typography>
-          {" "}
-          Invalid labels entered. Please check the {}
-          <Link
-            rel={"noopener noreferrer"}
-            href={
-              "https://storage.googleapis.com/openimages/web/visualizer/index.html?set=train&type=detection&c=%2Fm%2F01yrx"
-            }
-            target={"_blank"}
-          >
-            OpenImages
-          </Link>
-          {} site for valid labels.
-        </Typography>
-      );
+      return getFailedContents();
     } else if (createState === CreateState.Done) {
       return getDoneContents();
     }
@@ -252,6 +237,25 @@ export default function CreateDatasetDialogButton(): ReactElement {
       </Typography>
     );
   };
+
+  const getFailedContents = () => {
+    return (
+      <Typography>
+        {" "}
+        Invalid label {createID} entered. Please check the {}
+        <Link
+          rel={"noopener noreferrer"}
+          href={
+            "https://storage.googleapis.com/openimages/web/visualizer/index.html?set=train&type=detection&c=%2Fm%2F01yrx"
+          }
+          target={"_blank"}
+        >
+          OpenImages
+        </Link>
+        {} site for valid labels.
+      </Typography>
+    );
+  }
 
   const getDoneContents = () => {
     return (

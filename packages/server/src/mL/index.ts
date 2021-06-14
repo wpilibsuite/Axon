@@ -4,7 +4,7 @@ import Exporter from "./Exporter";
 import Trainer from "./Trainer";
 import Tester from "./Tester";
 import Docker from "./Docker";
-import Creator from "./Creator";
+import Creator, { CheckLabelsResult } from "./Creator";
 
 export default class MLService {
   private dockerState: DockerState;
@@ -128,16 +128,16 @@ export default class MLService {
     console.info(`${tester.test.id}: Test complete`);
   }
 
-  async create(classes: string[], maxImages: number, directory: string, id: string): Promise<number> {
+  async create(classes: string[], maxImages: number, directory: string, id: string): Promise<CheckLabelsResult> {
     const creator: Creator = new Creator(this.docker, classes, maxImages, id);
 
-    const validLabels = await creator.checkLabels();
-    if (!validLabels) {
-      return 0;
+    const validLabels = creator.checkLabels();
+    if (!validLabels.success) {
+      return validLabels;
     }
     await creator.writeParameterFile();
     await creator.createDataset();
-    return 1;
+    return validLabels;
   }
 
   /**
