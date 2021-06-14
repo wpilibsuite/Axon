@@ -7,7 +7,7 @@ import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import { makeStyles } from "@material-ui/core/styles";
 
-const GET_DATASETS = gql`
+export const GET_DATASETS = gql`
   query GetDatasets {
     datasets {
       id

@@ -20,7 +20,7 @@ Parameters.fragments = {
   `
 };
 
-const GET_HYPERPARAMETERS = gql`
+export const GET_HYPERPARAMETERS = gql`
   query GetHyperparameters($id: ID!) {
     project(id: $id) {
       ...Hyperparameters
@@ -82,10 +82,10 @@ export default function Parameters(props: { id: string; datasets: GetProjectData
         updateProject: {
           __typename: "Project",
           id: props.id,
-          epochs: data?.project?.epochs || -1,
-          batchSize: data?.project?.batchSize || -1,
-          evalFrequency: data?.project?.evalFrequency || -1,
-          percentEval: data?.project?.percentEval || -1,
+          epochs: data?.project?.epochs || 0,
+          batchSize: data?.project?.batchSize || 0,
+          evalFrequency: data?.project?.evalFrequency || 0,
+          percentEval: data?.project?.percentEval || 0,
           [event.target.name]: Number(event.target.value)
         }
       }
