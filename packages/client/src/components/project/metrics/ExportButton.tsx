@@ -26,7 +26,7 @@ export function ExportButton(props: { id: string; selected: Checkpoint | null; o
 
   if (props.selected === null)
     return (
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
         <Tooltip title="Use the graph to select a checkpoint.">
           <span>
             <Button variant="outlined" disabled>
