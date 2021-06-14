@@ -1,5 +1,5 @@
 import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
-import { Grid, Typography } from "@material-ui/core";
+import { CircularProgress, Grid, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
@@ -24,6 +24,10 @@ const useStyles = makeStyles((theme) => ({
   largeIcon: {
     width: 60,
     height: 60
+  },
+  progress: {
+    color: "#FFFFFF",
+    marginLeft: 50
   }
 }));
 
@@ -63,7 +67,7 @@ export default function Project(props: { id: string }): ReactElement {
     pollInterval: 3000
   });
 
-  if (loading) return <p>LOADING</p>;
+  if (loading) return <CircularProgress className={classes.progress} />;
   if (error) return <p>{error.message}</p>;
 
   if (data?.project) {
