@@ -255,7 +255,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
         {} site for valid labels.
       </Typography>
     );
-  }
+  };
 
   const getDoneContents = () => {
     return (

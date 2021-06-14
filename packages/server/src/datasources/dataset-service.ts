@@ -100,10 +100,8 @@ export class DatasetService extends DataSource {
       return {
         success: 0,
         createID: success.failingLabel
-      }
+      };
     }
-
-
   }
 
   async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
