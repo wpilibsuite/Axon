@@ -128,11 +128,16 @@ export default class MLService {
     console.info(`${tester.test.id}: Test complete`);
   }
 
-  async create(classes: string[], maxImages: number, directory: string, id: string): Promise<void> {
+  async create(classes: string[], maxImages: number, directory: string, id: string): Promise<number> {
     const creator: Creator = new Creator(this.docker, classes, maxImages, id);
 
+    const validLabels = await creator.checkLabels();
+    if (!validLabels) {
+      return 0;
+    }
     await creator.writeParameterFile();
     await creator.createDataset();
+    return 1;
   }
 
   /**

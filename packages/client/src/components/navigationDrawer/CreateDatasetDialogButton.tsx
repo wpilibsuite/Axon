@@ -18,6 +18,7 @@ import { useMutation } from "@apollo/client";
 import { TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
 import { CloudDownload, ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
+import { create } from "domain";
 
 const useStyles = makeStyles((theme) => ({
   link: {
@@ -58,6 +59,7 @@ type Created = {
 enum CreateState {
   Entering,
   Creating,
+  Failed,
   Done
 }
 
@@ -85,8 +87,13 @@ export default function CreateDatasetDialogButton(): ReactElement {
     // @ts-ignore
     onCompleted({ createDataset }) {
       console.log(createDataset);
-      setCreateID(createDataset.createID);
-      setCreateState(CreateState.Done);
+      if (createDataset.success === 1) {
+        setCreateID(createDataset.createID);
+        setCreateState(CreateState.Done);
+      } else {
+        // class name not valid
+        setCreateState(CreateState.Failed);
+      }
     }
   });
 
@@ -145,6 +152,23 @@ export default function CreateDatasetDialogButton(): ReactElement {
       return getEnteringContents();
     } else if (createState === CreateState.Creating) {
       return getCreatingContents();
+    } else if (createState === CreateState.Failed) {
+      return (
+        <Typography>
+          {" "}
+          Invalid labels entered. Please check the {}
+          <Link
+            rel={"noopener noreferrer"}
+            href={
+              "https://storage.googleapis.com/openimages/web/visualizer/index.html?set=train&type=detection&c=%2Fm%2F01yrx"
+            }
+            target={"_blank"}
+          >
+            OpenImages
+          </Link>
+          {} site for valid labels.
+        </Typography>
+      );
     } else if (createState === CreateState.Done) {
       return getDoneContents();
     }
@@ -246,6 +270,8 @@ export default function CreateDatasetDialogButton(): ReactElement {
       return getEnteringActions();
     } else if (createState === CreateState.Creating) {
       return getCreatingActions();
+    } else if (createState === CreateState.Failed) {
+      return getDoneActions();
     } else if (createState === CreateState.Done) {
       return getDoneActions();
     }

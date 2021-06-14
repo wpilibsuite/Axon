@@ -89,12 +89,10 @@ export class DatasetService extends DataSource {
     const id = uuidv4();
     const directory = `data/create/${id}`;
     await mkdirp(directory);
-    await this.mLService.create(classes, maxImages, directory, id);
-
-    //TODO: delete create directory when done
+    const success = await this.mLService.create(classes, maxImages, directory, id);
 
     return {
-      success: 1,
+      success: success,
       createID: id
     };
   }

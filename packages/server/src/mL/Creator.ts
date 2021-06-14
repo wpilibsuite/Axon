@@ -27,6 +27,10 @@ export default class Creator {
     this.id = id;
   }
 
+  public checkLabels(): boolean {
+    return true;
+  }
+
   /**
    * Create the training parameter file in the container's mounted directory to control the container.
    */
