@@ -20,7 +20,7 @@
     "format": "prettier --write .",
     "test:format": "prettier --check .",
     "test:lint": "yarn workspaces run test:lint",
-    "dockerdev": "docker build --build-arg AXON_VERSION=edge -t axon:local . && docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v wpilib-axon-volume:/usr/src/app/packages/server/data -p 3000:3000 -p 4000:4000 axon:local"
+    "dockerdev": "docker build --build-arg AXON_VERSION=edge -t axon:$USER . && docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v wpilib-axon-volume:/usr/src/app/packages/server/data -p 3000:3000 -p 4000:4000 axon:$USER"
   },
   "author": "WPILib <developers@wpilib.org>",
   "email": "developers@wpilib.org",
