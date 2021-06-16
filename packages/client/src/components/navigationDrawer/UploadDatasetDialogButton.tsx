@@ -76,7 +76,6 @@ export default function UploadDatasetDialogButton(): ReactElement {
               onChange={onChange}
               key={Date.now()}
             />
-            <Typography variant={"body1"}> Add Dataset</Typography>
           </div>
         </Button>
       }
