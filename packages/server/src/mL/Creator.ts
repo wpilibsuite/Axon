@@ -13,7 +13,6 @@ export type CheckLabelsResult = {
 };
 
 export default class Creator {
-
   readonly classes: string[];
   readonly maxImages: number;
   readonly directory: string;
@@ -62,25 +61,24 @@ export default class Creator {
   public async createDataset(): Promise<void> {
     console.log("Spawning child process");
 
-    const python = spawn('python', ['src/assets/openaxon.py', this.id]);
+    const python = spawn("python", ["src/assets/openaxon.py", this.id]);
 
-    python.stdout.on('data', (data) => {
+    python.stdout.on("data", (data) => {
       console.log(`stdout: ${data}`);
     });
 
-    python.stderr.on('data', (data) => {
+    python.stderr.on("data", (data) => {
       console.error(`stderr: ${data}`);
     });
 
-    const exitCode = await new Promise( (resolve, reject) => {
-      python.on('close', resolve);
+    const exitCode = await new Promise((resolve, reject) => {
+      python.on("close", resolve);
     });
 
     if (exitCode) {
-      throw new Error( `subprocess error exit ${exitCode}`);
+      throw new Error(`subprocess error exit ${exitCode}`);
     }
     return;
-
   }
 
   public getValidLabels(): string[] {
