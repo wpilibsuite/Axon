@@ -66,7 +66,6 @@ export default function UploadDatasetDialogButton(): ReactElement {
         <Button component={"label"} className={classes.button}>
           <div className={classes.labelRoot}>
             {React.createElement(AddIcon, { className: classes.labelIcon })}
-            <input type="file" style={{ display: "none" }} required onChange={onChange} key={Date.now()} />
             <Typography variant={"body1"}> Upload Dataset</Typography>
             <input
               type="file"
