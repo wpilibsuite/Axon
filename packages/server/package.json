@@ -11,6 +11,9 @@
     "start": "ts-node src/index.ts",
     "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
+  "files": [
+    "*/src/assets"
+  ],
   "dependencies": {
     "@graphql-tools/graphql-file-loader": "^6.0.12",
     "@graphql-tools/load": "^6.0.12",
@@ -19,6 +22,7 @@
     "apollo-datasource": "^0.7.2",
     "apollo-server-koa": "^2.14.2",
     "archiver": "^5.2.0",
+    "child_process": "^1.0.2",
     "dockerode": "^2.3.1",
     "eslint": "^7.4.0",
     "glob": "^7.1.6",

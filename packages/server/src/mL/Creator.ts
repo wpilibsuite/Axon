@@ -2,6 +2,7 @@ import { DockerImage, TrainStatus } from "../schema/__generated__/graphql";
 import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
+import { spawn } from "child_process";
 
 type CreateParameters = {
   labels: string[];
@@ -66,8 +67,13 @@ export default class Creator {
    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
    */
   public async createDataset(): Promise<void> {
-    const container = await this.docker.createContainerProjectless(`${this.id}`, this.id, Creator.images.openimages);
-    await this.docker.runContainer(container);
+    const python = spawn("python", ["src/assets/hello.py"]);
+    python.stdout.on("data", (data) => {
+      console.log(`stdout:\n${data}`);
+    });
+    python.stderr.on("data", (data) => {
+      console.error(`stderr: ${data}`);
+    });
   }
 
   public getValidLabels(): string[] {
