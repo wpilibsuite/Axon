@@ -105,6 +105,14 @@ export default function CreateDatasetDialogButton(): ReactElement {
     setOpen(false);
     setCreateState(CreateState.Entering);
   };
+  const handleFailed = () => {
+    setKeys([""]);
+    setErrors([false]);
+    setCreateID("");
+    setMaxNumber(0);
+    setNumberError(false);
+    setCreateState(CreateState.Entering);
+  };
   const append = () => {
     const test: string[] = [...keys];
     setKeys(test.concat([""]));
@@ -171,7 +179,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
               }
               target={"_blank"}
             >
-              OpenImages
+              Open Images
             </Link>
             . Check the {}
             <Link
@@ -181,7 +189,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
               }
               target={"_blank"}
             >
-              OpenImages website
+              Open Images website
             </Link>
             {} for valid class names.
           </Typography>
@@ -249,7 +257,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
           }
           target={"_blank"}
         >
-          OpenImages
+          Open Images
         </Link>
         {} site for valid labels.
       </Typography>
@@ -274,7 +282,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
     } else if (createState === CreateState.Creating) {
       return getCreatingActions();
     } else if (createState === CreateState.Failed) {
-      return getDoneActions();
+      return getFailedOptions();
     } else if (createState === CreateState.Done) {
       return getDoneActions();
     }
@@ -297,6 +305,19 @@ export default function CreateDatasetDialogButton(): ReactElement {
     return <CircularProgress />;
   };
 
+  const getFailedOptions = () => {
+    return (
+      <>
+        <Button variant={"contained"} onClick={handleFailed}>
+          Back
+        </Button>
+        <Button variant={"contained"} onClick={handleClose}>
+          Close
+        </Button>
+      </>
+    );
+  };
+
   const getDoneActions = () => {
     return (
       <Button variant={"contained"} onClick={handleClose}>
@@ -308,7 +329,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
   return (
     <>
       <Dialog open={open}>
-        <DialogTitle>Create Dataset from OpenImages</DialogTitle>
+        <DialogTitle>Create Dataset from Open Images</DialogTitle>
         <form autoComplete={"off"}>
           <DialogContent dividers>{getContents()}</DialogContent>
           <DialogActions>{getActions()}</DialogActions>

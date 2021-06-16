@@ -1,5 +1,3 @@
-import { DockerImage, TrainStatus } from "../schema/__generated__/graphql";
-import Docker from "./Docker";
 import * as path from "path";
 import * as fs from "fs";
 import { spawn } from "child_process";
@@ -15,18 +13,13 @@ export type CheckLabelsResult = {
 };
 
 export default class Creator {
-  static readonly images: Record<string, DockerImage> = {
-    openimages: { name: "wpilib/axon-openimages", tag: process.env.AXON_VERSION || "edge" }
-  };
 
   readonly classes: string[];
   readonly maxImages: number;
-  readonly docker: Docker;
   readonly directory: string;
   readonly id: string;
 
-  public constructor(docker: Docker, classes: string[], maxImages: number, id: string) {
-    this.docker = docker;
+  public constructor(classes: string[], maxImages: number, id: string) {
     this.classes = classes;
     this.maxImages = maxImages;
     this.directory = `data/create/${id}`;
@@ -67,13 +60,27 @@ export default class Creator {
    * Starts training. Needs to have the dataset record and hyperparameters.json in the working directory.
    */
   public async createDataset(): Promise<void> {
-    const python = spawn("python", ["src/assets/hello.py"]);
-    python.stdout.on("data", (data) => {
-      console.log(`stdout:\n${data}`);
+    console.log("Spawning child process");
+
+    const python = spawn('python', ['src/assets/openaxon.py', this.id]);
+
+    python.stdout.on('data', (data) => {
+      console.log(`stdout: ${data}`);
     });
-    python.stderr.on("data", (data) => {
+
+    python.stderr.on('data', (data) => {
       console.error(`stderr: ${data}`);
     });
+
+    const exitCode = await new Promise( (resolve, reject) => {
+      python.on('close', resolve);
+    });
+
+    if (exitCode) {
+      throw new Error( `subprocess error exit ${exitCode}`);
+    }
+    return;
+
   }
 
   public getValidLabels(): string[] {

@@ -44,9 +44,6 @@ export default class MLService {
     this.dockerState = DockerState.TestPull;
     await this.docker.pullImages(Object.values(Tester.images));
 
-    this.dockerState = DockerState.CreatePull;
-    await this.docker.pullImages(Object.values(Creator.images));
-
     this.dockerState = DockerState.Ready;
   }
 
@@ -129,7 +126,7 @@ export default class MLService {
   }
 
   async create(classes: string[], maxImages: number, directory: string, id: string): Promise<CheckLabelsResult> {
-    const creator: Creator = new Creator(this.docker, classes, maxImages, id);
+    const creator: Creator = new Creator(classes, maxImages, id);
 
     const validLabels = creator.checkLabels();
     if (!validLabels.success) {
@@ -137,6 +134,7 @@ export default class MLService {
     }
     await creator.writeParameterFile();
     await creator.createDataset();
+    console.log("All done.");
     return validLabels;
   }
 

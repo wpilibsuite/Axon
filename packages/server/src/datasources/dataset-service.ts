@@ -13,7 +13,6 @@ import { v4 as uuidv4 } from "uuid";
 import { Dataset } from "../store";
 import MLService from "../mL";
 import rimraf = require("rimraf");
-import Creator from "../mL/Creator";
 
 interface SuperviselyMeta {
   classes: {
