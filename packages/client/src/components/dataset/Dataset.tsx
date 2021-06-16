@@ -1,12 +1,29 @@
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
-import { Container, GridList, GridListTile, IconButton, Menu, Toolbar, Typography } from "@material-ui/core";
+import {
+  CircularProgress,
+  Container,
+  GridList,
+  GridListTile,
+  IconButton,
+  Menu,
+  Toolbar,
+  Typography
+} from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
 import RenameDatasetDialogButton from "./RenameDatasetDialog";
 import DeleteDatasetDialogButton from "./DeleteDatasetDialog";
+import { makeStyles } from "@material-ui/core/styles";
+
+const useStyles = makeStyles((theme) => ({
+  progress: {
+    color: "#FFFFFF",
+    marginLeft: 50
+  }
+}));
 
 const GET_DATASET = gql`
   query GetDataset($id: ID!) {
@@ -45,6 +62,7 @@ function DataGalleryBase(props: { images: GetDataset_dataset_images[]; scrollPos
 const DataGallery = trackWindowScroll(DataGalleryBase);
 
 export default function Dataset(props: { id: string }): ReactElement {
+  const classes = useStyles();
   const { data, loading, error } = useQuery<GetDataset, GetDatasetVariables>(GET_DATASET, {
     variables: {
       id: props.id
@@ -61,7 +79,7 @@ export default function Dataset(props: { id: string }): ReactElement {
     setAnchorEl(null);
   };
 
-  if (loading) return <p>LOADING</p>;
+  if (loading) return <CircularProgress className={classes.progress} />;
   if (error || !data || !data.dataset) return <p>ERROR</p>;
   return (
     <Container>
