@@ -71,7 +71,7 @@ export default class Creator {
       console.error(`stderr: ${data}`);
     });
 
-    const exitCode = await new Promise((resolve, reject) => {
+    const exitCode = await new Promise((resolve) => {
       python.on("close", resolve);
     });
 
