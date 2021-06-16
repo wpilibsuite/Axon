@@ -128,7 +128,7 @@ export default class MLService {
   async create(classes: string[], maxImages: number, directory: string, id: string): Promise<CheckLabelsResult> {
     const creator: Creator = new Creator(classes, maxImages, id);
 
-    const validLabels = creator.checkLabels();
+    const validLabels = await creator.checkLabels();
     if (!validLabels.success) {
       return validLabels;
     }
