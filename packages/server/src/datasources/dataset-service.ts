@@ -149,18 +149,13 @@ export class DatasetService extends DataSource {
       return Promise.all(
         imagePaths.map(
           async (imagePath): Promise<LabeledImage> => {
-            try {
-              const dimensions = await sizeOf(imagePath);
-              return {
-                path: imagePath.replace("/usr/src/app/packages/server/data/datasets", "datasets"),
-                size: { width: dimensions.width, height: dimensions.height },
-                tags: [],
-                object_labels: []
-              };
-            } catch (e) {
-              console.log("error");
-              console.log(e);
-            }
+            const dimensions = await sizeOf(imagePath);
+            return {
+              path: imagePath.replace("/usr/src/app/packages/server/data/datasets", "datasets"),
+              size: { width: dimensions.width, height: dimensions.height },
+              tags: [],
+              object_labels: []
+            };
           }
         )
       );
