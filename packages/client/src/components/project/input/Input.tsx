@@ -1,4 +1,14 @@
-import { LinearProgress, Typography, Box, Grid } from "@material-ui/core";
+import {
+  LinearProgress,
+  Typography,
+  Box,
+  Grid,
+  DialogTitle,
+  Dialog,
+  DialogActions,
+  Button,
+  DialogContent
+} from "@material-ui/core";
 import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
 import { StartButton, StopButton, PauseButton } from "./Buttons";
 import { TrainStatus } from "../../../__generated__/globalTypes";
@@ -19,6 +29,8 @@ const GET_TRAINJOBS = gql`
 `;
 
 export default function Input(props: { id: string; datasets: GetProjectData_project_datasets[] }): ReactElement {
+  const [open, setOpen] = React.useState(false);
+  const [lastStep, setLastStep] = React.useState(false);
   const { data, loading, error } = useQuery<GetTrainjobs>(GET_TRAINJOBS, {
     pollInterval: 2000
   });
@@ -29,9 +41,26 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
 
   const trainjob = data.trainjobs.find((job) => job.projectID === props.id);
 
-  if (trainjob === undefined)
+  if (trainjob === undefined) {
+    if (lastStep) {
+      setOpen(true);
+      setLastStep(false);
+    }
     return (
       <>
+        <Dialog open={open}>
+          <DialogTitle title={"Training Complete"} />
+          <DialogContent>
+            <Typography>
+              Your model has finished training. Choose a checkpoint from the graph and export it to test it or use it on your robot.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {setOpen(false)}}>
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Grid container spacing={3} justify={"center"} alignItems={"center"} style={{ width: "100%" }}>
           <Grid item xs={11}>
             <Parameters id={props.id} datasets={props.datasets} />
@@ -42,31 +71,40 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
         </Grid>
       </>
     );
+  }
 
   let statusMessage;
   switch (trainjob.status) {
     case TrainStatus.Idle:
+      setLastStep(false);
       statusMessage = "Idling";
       break;
     case TrainStatus.Paused:
+      setLastStep(false);
       statusMessage = "Paused";
       break;
     case TrainStatus.Writing:
+      setLastStep(false);
       statusMessage = "Writing parameters";
       break;
     case TrainStatus.Cleaning:
+      setLastStep(false);
       statusMessage = "Cleaning data";
       break;
     case TrainStatus.Moving:
+      setLastStep(false);
       statusMessage = "Moving data";
       break;
     case TrainStatus.Extracting:
+      setLastStep(false);
       statusMessage = "Extracting dataset";
       break;
     case TrainStatus.Training:
+      setLastStep(false);
       statusMessage = "Training";
       break;
     case TrainStatus.Stopped:
+      setLastStep(true);
       statusMessage = "Finishing up";
       break;
   }
