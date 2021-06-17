@@ -1,6 +1,6 @@
 import * as Dockerode from "dockerode";
 import { Container, ContainerCreateOptions } from "dockerode";
-import { DockerImage, Reset } from "../schema/__generated__/graphql";
+import { DockerImage } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { DATA_DIR } from "../constants";
 import * as path from "path";
@@ -87,12 +87,12 @@ export default class Docker {
     return true;
   }
 
-  async resetVolume(): Promise<Reset> {
+  async resetVolume(): Promise<boolean> {
     console.log("Reset volume mutation run");
     await new Promise((resolve) => rimraf("/wpi-data/create", resolve));
     await new Promise((resolve) => rimraf("/wpi-data/projects", resolve));
     await new Promise((resolve) => rimraf("/wpi-data/datasets", resolve));
-    return { id: 1 };
+    return true;
   }
 
   /**

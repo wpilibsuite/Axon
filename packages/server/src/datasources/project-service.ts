@@ -255,4 +255,12 @@ export class ProjectService extends DataSource {
     const project = await Project.findByPk(id);
     return project;
   }
+
+  async reset(): Promise<boolean> {
+    const projects = await this.getProjects();
+    for (const project of projects) {
+      await project.destroy();
+    }
+    return true;
+  }
 }

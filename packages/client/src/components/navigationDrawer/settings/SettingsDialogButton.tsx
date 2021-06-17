@@ -31,11 +31,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const RESET_VOLUME_MUTATION = gql`
-    mutation ResetVolume($reset: Int!) {
-        resetVolume(reset: $reset) {
-            id
-        }
-    }
+  mutation ResetVolume {
+    resetVolume
+  }
 `;
 
 type ProjectListProps = {
@@ -49,20 +47,19 @@ export default function SettingsDialogButton({ nodeId }: ProjectListProps): Reac
   const apolloClient = useApolloClient();
 
   const handleReset = () => {
-    resetVolume({ variables: {reset: 4} }).then(async r => {
+    resetVolume().then(async (r) => {
       await apolloClient.resetStore();
-    })
-  }
+    });
+  };
 
   return (
     <>
       <Dialog open={open}>
-        <DialogTitle>
-          Settings
-        </DialogTitle>
+        <DialogTitle>Settings</DialogTitle>
         <DialogContent>
-          <Button variant={"contained"} style={{color: "#ff0000"}} onClick={handleReset}>
-            Delete all user data
+          <Typography>Delete all user data (datasets, projects, exports, tests, etc.)</Typography>
+          <Button variant={"contained"} style={{ color: "#ff0000" }} onClick={handleReset}>
+            Delete
           </Button>
         </DialogContent>
         <DialogActions>
