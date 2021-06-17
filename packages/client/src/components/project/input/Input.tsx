@@ -52,11 +52,17 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
           <DialogTitle>Training Complete</DialogTitle>
           <DialogContent>
             <Typography>
-              Your model has finished training. Choose a checkpoint from the graph and export it to test it or use it on your robot.
+              Your model has finished training. Choose a checkpoint from the graph and export it to test it or use it on
+              your robot.
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button variant={"contained"} onClick={() => {setOpen(false)}}>
+            <Button
+              variant={"contained"}
+              onClick={() => {
+                setOpen(false);
+              }}
+            >
               Close
             </Button>
           </DialogActions>
