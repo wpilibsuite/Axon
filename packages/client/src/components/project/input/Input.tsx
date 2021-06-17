@@ -49,14 +49,14 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
     return (
       <>
         <Dialog open={open}>
-          <DialogTitle title={"Training Complete"} />
+          <DialogTitle>Training Complete</DialogTitle>
           <DialogContent>
             <Typography>
               Your model has finished training. Choose a checkpoint from the graph and export it to test it or use it on your robot.
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => {setOpen(false)}}>
+            <Button variant={"contained"} onClick={() => {setOpen(false)}}>
               Close
             </Button>
           </DialogActions>
@@ -76,35 +76,39 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
   let statusMessage;
   switch (trainjob.status) {
     case TrainStatus.Idle:
-      setLastStep(false);
+      if (lastStep) {
+        setLastStep(false);
+      }
       statusMessage = "Idling";
       break;
     case TrainStatus.Paused:
-      setLastStep(false);
       statusMessage = "Paused";
       break;
     case TrainStatus.Writing:
-      setLastStep(false);
       statusMessage = "Writing parameters";
       break;
     case TrainStatus.Cleaning:
-      setLastStep(false);
       statusMessage = "Cleaning data";
       break;
     case TrainStatus.Moving:
-      setLastStep(false);
       statusMessage = "Moving data";
       break;
     case TrainStatus.Extracting:
-      setLastStep(false);
+      if (lastStep) {
+        setLastStep(false);
+      }
       statusMessage = "Extracting dataset";
       break;
     case TrainStatus.Training:
-      setLastStep(false);
+      if (!lastStep) {
+        setLastStep(true);
+      }
       statusMessage = "Training";
       break;
     case TrainStatus.Stopped:
-      setLastStep(true);
+      if (!lastStep) {
+        setLastStep(true);
+      }
       statusMessage = "Finishing up";
       break;
   }
