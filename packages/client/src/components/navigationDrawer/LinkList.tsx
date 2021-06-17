@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ReactElement } from "react";
-import { ChevronRight, ExpandMore, Folder, Info, PermMedia, Settings } from "@material-ui/icons";
+import { ChevronRight, ExpandMore, Folder, Info, PermMedia } from "@material-ui/icons";
 import gql from "graphql-tag";
 import { TreeItem, TreeView } from "@material-ui/lab";
 import { useQuery } from "@apollo/client";
