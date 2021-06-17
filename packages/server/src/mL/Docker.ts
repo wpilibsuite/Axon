@@ -1,5 +1,5 @@
 import * as Dockerode from "dockerode";
-import { Container, ContainerCreateOptions } from "dockerode";
+import { Container, ContainerCreateOptions, Node } from "dockerode";
 import { DockerImage } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { DATA_DIR } from "../constants";
@@ -41,6 +41,14 @@ export default class Docker {
       return false;
     }
     return true;
+  }
+
+  getAxonVersion(): string {
+    const version = process.env.AXON_VERSION;
+    if (version !== undefined) {
+      return version;
+    }
+    return "Development";
   }
 
   /**

@@ -4,6 +4,7 @@ scalar Upload
 type Query {
   isDockerConnected: Boolean!
   dockerVersion: String!
+  getAxonVersion: String!
 
   dataset(id: ID!): Dataset
   datasets: [Dataset!]!
