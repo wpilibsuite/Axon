@@ -128,6 +128,7 @@ export class ProjectService extends DataSource {
   async setDatasetInProject(projectId: string, datasetId: string, isIncluded: boolean): Promise<Project> {
     const project = await Project.findByPk(projectId);
     if (isIncluded) {
+      await project.removeDataset((await project.getDatasets())[0]);
       await project.addDataset(datasetId);
     } else {
       await project.removeDataset(datasetId);
