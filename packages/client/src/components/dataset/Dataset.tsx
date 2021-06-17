@@ -20,7 +20,6 @@ import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
   progress: {
-    color: "#FFFFFF",
     marginLeft: 50
   }
 }));

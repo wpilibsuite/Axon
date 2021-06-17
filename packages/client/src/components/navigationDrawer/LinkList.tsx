@@ -31,7 +31,6 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(0.5, 0)
   },
   loader: {
-    color: "#FFFFFF",
     maxHeight: 25,
     maxWidth: 25,
     marginTop: 20,
