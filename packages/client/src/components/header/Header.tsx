@@ -4,7 +4,7 @@ import { AppBar, Toolbar, Typography } from "@material-ui/core";
 import { ReactElement } from "react";
 import gql from "graphql-tag";
 import { useQuery } from "@apollo/client";
-import { GetAxonVersion } from "./__generated__/GetAxonVersion";
+import { GetAxonVersionHeader } from "./__generated__/GetAxonVersionHeader";
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
@@ -13,13 +13,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const GET_AXON_VERSION_QUERY = gql`
-  query GetAxonVersion {
+  query GetAxonVersionHeader {
     getAxonVersion
   }
 `;
 export default function Header(): ReactElement {
   const classes = useStyles();
-  const versionQuery = useQuery<GetAxonVersion, GetAxonVersion>(GET_AXON_VERSION_QUERY);
+  const versionQuery = useQuery<GetAxonVersionHeader, GetAxonVersionHeader>(GET_AXON_VERSION_QUERY);
   const getVersion = () => {
     if (versionQuery.loading || !versionQuery.data) {
       return "Version Loading";
