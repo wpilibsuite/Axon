@@ -1,5 +1,5 @@
 import * as Dockerode from "dockerode";
-import { Container, ContainerCreateOptions, Node } from "dockerode";
+import { Container, ContainerCreateOptions } from "dockerode";
 import { DockerImage } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { DATA_DIR } from "../constants";
