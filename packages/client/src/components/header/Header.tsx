@@ -1,6 +1,6 @@
 import * as React from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { AppBar, CircularProgress, Toolbar, Typography } from "@material-ui/core";
+import { AppBar, Toolbar, Typography } from "@material-ui/core";
 import { ReactElement } from "react";
 import gql from "graphql-tag";
 import { useQuery } from "@apollo/client";
