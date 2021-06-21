@@ -84,7 +84,6 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const [createState, setCreateState] = React.useState(CreateState.Entering);
 
   const [createDataset] = useMutation<Created>(CREATE_DATASET_MUTATION, {
-
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     onCompleted({ createDataset }) {
