@@ -58,10 +58,10 @@ export default function AddProjectDialogButton(): ReactElement {
   const handleClose = () => {
     setOpen(false);
   };
-  const handleCreate = () => {
-    createProject({ variables: { name } }).then(() => {
-      apolloClient.resetStore();
-    });
+  const handleCreate = async () => {
+    const projectRes = await createProject({ variables: { name } });
+    await apolloClient.resetStore();
+    window.location.href = "/projects/" + projectRes.data.createProject.id;
     handleClose();
   };
 
