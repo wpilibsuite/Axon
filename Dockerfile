@@ -1,10 +1,12 @@
 FROM python:3.9
 
+COPY requirements.txt requirements.txt
+
 # Python dependencies for Open Images
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y curl python3-opencv && \
-    pip3 install numpy pandas opencv-python openimages
+    pip3 install -r requirements.txt
 
 # Node
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - && \

@@ -8,7 +8,7 @@ from zipfile import ZipFile
 
 import cv2
 import pandas
-from openimages.download import download_dataset
+from download import download_dataset
 
 
 class OpenImagesDownloader:
@@ -31,6 +31,7 @@ class OpenImagesDownloader:
             self.data = json.load(file)
         # will error if not in Title Case
         self.labels = [i.title() for i in self.data["labels"]]
+        self.title = "_".join([i.replace(" ","") for i in self.labels])
         print(self.labels)
         assert type(self.labels) == list
         self.limit = self.data["limit"]
@@ -47,7 +48,7 @@ class OpenImagesDownloader:
         API call to download OpenImages slice
         :return: None
         """
-        download_dataset(dest_dir=self.directory, csv_dir=self.directory, class_labels=self.labels,
+        download_dataset(dest_dir=self.directory, meta_dir=self.directory, class_labels=self.labels,
                          annotation_format="pascal", exclusions_path=None, limit=self.limit)
 
     def parse_line(self, key, label, height, width, box):
@@ -146,7 +147,6 @@ class OpenImagesDownloader:
                         file = os.path.join(directory, filename)
                         # Add file to zip
                         zipFile.write("data/create/" + self.create_id + "/tar/" + directory + '/' + filename, file)
-        print(sys.argv[1] + "/dataset.zip")
 
     def clean(self):
         rmtree("data/create/" + self.create_id + "/train")
@@ -163,3 +163,4 @@ if __name__ == "__main__":
     print("Making archive")
     downloader.make_zip()
     downloader.clean()
+    print("Clean up done.")
