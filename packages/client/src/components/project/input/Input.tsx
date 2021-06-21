@@ -1,5 +1,5 @@
 import { LinearProgress, Typography, Box, Grid } from "@material-ui/core";
-import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
+import { GetProjectData_project_dataset } from "../__generated__/GetProjectData";
 import { StartButton, StopButton, PauseButton } from "./Buttons";
 import { TrainStatus } from "../../../__generated__/globalTypes";
 import { GetTrainjobs } from "./__generated__/GetTrainjobs";
@@ -18,7 +18,7 @@ const GET_TRAINJOBS = gql`
   }
 `;
 
-export default function Input(props: { id: string; datasets: GetProjectData_project_datasets[] }): ReactElement {
+export default function Input(props: { id: string; dataset: GetProjectData_project_dataset }): ReactElement {
   const { data, loading, error } = useQuery<GetTrainjobs>(GET_TRAINJOBS, {
     pollInterval: 2000
   });
@@ -34,10 +34,10 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
       <>
         <Grid container spacing={3} justify={"center"} alignItems={"center"} style={{ width: "100%" }}>
           <Grid item xs={11}>
-            <Parameters id={props.id} datasets={props.datasets} />
+            <Parameters id={props.id} dataset={props.dataset} />
           </Grid>
           <Grid item xs={1}>
-            <StartButton id={props.id} selected={props.datasets} />
+            <StartButton id={props.id} selected={props.dataset} />
           </Grid>
         </Grid>
       </>
