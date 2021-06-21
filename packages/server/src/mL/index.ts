@@ -4,7 +4,7 @@ import Exporter from "./Exporter";
 import Trainer from "./Trainer";
 import Tester from "./Tester";
 import Docker from "./Docker";
-import Creator, { CheckLabelsResult } from "./Creator";
+import Creator from "./Creator";
 
 export default class MLService {
   private dockerState: DockerState;

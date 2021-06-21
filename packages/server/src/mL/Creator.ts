@@ -8,11 +8,6 @@ type CreateParameters = {
   limit: number;
 };
 
-export type CheckLabelsResult = {
-  success: boolean;
-  failingLabel: string;
-};
-
 export default class Creator {
   readonly classes: string[];
   readonly maxImages: number;
