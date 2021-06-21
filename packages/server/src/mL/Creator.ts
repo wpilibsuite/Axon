@@ -1,6 +1,7 @@
 import * as path from "path";
 import * as fs from "fs";
 import { spawn } from "child_process";
+import { CreateJob } from "../schema/__generated__/graphql";
 
 type CreateParameters = {
   labels: string[];
@@ -25,19 +26,21 @@ export default class Creator {
     this.id = id;
   }
 
-  public async checkLabels(): Promise<CheckLabelsResult> {
+  public async checkLabels(): Promise<CreateJob> {
     const validLabels = await this.getValidLabels();
     for (let i = 0; i < this.classes.length; i++) {
       if (!validLabels.includes(this.classes[i].toLowerCase())) {
         return {
-          success: false,
-          failingLabel: this.classes[i]
+          success: 0,
+          createID: this.classes[i],
+          zipPath: ""
         };
       }
     }
     return {
-      success: true,
-      failingLabel: ""
+      success: 1,
+      createID: "",
+      zipPath: ""
     };
   }
 
@@ -73,6 +76,7 @@ export default class Creator {
 
     const exitCode = await new Promise((resolve) => {
       python.on("close", resolve);
+      console.log("python finished");
     });
 
     if (exitCode) {
@@ -84,5 +88,11 @@ export default class Creator {
   public async getValidLabels(): Promise<string[]> {
     const buffer = await fs.promises.readFile("src/assets/valid_labels.json");
     return JSON.parse(buffer.toString());
+  }
+
+  public async getZipPath(): Promise<string> {
+    const buffer = await fs.promises.readFile(`${this.directory}/output.json`);
+    console.log("Read json");
+    return JSON.parse(buffer.toString())["path"];
   }
 }

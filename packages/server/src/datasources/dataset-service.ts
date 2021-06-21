@@ -89,18 +89,7 @@ export class DatasetService extends DataSource {
     const id = uuidv4();
     const directory = `data/create/${id}`;
     await mkdirp(directory);
-    const success = await this.mLService.create(classes, maxImages, directory, id);
-    if (success.success) {
-      return {
-        success: 1,
-        createID: id
-      };
-    } else {
-      return {
-        success: 0,
-        createID: success.failingLabel
-      };
-    }
+    return await this.mLService.create(classes, maxImages, directory, id);
   }
 
   async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {

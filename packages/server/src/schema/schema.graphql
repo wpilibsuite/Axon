@@ -194,6 +194,7 @@ type Testjob {
 type CreateJob {
   success: Int!
   createID: String!
+  zipPath: String!
 }
 
 input ProjectUpdateInput {

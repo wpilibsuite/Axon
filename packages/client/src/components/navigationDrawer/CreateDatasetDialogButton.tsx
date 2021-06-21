@@ -67,6 +67,7 @@ const CREATE_DATASET_MUTATION = gql`
     createDataset(classes: $classes, maxImages: $maxImages) {
       success
       createID
+      zipPath
     }
   }
 `;
@@ -79,6 +80,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const [maxNumber, setMaxNumber] = React.useState(0);
   const [numberError, setNumberError] = React.useState(false);
   const [createID, setCreateID] = React.useState("");
+  const [zipPath, setZipPath] = React.useState("");
   const [createState, setCreateState] = React.useState(CreateState.Entering);
 
   const [createDataset] = useMutation<Created>(CREATE_DATASET_MUTATION, {
@@ -87,6 +89,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
     onCompleted({ createDataset }) {
       console.log(createDataset);
       setCreateID(createDataset.createID);
+      setZipPath(createDataset.zipPath);
       if (createDataset.success === 1) {
         setCreateState(CreateState.Done);
       } else {
@@ -268,7 +271,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
     return (
       <Grid container justify={"center"}>
         <Tooltip title={"Download new dataset"}>
-          <IconButton target={"_blank"} href={`http://localhost:4000/create/${createID}/dataset.zip`}>
+          <IconButton target={"_blank"} href={`http://localhost:4000/create/${zipPath}`}>
             <CloudDownload className={classes.largeIcon} />
           </IconButton>
         </Tooltip>

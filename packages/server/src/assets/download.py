@@ -153,63 +153,55 @@ def download_dataset(
     label_download_counts = {label: 0 for label in class_labels}
 
     # OpenImages is already split into sections so we'll need to loop over each
-    for split_section in ("train", "validation", "test"):
+    split_section = "train"
 
-        # get a dictionary of class labels to GroupByDataFrames
-        # containing bounding box info grouped by image IDs
-        label_bbox_groups = _group_bounding_boxes(split_section, label_codes, exclusion_ids, meta_dir)
+    # get a dictionary of class labels to GroupByDataFrames
+    # containing bounding box info grouped by image IDs
+    label_bbox_groups = _group_bounding_boxes(split_section, label_codes, exclusion_ids, meta_dir)
 
-        for label_index, class_label in enumerate(class_labels):
+    for label_index, class_label in enumerate(class_labels):
 
-            # get the bounding boxes grouped by image and the collection of image IDs
-            bbox_groups = label_bbox_groups[class_label]
-            image_ids = bbox_groups.groups.keys()
+        # get the bounding boxes grouped by image and the collection of image IDs
+        bbox_groups = label_bbox_groups[class_label]
+        image_ids = bbox_groups.groups.keys()
 
-            # limit the number of images we'll download, if specified
-            if limit is not None:
-                remaining = limit - label_download_counts[class_label]
-                if remaining <= 0:
-                    break
-                elif remaining < len(image_ids):
-                    image_ids = list(image_ids)[0:remaining]
+        # limit the number of images we'll download, if specified
+        if limit is not None:
+            remaining = limit - label_download_counts[class_label]
+            if remaining <= 0:
+                break
+            elif remaining < len(image_ids):
+                image_ids = list(image_ids)[0:remaining]
 
-            # download the images
+        # download the images
+        _logger.info(
+            f"Downloading {len(image_ids)} {split_section} images "
+            f"for class \'{class_label}\'",
+        )
+        _download_images_by_id(
+            image_ids,
+            split_section,
+            class_directories[class_label]["images_dir"],
+        )
+
+        # update the downloaded images count for this label
+        label_download_counts[class_label] += len(image_ids)
+
+        # build the annotations
+        if annotation_format is not None:
             _logger.info(
-                f"Downloading {len(image_ids)} {split_section} images "
-                f"for class \'{class_label}\'",
+                f"Creating {len(image_ids)} {split_section} annotations "
+                f"({annotation_format}) for class \'{class_label}\'",
             )
-            _download_images_by_id(
+            _build_annotations(
+                annotation_format,
                 image_ids,
-                split_section,
+                bbox_groups,
+                class_labels,
+                label_index,
                 class_directories[class_label]["images_dir"],
+                class_directories[class_label]["annotations_dir"],
             )
-
-            # update the downloaded images count for this label
-            label_download_counts[class_label] += len(image_ids)
-
-            # build the annotations
-            if annotation_format is not None:
-                _logger.info(
-                    f"Creating {len(image_ids)} {split_section} annotations "
-                    f"({annotation_format}) for class \'{class_label}\'",
-                )
-                _build_annotations(
-                    annotation_format,
-                    image_ids,
-                    bbox_groups,
-                    class_labels,
-                    label_index,
-                    class_directories[class_label]["images_dir"],
-                    class_directories[class_label]["annotations_dir"],
-                )
-
-                if annotation_format == "darknet":
-                    # write the class labels to a names file to allow
-                    # for indexing the Darknet label numbers
-                    darknet_object_names = os.path.join(dest_dir, "darknet_obj_names.txt")
-                    with open(darknet_object_names, "w") as darknet_obj_names_file:
-                        for label in class_labels:
-                            darknet_obj_names_file.write(f"{label}\n")
 
     return class_directories
 
