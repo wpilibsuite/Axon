@@ -5,7 +5,7 @@ from glob import glob
 from shutil import copyfile, rmtree
 from zipfile import ZipFile
 
-import cv2
+from PIL import Image
 import pandas
 
 from download import download_dataset
@@ -48,8 +48,7 @@ class OpenImagesDownloader:
         API call to download OpenImages slice
         :return: None
         """
-        download_dataset(dest_dir=self.directory, meta_dir="./data/create", class_labels=self.labels,
-                         annotation_format="pascal", exclusions_path=None, limit=self.limit)
+        download_dataset(dest_dir=self.directory, meta_dir="./data/create", class_labels=self.labels, exclusions_path=None, limit=self.limit)
 
     def parse_line(self, key, label, height, width, box):
         """
@@ -93,8 +92,8 @@ class OpenImagesDownloader:
         except FileExistsError:
             pass
         for image_path in self.images:
-            image = cv2.imread(image_path)
-            height, width, channels = image.shape
+            im = Image.open(image_path)
+            width, height = im.size
             file_id = image_path.split("/")[-1].rstrip(".jpg")
             copyfile(image_path, "data/create/" + self.create_id + "/tar/" + image_path.split("/")[-1])
             self.image_data.update({file_id: {"height": height, "width": width}})

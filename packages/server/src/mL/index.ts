@@ -136,7 +136,6 @@ export default class MLService {
     await creator.createDataset();
     console.log("Created dataset " + id);
     const path = await creator.getZipPath();
-    console.log("All done.");
     return { success: 1, createID: id, zipPath: path };
   }
 

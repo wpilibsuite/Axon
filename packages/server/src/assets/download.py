@@ -7,11 +7,9 @@ from typing import Dict, List, Set
 
 import boto3
 import botocore
-import lxml.etree as etree
 import pandas as pd
 import requests
 import urllib3
-from Pillow import Image
 from tqdm import tqdm
 
 # define a "public API" and somewhat manage "wild" imports
@@ -187,22 +185,6 @@ def download_dataset(
         # update the downloaded images count for this label
         label_download_counts[class_label] += len(image_ids)
 
-        # build the annotations
-        if annotation_format is not None:
-            _logger.info(
-                f"Creating {len(image_ids)} {split_section} annotations "
-                f"({annotation_format}) for class \'{class_label}\'",
-            )
-            _build_annotations(
-                annotation_format,
-                image_ids,
-                bbox_groups,
-                class_labels,
-                label_index,
-                class_directories[class_label]["images_dir"],
-                class_directories[class_label]["annotations_dir"],
-            )
-
     return class_directories
 
 
@@ -285,98 +267,6 @@ def _download_images_by_id(
                   total=len(download_args_list), desc="Downloading images"))
 
 
-# ------------------------------------------------------------------------------
-def _build_annotations(
-        annotation_format: str,
-        image_ids: List[str],
-        bbox_groups: pd.core.groupby.DataFrameGroupBy,
-        class_labels: List[str],
-        class_index: int,
-        images_directory: str,
-        annotations_directory: str,
-        include_segmentation_masks: bool = False,
-):
-    """
-    Builds and saves annotations for a collection of images.
-
-    :param annotation_format:
-    :param image_ids:
-    :param bbox_groups:
-    :param class_labels:
-    :param class_index:
-    :param images_directory: directory where the image files should be located
-    :param annotations_directory: destination directory where the annotation
-        files are to be written
-    :param include_segmentation_masks:
-    """
-
-    # create an iterable list of function arguments
-    # that we'll map to the annotation builder function
-    build_args_list = []
-    for image_id in image_ids:
-
-        # get all bounding boxes in the image for the label
-        bboxes = bbox_groups.get_group(image_id)[['XMin', 'XMax', 'YMin', 'YMax']].values.tolist()
-
-        # build a dictionary of arguments for the _build_annotation function
-        # that will be called by one of the process pool's worker processes
-        build_args = {
-            "annotation_format": annotation_format,
-            "bboxes": bboxes,
-            "image_id": image_id,
-            "images_dir": images_directory,
-            "annotations_dir": annotations_directory,
-            "include_segmentation_masks": include_segmentation_masks,
-        }
-
-        if annotation_format == "pascal":
-            build_args["class_label"] = class_labels[class_index]
-        elif annotation_format == "darknet":
-            build_args["class_index"] = class_index
-        else:
-            raise ValueError(
-                f"Unsupported annotation format: \"{annotation_format}\"",
-            )
-        build_args_list.append(build_args)
-
-    # use a ProcessPoolExecutor to download the images in parallel
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-
-        # use the executor to map the build function to the iterable of arguments
-        list(tqdm(executor.map(_build_annotation, build_args_list),
-                  total=len(build_args_list)))
-
-
-# ------------------------------------------------------------------------------
-def _build_annotation(arguments: Dict):
-    """
-    Builds and saves an annotation file for an image.
-
-    :param arguments: dictionary containing the following arguments:
-        "bboxes": a list of bounding box lists with four elements: [xmin, ymin,
-            xmax, ymax]
-        "class_labels": list of image class labels (categories)
-        "image_id": OpenImages image ID
-        "images_dir": directory containing the image
-        "annotations_dir": destination directory where the annotation file
-            should be written
-    """
-    if arguments["annotation_format"] == "pascal":
-
-        # write a PASCAL VOC file for this image
-        # using all bounding boxes in the image's group
-        _write_bboxes_as_pascal(
-            arguments["bboxes"],
-            arguments["class_label"],
-            arguments["image_id"],
-            arguments["images_dir"],
-            arguments["annotations_dir"],
-            # arguments["include_segmentation_masks"],
-        )
-    else:
-        raise ValueError(
-            f"Unsupported annotation format: \"{arguments['annotation_format']}\"",
-        )
 
 
 # ------------------------------------------------------------------------------
@@ -482,88 +372,6 @@ def _group_bounding_boxes(
 
     # return the dictionary we've created
     return labels_to_bounding_box_groups
-
-
-# ------------------------------------------------------------------------------
-def _write_bboxes_as_pascal(
-        bboxes: List[List[float]],
-        label: str,
-        image_id: str,
-        images_dir: str,
-        pascal_dir: str,
-) -> int:
-    """
-    Writes a PASCAL VOC (XML) annotation file containing the bounding boxes for
-    an image.
-
-    :param bboxes: iterable of lists of bounding box coordinates [xmin, ymin, xmax, ymax]
-    :param label: class label
-    :param image_id: ID of the image file (typically the image file name
-        minus ".jpg" or ".png")
-    :param images_dir: directory where the image file is located
-    :param pascal_dir: directory where the PASCAL file should be written
-    :return: 0 for success, 1 for failure
-    """
-
-    # get the image dimensions
-    image_file_name = image_id + ".jpg"
-    image_path = os.path.join(images_dir, image_file_name)
-    try:
-        img_width, img_height = Image.open(image_path)
-    except OSError as error:
-        _logger.warning(
-            "Unable to create PASCAL annotation for image "
-            f"{image_file_name} -- skipping",
-            error
-        )
-        return 1
-
-    normalized_image_path = os.path.normpath(image_path)
-    folder_name, image_file_name = normalized_image_path.split(os.path.sep)[-2:]
-
-    annotation = etree.Element('annotation')
-    folder = etree.SubElement(annotation, "folder")
-    folder.text = folder_name
-    filename = etree.SubElement(annotation, "filename")
-    filename.text = image_file_name
-    path = etree.SubElement(annotation, "path")
-    path.text = normalized_image_path
-    source = etree.SubElement(annotation, "source")
-    database = etree.SubElement(source, "database")
-    database.text = "OpenImages"
-    size = etree.SubElement(annotation, "size")
-    width = etree.SubElement(size, "width")
-    width.text = str(img_width)
-    height = etree.SubElement(size, "height")
-    height.text = str(img_height)
-    segmented = etree.SubElement(annotation, "segmented")
-    segmented.text = "0"
-    for bbox in bboxes:
-        obj = etree.SubElement(annotation, "object")
-        name = etree.SubElement(obj, "name")
-        name.text = label
-        pose = etree.SubElement(obj, "pose")
-        pose.text = "Unspecified"
-        truncated = etree.SubElement(obj, "truncated")
-        truncated.text = "0"
-        difficult = etree.SubElement(obj, "difficult")
-        difficult.text = "0"
-        bndbox = etree.SubElement(obj, "bndbox")
-        xmin = etree.SubElement(bndbox, "xmin")
-        xmin.text = str(max(0, int(bbox[0] * img_width)))
-        xmax = etree.SubElement(bndbox, "xmax")
-        xmax.text = str(min(img_width - 1, int(bbox[1] * img_width)))
-        ymin = etree.SubElement(bndbox, "ymin")
-        ymin.text = str(max(0, int(bbox[2] * img_height)))
-        ymax = etree.SubElement(bndbox, "ymax")
-        ymax.text = str(min(img_height - 1, int(bbox[3] * img_height)))
-
-    # write the XML to file
-    pascal_file_path = os.path.join(pascal_dir, image_id + ".xml")
-    with open(pascal_file_path, 'w') as pascal_file:
-        pascal_file.write(etree.tostring(annotation, pretty_print=True, encoding='utf-8').decode("utf-8"))
-
-    return 0
 
 
 # ------------------------------------------------------------------------------

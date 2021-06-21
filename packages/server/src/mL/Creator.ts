@@ -71,7 +71,6 @@ export default class Creator {
 
     const exitCode = await new Promise((resolve) => {
       python.on("close", resolve);
-      console.log("python finished");
     });
 
     if (exitCode) {
@@ -87,7 +86,6 @@ export default class Creator {
 
   public async getZipPath(): Promise<string> {
     const buffer = await fs.promises.readFile(`${this.directory}/output.json`);
-    console.log("Read json");
     return JSON.parse(buffer.toString())["path"];
   }
 }
