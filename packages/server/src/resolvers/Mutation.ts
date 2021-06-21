@@ -5,11 +5,12 @@ export const Mutation: MutationResolvers = {
     return await docker.reset();
   },
   resetVolume: async (parent, args, { docker, dataSources }) => {
-    return (
-      (await docker.resetVolume()) &&
-      (await dataSources.datasetService.reset()) &&
-      (await dataSources.projectService.reset())
-    );
+    const [volume, dataset, project] = await Promise.all([
+      docker.resetVolume(),
+      dataSources.datasetService.reset(),
+      dataSources.projectService.reset()
+    ]);
+    return volume && dataset && project;
   },
   createDataset: async (parent, { upload }, { dataSources }) => {
     const { createReadStream, filename } = await upload;
