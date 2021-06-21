@@ -11,7 +11,7 @@ import lxml.etree as etree
 import pandas as pd
 import requests
 import urllib3
-from cvdata.utils import image_dimensions
+from Pillow import Image
 from tqdm import tqdm
 
 # define a "public API" and somewhat manage "wild" imports
@@ -509,7 +509,7 @@ def _write_bboxes_as_pascal(
     image_file_name = image_id + ".jpg"
     image_path = os.path.join(images_dir, image_file_name)
     try:
-        img_width, img_height, img_depth = image_dimensions(image_path)
+        img_width, img_height = Image.open(image_path)
     except OSError as error:
         _logger.warning(
             "Unable to create PASCAL annotation for image "
@@ -536,8 +536,6 @@ def _write_bboxes_as_pascal(
     width.text = str(img_width)
     height = etree.SubElement(size, "height")
     height.text = str(img_height)
-    depth = etree.SubElement(size, "depth")
-    depth.text = str(img_depth)
     segmented = etree.SubElement(annotation, "segmented")
     segmented.text = "0"
     for bbox in bboxes:
