@@ -18,7 +18,6 @@ import { useMutation } from "@apollo/client";
 import { TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
 import { CloudDownload, ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
-import { CreateDataset } from "./__generated__/CreateDataset";
 
 const useStyles = makeStyles((theme) => ({
   link: {
@@ -51,6 +50,11 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+type Created = {
+  success: number;
+  createID: string;
+};
+
 enum CreateState {
   Entering,
   Creating,
@@ -79,11 +83,11 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const [zipPath, setZipPath] = React.useState("");
   const [createState, setCreateState] = React.useState(CreateState.Entering);
 
-  const [createDataset] = useMutation<CreateDataset, CreateDataset>(CREATE_DATASET_MUTATION, {
+  const [createDataset] = useMutation<Created>(CREATE_DATASET_MUTATION, {
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     onCompleted({ createDataset }) {
-      if (createDataset === null) {
-        return;
-      }
       console.log(createDataset);
       setCreateID(createDataset.createID);
       setZipPath(createDataset.zipPath);
