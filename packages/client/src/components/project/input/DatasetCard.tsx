@@ -77,7 +77,7 @@ export function DatasetCard(props: { projectId: string; dataset: GetDatasets_dat
         action={
           <Checkbox
             onChange={handleOnSelect}
-            checked={data?.project?.dataset.id === props.dataset.id}
+            checked={data?.project?.dataset?.id === props.dataset.id}
           />
         }
         title={props.dataset.name}

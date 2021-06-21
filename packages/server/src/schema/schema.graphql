@@ -134,7 +134,7 @@ type Project {
   id: ID!
   name: String!
   initialCheckpoint: String!
-  dataset: Dataset!
+  dataset: Dataset
 
   directory: String!
 
