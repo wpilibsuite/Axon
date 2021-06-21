@@ -7,7 +7,7 @@
 // existing tabs open on the page have been closed, since previously cached
 // resources are updated in the background.
 
-// To learn more docs the benefits of this project and instructions on how to
+// To learn more about the benefits of this project and instructions on how to
 // opt-in, read https://bit.ly/CRA-PWA
 
 const isLocalhost = Boolean(
