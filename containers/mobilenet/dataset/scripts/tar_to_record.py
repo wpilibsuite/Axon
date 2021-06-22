@@ -4,7 +4,7 @@ from os.path import join, splitext, split
 
 
 def main(dataset_paths, percent_eval, directory):
-    ROOT_PATH, PATH_EXT = os.path.splitext(dataset_paths[-1])
+    ROOT_PATH, PATH_EXT = os.path.splitext(dataset_paths)
     DATASET_NAME = ROOT_PATH.split('/')[-1]
 
     OUTPUT_PATH = directory
@@ -25,15 +25,18 @@ def main(dataset_paths, percent_eval, directory):
 
     if NORMAL_MODE: # Perform working tar code
         print("normal mode")
-        try:
-            for i in dataset_paths:
-                shutil.copy(i, join(EXTRACT_PATH, 'data.tar'))
-        except:
-            print('unable to retrieve a dataset tar file:')
-            sys.exit(1)
-        for dataset in dataset_paths:
-            with tarfile.open(dataset) as tar_file:
-                tar_file.extractall(join(EXTRACT_PATH, 'out'))
+#         for i in dataset_paths:
+        shutil.copy(dataset_paths, join(EXTRACT_PATH, 'data.tar'))
+
+#         try:
+#             for i in dataset_paths:
+#                 shutil.copy(i, join(EXTRACT_PATH, 'data.tar'))
+#         except:
+#             print('unable to retrieve a dataset tar file:')
+#             sys.exit(1)
+#         for dataset in dataset_paths:
+        with tarfile.open(dataset_paths) as tar_file:
+            tar_file.extractall(join(EXTRACT_PATH, 'out'))
 
         if percent_eval > 100 or percent_eval < 0:
             percent_eval = 30
@@ -54,7 +57,7 @@ def main(dataset_paths, percent_eval, directory):
         #Psuedocode
 
         #Unzip the zip in correct dir
-        with zipfile.ZipFile(dataset_paths[-1], 'r') as zip_file: # Unzip the file (Assuming 1 zip at this time)
+        with zipfile.ZipFile(dataset_paths, 'r') as zip_file: # Unzip the file (Assuming 1 zip at this time)
             namelist = zip_file.namelist()[-1]
             if any([namelist.startswith(i) for i in ["valid", "train", "test"]]):
                 zip_file.extractall(EXTRACT_PATH+"/"+DATASET_NAME)

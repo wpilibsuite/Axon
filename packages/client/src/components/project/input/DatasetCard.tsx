@@ -1,6 +1,7 @@
 import React, { ReactElement } from "react";
-import { Card, CardHeader, CardMedia, Checkbox, createStyles, Theme } from "@material-ui/core";
+import { Card, CardHeader, CardMedia, createStyles, Theme, Checkbox } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+import { RadioButtonUnchecked, RadioButtonChecked } from "@material-ui/icons";
 import { GetDatasets_datasets } from "./__generated__/GetDatasets";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { SetDatasetInProject, SetDatasetInProjectVariables } from "./__generated__/SetDatasetInProject";
@@ -10,7 +11,7 @@ const SET_DATASET_TO_PROJECT = gql`
   mutation SetDatasetInProject($projectId: ID!, $datasetId: ID!, $isIncluded: Boolean!) {
     setDatasetInProject(projectId: $projectId, datasetId: $datasetId, isIncluded: $isIncluded) {
       id
-      datasets {
+      dataset {
         id
       }
     }
@@ -21,7 +22,7 @@ const GET_PROJECT = gql`
   query GetProject($id: ID!) {
     project(id: $id) {
       id
-      datasets {
+      dataset {
         id
       }
     }
@@ -76,8 +77,10 @@ export function DatasetCard(props: { projectId: string; dataset: GetDatasets_dat
         className={classes.box}
         action={
           <Checkbox
+            icon={<RadioButtonUnchecked />}
+            checkedIcon={<RadioButtonChecked />}
             onChange={handleOnSelect}
-            checked={data?.project?.datasets.map((d) => d.id).includes(props.dataset.id)}
+            checked={data?.project?.dataset?.id === props.dataset.id}
           />
         }
         title={props.dataset.name}

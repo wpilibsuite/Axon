@@ -137,7 +137,7 @@ type Project {
   id: ID!
   name: String!
   initialCheckpoint: String!
-  datasets: [Dataset!]!
+  dataset: Dataset
 
   directory: String!
 
@@ -201,7 +201,7 @@ type CreateJob {
 input ProjectUpdateInput {
   name: String
 
-  datasets: [String!]
+  dataset: String
   initialCheckpoint: String
 
   epochs: Int

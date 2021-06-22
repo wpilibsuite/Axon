@@ -1,10 +1,13 @@
 import {
   Association,
+  BelongsToGetAssociationMixin,
   DataTypes,
   HasManyAddAssociationMixin,
   HasManyGetAssociationsMixin,
   HasManyRemoveAssociationMixin,
   HasManySetAssociationsMixin,
+  HasOneGetAssociationMixin,
+  HasOneSetAssociationMixin,
   Model,
   Optional,
   Sequelize
@@ -165,10 +168,8 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
 
   inProgress: boolean;
 
-  public getDatasets!: HasManyGetAssociationsMixin<Dataset>;
-  public setDatasets!: HasManySetAssociationsMixin<Dataset, string>;
-  public addDataset!: HasManyAddAssociationMixin<Dataset, string>;
-  public removeDataset!: HasManyRemoveAssociationMixin<Dataset, string>;
+  public getDataset!: HasOneGetAssociationMixin<Dataset>;
+  public setDataset!: HasOneSetAssociationMixin<Dataset, string>;
 
   public getCheckpoints!: HasManyGetAssociationsMixin<Checkpoint>;
   public setCheckpoints!: HasManySetAssociationsMixin<Checkpoint, string>;
@@ -189,7 +190,7 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
 
   public static associations: {
     checkpoints: Association<Project, Checkpoint>;
-    datasets: Association<Project, Dataset>;
+    dataset: Association<Project, Dataset>;
     exports: Association<Project, Export>;
   };
 }
@@ -402,7 +403,7 @@ Project.init(
   }
 );
 
-Project.belongsToMany(Dataset, { through: "DatasetProject" });
+Project.belongsTo(Dataset);
 Dataset.belongsToMany(Project, { through: "DatasetProject" });
 
 Project.belongsToMany(Checkpoint, { through: "ProjectCheckpoint" });
