@@ -35,7 +35,7 @@ const START_TRAINING = gql`
   }
 `;
 
-export function StartButton(props: { id: string; selected: GetProjectData_project_dataset }): ReactElement {
+export function StartButton(props: { id: string; selected: GetProjectData_project_dataset | null }): ReactElement {
   const classes = useStyles();
   const [startTraining] = useMutation<StartTraining, StartTrainingVariables>(START_TRAINING);
   const [starting, setStarting] = useState(false);
@@ -48,7 +48,10 @@ export function StartButton(props: { id: string; selected: GetProjectData_projec
 
   const dockerState = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
   const datasets = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);
-  const datasetName = props.selected.name;
+
+  let datasetName = "";
+  if (props.selected !== null) datasetName = props.selected.name;
+
 
   function isValidParameters() {
     return !(

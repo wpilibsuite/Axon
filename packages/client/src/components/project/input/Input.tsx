@@ -18,7 +18,7 @@ const GET_TRAINJOBS = gql`
   }
 `;
 
-export default function Input(props: { id: string; dataset: GetProjectData_project_dataset }): ReactElement {
+export default function Input(props: { id: string; dataset: GetProjectData_project_dataset | null }): ReactElement {
   const { data, loading, error } = useQuery<GetTrainjobs>(GET_TRAINJOBS, {
     pollInterval: 2000
   });

@@ -27,11 +27,15 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-export default function Datasets(props: { id: string; selected: GetProjectData_project_dataset}): ReactElement {
+export default function Datasets(props: { id: string; selected: GetProjectData_project_dataset | null}): ReactElement {
   const classes = useStyles();
 
   const { data, loading, error } = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);
-  const datasetName = props.selected.name;
+
+  let datasetName = "Dataset";
+  if(props.selected != null){
+    datasetName = props.selected.name;
+  }
 
   if (loading) return <p>LOADING</p>;
   if (error || !data) return <p>ERROR</p>;
@@ -50,7 +54,7 @@ export default function Datasets(props: { id: string; selected: GetProjectData_p
       variant="outlined"
       value={datasetName}
       SelectProps={{
-        multiple: true,
+        multiple: false,
         renderValue: renderFunc
       }}
     >
