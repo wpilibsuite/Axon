@@ -27,35 +27,19 @@ Building Axon is very straightforward. Axon uses yarn to compile.
 
 To install additional required packages before launching, run the command `yarn`.
 
-## Running
+## GUI/Server Development
 
-To run Axon outside the prebuilt Docker container use the command `yarn start` and navigate to `http://localhost:3000/`
+If you are developing TypeScript (not using Docker), you can start Axon by running `yarn dev` from the root directory. You will not be able to run any Docker containers from this command, but it will build the TypeScript very fast.
 
-Ensure Docker is running on your machine, or the required images will not be able to start. If it is your first time
-running the program, ensure you have run `yarn install` and `yarn generate`
+## Docker Development
+
+If you are doing work with or relating to Docker containers, the `yarn dockerdev` command will work for you. It will take roughly 4 minutes to start Axon after running this command.
+
+If you are working with the Docker containers, you can test your local version of your container by building your container manually after running `yarn dockerdev`. This is done by opening a second terminal, and running a command similar to `docker build -t wpilib/axon-NAME:edge .`
 
 # Building (Release)
 
-To make Axon portable and easy to use, we provide a Docker image to run it.
-
-## Requirements
-
-- [Docker](https://www.docker.com/)
-
-## Building
-
-To build locally use
-`docker build --build-arg AXON_VERSION=<version> -t <tag-name> .`
-where `<tag-name>` is an arbitrary name of your choosing.
-
-## Running
-
-To run using the latest published version use
-`docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v wpilib-axon-volume:/usr/src/app/packages/server/data -p 3000:3000 -p 4000:4000 --pull=always <tag-name>`
-
-To run based on a local built image use
-`docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v wpilib-axon-volume:/usr/src/app/packages/server/data -p 3000:3000 -p 4000:4000 <tag-name>`
-where `<tag-name>` is the name set in the previous step.
+The CI will build a launcher when a tag is published on GitHub. It will also build Docker containers with the same tag.
 
 # Contributing to WPILib
 
