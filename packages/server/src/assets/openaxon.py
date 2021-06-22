@@ -5,8 +5,8 @@ from glob import glob
 from shutil import copyfile, rmtree
 from zipfile import ZipFile
 
-from PIL import Image
 import pandas
+from PIL import Image
 
 from download import download_dataset
 
@@ -48,7 +48,8 @@ class OpenImagesDownloader:
         API call to download OpenImages slice
         :return: None
         """
-        download_dataset(dest_dir=self.directory, meta_dir="./data/create", class_labels=self.labels, exclusions_path=None, limit=self.limit)
+        download_dataset(dest_dir=self.directory, meta_dir="./data/create", class_labels=self.labels,
+                         exclusions_path=None, limit=self.limit)
 
     def parse_line(self, key, label, height, width, box):
         """
@@ -128,9 +129,13 @@ class OpenImagesDownloader:
     def create_subfolders(self, name):
         with open("data/create/" + self.create_id + "/tar/{}/_annotations.csv".format(name), 'w+') as csv:
             csv.write("filename,width,height,class,xmin,ymin,xmax,ymax\n")
-            r = range(len(self.csv))[:int(len(self.csv) * .7)] if name == "train" else range(len(self.csv))[
-                                                                                       int(len(self.csv) * .7):]
-            for i in r:
+
+            if name == "train":
+                split = range(len(self.csv))[:int(len(self.csv) * .7)]
+            else:
+                split = range(len(self.csv))[int(len(self.csv) * .7):]
+
+            for i in split:
                 row = self.csv[i]
                 csv.write("{},{},{},{},{},{},{},{}\n".format(row["filename"], row["width"], row["height"], row["class"],
                                                              row["xmin"], row["ymin"], row["xmax"], row["ymax"]))
@@ -147,13 +152,13 @@ class OpenImagesDownloader:
                         # Add file to zip
                         zipFile.write("data/create/" + self.create_id + "/tar/" + directory + '/' + filename, file)
 
-    def clean(self):
-        rmtree("data/create/"+sys.argv[1])
-        print("Cleaned","data/create/"+sys.argv[1])
-
     def make_json(self):
         with open("data/create/output.json", 'w+') as f:
-            f.write('{"{0}": "{0}/Axon_Dataset_{1}.zip"}\n'.format(sys.argv[1], self.title))
+            f.write('{' + '"{0}": "{0}/Axon_Dataset_{1}.zip"'.format(self.create_id, self.title) + '}\n')
+
+    def clean(self):
+        rmtree("data/create/" + self.create_id)
+        print("Cleaned", "data/create/" + self.create_id)
 
 
 if __name__ == "__main__":
