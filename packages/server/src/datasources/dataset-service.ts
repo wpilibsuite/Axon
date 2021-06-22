@@ -7,9 +7,11 @@ import * as unzipper from "unzipper";
 import * as tar from "tar";
 import { imageSize as sizeOf } from "image-size";
 import { glob } from "glob";
-import { LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
+import { CreateJob, LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import { Sequelize } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
 import { Dataset } from "../store";
+import MLService from "../mL";
 import rimraf = require("rimraf");
 
 interface SuperviselyMeta {
@@ -46,13 +48,14 @@ interface SuperviselyImage {
 }
 
 export class DatasetService extends DataSource {
+  private readonly mLService: MLService;
   private readonly path: string;
   private store: Sequelize;
 
-  constructor(store: Sequelize, path: string) {
+  constructor(store: Sequelize, mLService: MLService, path: string) {
     super();
-
     this.path = path;
+    this.mLService = mLService;
     this.store = store;
   }
 
@@ -82,7 +85,14 @@ export class DatasetService extends DataSource {
     return images;
   }
 
-  async createDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
+  async createDataset(classes: string[], maxImages: number): Promise<CreateJob> {
+    const id = uuidv4();
+    const directory = `data/create/${id}`;
+    await mkdirp(directory);
+    return await this.mLService.create(classes, maxImages, directory, id);
+  }
+
+  async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
     const dataset = Dataset.build({ name: filename });
     dataset.path = `datasets/${dataset.id}/${filename}`;
     await this.upload(dataset.id, dataset.name, stream).then(() => dataset.save());

@@ -43,6 +43,14 @@ export default class Docker {
     return true;
   }
 
+  getAxonVersion(): string {
+    const version = process.env.AXON_VERSION;
+    if (version !== undefined) {
+      return version;
+    }
+    return "Development";
+  }
+
   /**
    * Checks if all of our images are downloaded.
    */
