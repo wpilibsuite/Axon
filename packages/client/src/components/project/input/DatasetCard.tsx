@@ -77,8 +77,8 @@ export function DatasetCard(props: { projectId: string; dataset: GetDatasets_dat
         className={classes.box}
         action={
           <Checkbox
-            icon={<RadioButtonUnchecked/>}
-            checkedIcon={<RadioButtonChecked/>}
+            icon={<RadioButtonUnchecked />}
+            checkedIcon={<RadioButtonChecked />}
             onChange={handleOnSelect}
             checked={data?.project?.dataset?.id === props.dataset.id}
           />
@@ -92,6 +92,6 @@ export function DatasetCard(props: { projectId: string; dataset: GetDatasets_dat
           image={encodeURI(`http://localhost:4000/${props.dataset.images[0].path.replace("data/datasets", "dataset")}`)}
         />
       )}
-    </Card> 
+    </Card>
   );
 }
