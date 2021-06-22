@@ -5,7 +5,7 @@ import MLService from "./mL";
 import * as serve from "koa-static";
 import * as mount from "koa-mount";
 import { ProjectService } from "./datasources/project-service";
-import { DATASET_DATA_DIR } from "./constants";
+import { CREATE_DATA_DIR, DATASET_DATA_DIR } from "./constants";
 import { PROJECT_DATA_DIR } from "./constants";
 import { Context } from "./context";
 import { DatasetService } from "./datasources/dataset-service";
@@ -22,7 +22,7 @@ const app = new Koa();
 const server = new ApolloServer({
   schema: schema,
   dataSources: () => ({
-    datasetService: new DatasetService(sequelize, DATASET_DATA_DIR),
+    datasetService: new DatasetService(sequelize, mLService, DATASET_DATA_DIR),
     projectService: new ProjectService(sequelize, mLService, PROJECT_DATA_DIR)
   }),
   context: {
@@ -41,6 +41,7 @@ const server = new ApolloServer({
 
 app.use(mount("/datasets", serve(DATASET_DATA_DIR)));
 app.use(mount("/projects", serve(PROJECT_DATA_DIR)));
+app.use(mount("/create", serve(CREATE_DATA_DIR)));
 server.applyMiddleware({ app });
 
 const port = process.env.PORT || 4000;

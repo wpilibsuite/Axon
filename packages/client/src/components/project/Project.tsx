@@ -26,7 +26,6 @@ const useStyles = makeStyles((theme) => ({
     height: 60
   },
   progress: {
-    color: "#FFFFFF",
     marginLeft: 50
   }
 }));

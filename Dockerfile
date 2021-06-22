@@ -1,5 +1,19 @@
-FROM node:15.2.1-alpine3.10
+FROM python:3.9
 
+COPY requirements.txt requirements.txt
+
+# Python dependencies for Open Images
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install -y curl python3-opencv && \
+    pip3 install -r requirements.txt
+
+# Node
+RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g yarn
+
+### Axon
 WORKDIR /usr/src/app
 
 COPY package.json .
