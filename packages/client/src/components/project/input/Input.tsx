@@ -9,7 +9,7 @@ import {
   Button,
   DialogContent
 } from "@material-ui/core";
-import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
+import { GetProjectData_project_dataset } from "../__generated__/GetProjectData";
 import { StartButton, StopButton, PauseButton } from "./Buttons";
 import { TrainStatus } from "../../../__generated__/globalTypes";
 import { GetTrainjobs } from "./__generated__/GetTrainjobs";
