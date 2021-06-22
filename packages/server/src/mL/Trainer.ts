@@ -54,6 +54,8 @@ export default class Trainer {
       "dataset",
       path.basename((await this.project.getDataset()).path)
     );
+    console.log("====================================================");
+    console.log(DATASETPATHS);
 
     const INITCKPT =
       this.project.initialCheckpoint !== "default"
@@ -114,6 +116,8 @@ export default class Trainer {
       path.posix.join("data", dataset.path),
       path.posix.join(this.project.directory, "dataset", path.basename(dataset.path))
     );
+    console.log("===========================");
+    console.log(path.posix.join(this.project.directory, "dataset", path.basename(dataset.path)));
     console.log("dataset copied");
 
     //custom checkpoints not yet supported by gui
