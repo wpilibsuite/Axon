@@ -1,13 +1,17 @@
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
 import {
+  Button,
   CircularProgress,
   Container,
   GridList,
   GridListTile,
   IconButton,
+  Link,
   Menu,
+  MenuItem,
   Toolbar,
+  Tooltip,
   Typography
 } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
@@ -17,6 +21,7 @@ import { useQuery } from "@apollo/client";
 import RenameDatasetDialogButton from "./RenameDatasetDialog";
 import DeleteDatasetDialogButton from "./DeleteDatasetDialog";
 import { makeStyles } from "@material-ui/core/styles";
+import { CloudDownload } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   progress: {
@@ -29,6 +34,7 @@ const GET_DATASET = gql`
     dataset(id: $id) {
       id
       name
+      path
       images {
         path
         size {
@@ -106,6 +112,16 @@ export default function Dataset(props: { id: string }): ReactElement {
         >
           <RenameDatasetDialogButton id={props.id} handler={handleClose} />
           <DeleteDatasetDialogButton dataset={data.dataset} handler={handleClose} />
+          <MenuItem>
+            <Link
+              href={`http://localhost:4000/${data.dataset?.path}`}
+              color={"inherit"}
+              target={"_blank"}
+              style={{ textDecoration: "none" }}
+            >
+              <Typography variant={"body1"}>Download</Typography>
+            </Link>
+          </MenuItem>
         </Menu>
       </Toolbar>
       <Container>
