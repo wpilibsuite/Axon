@@ -85,7 +85,9 @@ export default class Creator {
   }
 
   public async getZipPath(): Promise<string> {
-    const buffer = await fs.promises.readFile(`${this.directory}/output.json`);
-    return JSON.parse(buffer.toString())["path"];
+    const buffer = await fs.promises.readFile(`data/create/output.json`);
+    const nowString = buffer.toString();
+    console.log(nowString);
+    return JSON.parse(nowString)[this.id];
   }
 }

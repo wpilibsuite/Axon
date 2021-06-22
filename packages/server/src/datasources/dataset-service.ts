@@ -86,10 +86,19 @@ export class DatasetService extends DataSource {
   }
 
   async createDataset(classes: string[], maxImages: number): Promise<CreateJob> {
-    const id = uuidv4();
-    const directory = `data/create/${id}`;
+    const dataset = Dataset.build({name: classes[0]});
+    const directory = `data/create/${dataset.id}`;
     await mkdirp(directory);
-    return await this.mLService.create(classes, maxImages, directory, id);
+    await mkdirp(`data/datasets/${dataset.id}`);
+    const createJob = await this.mLService.create(classes, maxImages, directory, dataset.id);
+    const name = createJob.zipPath.split("/")[1]; // Axon_Dataset_ETC.zip
+    const smoothedName = name.split('.')[0].replace("Axon_Dataset_", "");
+    dataset.name = smoothedName; // Axon_Dataset_ETC
+    dataset.path = `datasets/${dataset.id}/${name}`;
+    const zipPath = `${this.path}/${createJob.zipPath}`;
+    fs.createReadStream(zipPath).pipe(unzipper.Extract({ path: zipPath.replace(name, smoothedName) }));
+    await dataset.save();
+    return createJob;
   }
 
   async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
@@ -177,6 +186,7 @@ export class DatasetService extends DataSource {
   private async upload(id: string, name: string, stream: fs.ReadStream) {
     const extractPath = `${this.path}/${id}`;
     const savePath = path.join(extractPath, name);
+    console.log(`Save path ${savePath}`);
     await mkdirp(extractPath);
 
     await new Promise((resolve, reject) => {

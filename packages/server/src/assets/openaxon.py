@@ -138,7 +138,7 @@ class OpenImagesDownloader:
                          "data/create/" + self.create_id + "/tar/" + name + '/' + row["filename"])
 
     def make_zip(self):
-        with ZipFile("data/create/{}/Axon_Dataset_{}.zip".format(sys.argv[1], self.title), 'w') as zipFile:
+        with ZipFile("data/datasets/{}/Axon_Dataset_{}.zip".format(sys.argv[1], self.title), 'w') as zipFile:
             for directory in "train test".split():
                 for folderName, subfolders, filenames in os.walk("data/create/" + self.create_id + "/tar/" + directory):
                     for filename in filenames:
@@ -148,14 +148,12 @@ class OpenImagesDownloader:
                         zipFile.write("data/create/" + self.create_id + "/tar/" + directory + '/' + filename, file)
 
     def clean(self):
-        rmtree("data/create/" + self.create_id + "/train")
-        rmtree("data/create/" + self.create_id + "/tar")
-        print("Cleanup finished")
+        rmtree("data/create/"+sys.argv[1])
+        print("Cleaned","data/create/"+sys.argv[1])
 
     def make_json(self):
-        with open("data/create/{}/output.json".format(sys.argv[1]), 'w+') as f:
-            zip_json = {"path": "{}/Axon_Dataset_{}.zip".format(sys.argv[1], self.title)}
-            json.dump(zip_json, f)
+        with open("data/create/output.json", 'w+') as f:
+            f.write('{"{0}": "{0}/Axon_Dataset_{1}.zip"}\n'.format(sys.argv[1], self.title))
 
 
 if __name__ == "__main__":
@@ -166,6 +164,6 @@ if __name__ == "__main__":
     downloader.create_csv()
     print("Making archive")
     downloader.make_zip()
-    downloader.clean()
     downloader.make_json()
+    downloader.clean()
     print("Clean up done.")
