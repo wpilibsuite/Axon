@@ -1,11 +1,13 @@
 import {
-  Association, BelongsToGetAssociationMixin,
+  Association,
+  BelongsToGetAssociationMixin,
   DataTypes,
   HasManyAddAssociationMixin,
   HasManyGetAssociationsMixin,
   HasManyRemoveAssociationMixin,
   HasManySetAssociationsMixin,
-  HasOneGetAssociationMixin, HasOneSetAssociationMixin,
+  HasOneGetAssociationMixin,
+  HasOneSetAssociationMixin,
   Model,
   Optional,
   Sequelize

@@ -49,7 +49,11 @@ export default class Trainer {
 
     this.status = TrainStatus.Writing;
 
-    const DATASETPATHS = path.posix.join(Docker.containerProjectPath(this.project), "dataset", path.basename((await this.project.getDataset()).path));
+    const DATASETPATHS = path.posix.join(
+      Docker.containerProjectPath(this.project),
+      "dataset",
+      path.basename((await this.project.getDataset()).path)
+    );
 
     const INITCKPT =
       this.project.initialCheckpoint !== "default"
@@ -108,7 +112,8 @@ export default class Trainer {
     const dataset = await this.project.getDataset();
     await fs.promises.copyFile(
       path.posix.join("data", dataset.path),
-      path.posix.join(this.project.directory, "dataset", path.basename(dataset.path)));
+      path.posix.join(this.project.directory, "dataset", path.basename(dataset.path))
+    );
     console.log("dataset copied");
 
     //custom checkpoints not yet supported by gui

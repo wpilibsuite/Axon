@@ -27,13 +27,13 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-export default function Datasets(props: { id: string; selected: GetProjectData_project_dataset | null}): ReactElement {
+export default function Datasets(props: { id: string; selected: GetProjectData_project_dataset | null }): ReactElement {
   const classes = useStyles();
 
   const { data, loading, error } = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);
 
   let datasetName = "Dataset";
-  if(props.selected != null){
+  if (props.selected != null) {
     datasetName = props.selected.name;
   }
 

@@ -70,7 +70,6 @@ export default function Project(props: { id: string }): ReactElement {
   if (loading) return <CircularProgress className={classes.progress} />;
   if (error) return <p>{error.message}</p>;
 
-
   if (data?.project) {
     return (
       <div className={classes.root}>
@@ -82,7 +81,7 @@ export default function Project(props: { id: string }): ReactElement {
               </Typography>
               <ProjectMenu project={data.project} />
             </div>
-          </Grid>s
+          </Grid>
           <Grid item xs={12}>
             <Input id={props.id} dataset={data.project.dataset} />
           </Grid>

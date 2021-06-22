@@ -52,7 +52,6 @@ export function StartButton(props: { id: string; selected: GetProjectData_projec
   let datasetName = "";
   if (props.selected !== null) datasetName = props.selected.name;
 
-
   function isValidParameters() {
     return !(
       (parameters.data?.project?.epochs || 0) <= 0 ||

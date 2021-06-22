@@ -1,6 +1,7 @@
 import React, { ReactElement } from "react";
 import { Card, CardHeader, CardMedia, createStyles, Theme, Checkbox } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
+import { RadioButtonUnchecked, RadioButtonChecked } from "@material-ui/icons";
 import { GetDatasets_datasets } from "./__generated__/GetDatasets";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { SetDatasetInProject, SetDatasetInProjectVariables } from "./__generated__/SetDatasetInProject";
@@ -76,6 +77,8 @@ export function DatasetCard(props: { projectId: string; dataset: GetDatasets_dat
         className={classes.box}
         action={
           <Checkbox
+            icon={<RadioButtonUnchecked />}
+            checkedIcon={<RadioButtonChecked />}
             onChange={handleOnSelect}
             checked={data?.project?.dataset?.id === props.dataset.id}
           />

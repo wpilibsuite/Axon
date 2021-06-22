@@ -52,7 +52,10 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-export default function Parameters(props: { id: string; dataset: GetProjectData_project_dataset | null}): ReactElement {
+export default function Parameters(props: {
+  id: string;
+  dataset: GetProjectData_project_dataset | null;
+}): ReactElement {
   const classes = useStyles();
   const { loading, error, data } = useQuery<GetHyperparameters, GetHyperparametersVariables>(GET_HYPERPARAMETERS, {
     variables: {
