@@ -1,7 +1,6 @@
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
 import {
-  Button,
   CircularProgress,
   Container,
   GridList,
@@ -11,7 +10,6 @@ import {
   Menu,
   MenuItem,
   Toolbar,
-  Tooltip,
   Typography
 } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
@@ -21,7 +19,6 @@ import { useQuery } from "@apollo/client";
 import RenameDatasetDialogButton from "./RenameDatasetDialog";
 import DeleteDatasetDialogButton from "./DeleteDatasetDialog";
 import { makeStyles } from "@material-ui/core/styles";
-import { CloudDownload } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   progress: {
