@@ -9,7 +9,6 @@ import { imageSize as sizeOf } from "image-size";
 import { glob } from "glob";
 import { CreateJob, LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import { Sequelize } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
 import { Dataset } from "../store";
 import MLService from "../mL";
 import rimraf = require("rimraf");
