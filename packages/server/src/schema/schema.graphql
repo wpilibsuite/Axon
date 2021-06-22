@@ -20,7 +20,8 @@ type Query {
 type Mutation {
   resetDocker: Boolean!
 
-  createDataset(upload: Upload!): Dataset
+  createDataset(classes: [String!]!, maxImages: Int!): CreateJob
+  addDataset(upload: Upload!): Dataset
   renameDataset(id: ID!, newName: String!): Dataset
   deleteDataset(id: ID!): Dataset
 
@@ -52,6 +53,7 @@ enum DockerState {
   TRAIN_PULL
   EXPORT_PULL
   TEST_PULL
+  CREATE_PULL
   READY
 }
 
@@ -149,6 +151,14 @@ type Project {
   videos: [Video!]!
 }
 
+enum DatasetCreateStatus {
+  Idle
+  Preparing
+  Downloading
+  AddingToRegistry
+  Done
+}
+
 enum TrainStatus {
   Idle
   Paused
@@ -180,6 +190,12 @@ type Testjob {
   exportID: String!
   projectID: String!
   streamPort: String!
+}
+
+type CreateJob {
+  success: Int!
+  createID: String!
+  zipPath: String!
 }
 
 input ProjectUpdateInput {

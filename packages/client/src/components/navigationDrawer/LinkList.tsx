@@ -8,10 +8,11 @@ import NavigationTreeItem from "./NavigationTreeItem";
 import { Tooltip, Typography, CircularProgress } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
-import AddDatasetDialogButton from "./AddDatasetDialogButton";
+import UploadDatasetDialogButton from "./UploadDatasetDialogButton";
 import AddProjectDialogButton from "./AddProjectDialogButton";
 import { TreeGetProjectList } from "./__generated__/TreeGetProjectList";
 import { TreeGetDatasetList } from "./__generated__/TreeGetDatasetList";
+import CreateDatasetDialogButton from "./CreateDatasetDialogButton";
 
 const useStyles = makeStyles((theme) => ({
   item: {
@@ -96,7 +97,8 @@ export default function LinkList(): ReactElement {
             </Link>
           </Tooltip>
         ))}
-        <AddDatasetDialogButton />
+        <CreateDatasetDialogButton />
+        <UploadDatasetDialogButton />
       </TreeItem>
       <TreeItem
         nodeId={"2"}
