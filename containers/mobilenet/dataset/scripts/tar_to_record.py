@@ -25,16 +25,13 @@ def main(dataset_paths, percent_eval, directory):
 
     if NORMAL_MODE: # Perform working tar code
         print("normal mode")
-#         for i in dataset_paths:
-        shutil.copy(dataset_paths, join(EXTRACT_PATH, 'data.tar'))
 
-#         try:
-#             for i in dataset_paths:
-#                 shutil.copy(i, join(EXTRACT_PATH, 'data.tar'))
-#         except:
-#             print('unable to retrieve a dataset tar file:')
-#             sys.exit(1)
-#         for dataset in dataset_paths:
+        try:
+            shutil.copy(dataset_paths, join(EXTRACT_PATH, 'data.tar'))
+        except:
+            print('unable to retrieve a dataset tar file:')
+            sys.exit(1)
+
         with tarfile.open(dataset_paths) as tar_file:
             tar_file.extractall(join(EXTRACT_PATH, 'out'))
 

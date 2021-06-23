@@ -1,6 +1,5 @@
 import {
   Association,
-  BelongsToGetAssociationMixin,
   DataTypes,
   HasManyAddAssociationMixin,
   HasManyGetAssociationsMixin,
