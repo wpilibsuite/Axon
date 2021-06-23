@@ -2,6 +2,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { spawn } from "child_process";
 import { CreateJob } from "../schema/__generated__/graphql";
+import * as mkdirp from "mkdirp";
 
 type CreateParameters = {
   labels: string[];
@@ -13,6 +14,7 @@ export default class Creator {
   readonly maxImages: number;
   readonly directory: string;
   readonly id: string;
+  tempPath: string;
 
   public constructor(classes: string[], maxImages: number, id: string) {
     this.classes = classes;
@@ -43,14 +45,16 @@ export default class Creator {
    * Create the training parameter file in the container's mounted directory to control the container.
    */
   public async writeParameterFile(): Promise<void> {
+    await mkdirp(`/tmp/${this.id}`);
+
     const createParameters: CreateParameters = {
       labels: this.classes,
       limit: this.maxImages
     };
 
-    const HYPERPARAMETER_FILE_PATH = path.posix.join(this.directory, "data.json");
-    console.log(`Create config data created at ${HYPERPARAMETER_FILE_PATH}`);
+    const HYPERPARAMETER_FILE_PATH = path.posix.join(`/tmp/${this.id}`, "data.json");
     await fs.promises.writeFile(HYPERPARAMETER_FILE_PATH, JSON.stringify(createParameters));
+    console.log(`Create config data created at ${HYPERPARAMETER_FILE_PATH}`);
   }
 
   /**

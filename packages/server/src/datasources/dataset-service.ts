@@ -85,13 +85,13 @@ export class DatasetService extends DataSource {
   }
 
   async createDataset(classes: string[], maxImages: number): Promise<CreateJob> {
+    console.log("Creating new dataset");
     const dataset = Dataset.build({ name: classes[0] });
-    const directory = `data/create/${dataset.id}`;
-    await mkdirp(directory);
     await mkdirp(`data/datasets/${dataset.id}`);
-    const createJob = await this.mLService.create(classes, maxImages, directory, dataset.id);
-    const name = createJob.zipPath.split("/")[1]; // Axon_Dataset_ETC.zip
-    dataset.name = name; // Axon_Dataset_ETC.zip
+    await mkdirp("data/create");
+    const createJob = await this.mLService.create(classes, maxImages, dataset.id);
+    const name = createJob.zipPath.split("/")[1]; // OpenImages_ETC.zip
+    dataset.name = name; // OpenImages_ETC.zip
     dataset.path = `datasets/${dataset.id}/${name}`;
     const zipPath = `${this.path}/${createJob.zipPath}`;
     fs.createReadStream(zipPath).pipe(unzipper.Extract({ path: zipPath.replace(".zip", "") }));
