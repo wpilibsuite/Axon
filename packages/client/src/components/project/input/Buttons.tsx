@@ -49,9 +49,6 @@ export function StartButton(props: { id: string; selected: GetProjectData_projec
   const dockerState = useQuery<GetDockerState>(GET_DOCKER_STATE, { pollInterval: 5000 });
   const datasets = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);
 
-  let datasetName = "";
-  if (props.selected !== null) datasetName = props.selected.name;
-
   function isValidParameters() {
     return !(
       (parameters.data?.project?.epochs || 0) <= 0 ||
@@ -62,7 +59,7 @@ export function StartButton(props: { id: string; selected: GetProjectData_projec
   }
 
   const handleClick = () => {
-    if (isValidParameters() && datasetName.length !== 0) {
+    if (isValidParameters() && props.selected !== null && props.selected.name.length !== 0) {
       startTraining({ variables: { id: props.id } });
       setStarting(true);
     }
@@ -72,7 +69,7 @@ export function StartButton(props: { id: string; selected: GetProjectData_projec
     return <Button disabled> Invalid Parameters </Button>;
   }
 
-  if (datasetName.length === 0) {
+  if (props.selected == null || (props.selected !== null && props.selected.name.length === 0)) {
     return <Button disabled> Requires Dataset </Button>;
   }
 
