@@ -69,7 +69,7 @@ export function StartButton(props: { id: string; selected: GetProjectData_projec
     return <Button disabled> Invalid Parameters </Button>;
   }
 
-  if ( props.selected == null || (props.selected !== null && props.selected.name.length === 0)) {
+  if (props.selected == null || (props.selected !== null && props.selected.name.length === 0)) {
     return <Button disabled> Requires Dataset </Button>;
   }
 
