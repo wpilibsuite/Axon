@@ -75,30 +75,14 @@ export default function Launch(): ReactElement {
           console.log("No connection, Skipping Pulling Images");
         } else {
           console.log("Connected to Internet, Pulling Images");
-          makeNewContainers();
+          pullContainers();
         }
       });
 
     } else {
       setClicked(false);
     }
-  };
 
-  docker.isConnected().then((value) => {
-    setOpen(!value && !clicked);
-  });
-
-  const makeNewContainers = async () => {
-    setStatus("Pulling Axon image");
-    await docker.pullImage();
-    // setPulling(false);
-    setStatus("Finished pulling.");
-    // image downloaded
-    const containers = await docker.getContainers();
-    if (containers !== null && containers.length > 0) {
-      setStatus("Removing old containers");
-      await docker.reset();
-    }
     setStatus("Creating container");
     const container = await docker.createContainer();
     // setContainer(container);
@@ -111,6 +95,23 @@ export default function Launch(): ReactElement {
     });
     setActiveContainer(container);
     localhost.waitForStart();
+  };
+
+  docker.isConnected().then((value) => {
+    setOpen(!value && !clicked);
+  });
+
+  const pullContainers = async () => {
+    setStatus("Pulling Axon image");
+    await docker.pullImage();
+    // setPulling(false);
+    setStatus("Finished pulling.");
+    // image downloaded
+    const containers = await docker.getContainers();
+    if (containers !== null && containers.length > 0) {
+      setStatus("Removing old containers");
+      await docker.reset();
+    }
   }
 
   const stopContainer = async () => {
