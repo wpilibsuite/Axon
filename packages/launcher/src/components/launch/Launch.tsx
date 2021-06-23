@@ -79,22 +79,24 @@ export default function Launch(): ReactElement {
         }
       });
 
+      setStatus("Creating container");
+      const container = await docker.createContainer();
+      // setContainer(container);
+      // setContainerReady(true);
+      console.log("Container created.");
+      setStatus("Running container");
+      docker.runContainer(container).then(() => {
+        setStatus("OFF");
+        setActiveContainer(null);
+      });
+      setActiveContainer(container);
+      localhost.waitForStart();
+      
     } else {
       setClicked(false);
     }
 
-    setStatus("Creating container");
-    const container = await docker.createContainer();
-    // setContainer(container);
-    // setContainerReady(true);
-    console.log("Container created.");
-    setStatus("Running container");
-    docker.runContainer(container).then(() => {
-      setStatus("OFF");
-      setActiveContainer(null);
-    });
-    setActiveContainer(container);
-    localhost.waitForStart();
+
   };
 
   docker.isConnected().then((value) => {
