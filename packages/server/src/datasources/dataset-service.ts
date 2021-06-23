@@ -91,7 +91,7 @@ export class DatasetService extends DataSource {
     await mkdirp("data/create");
     const createJob = await this.mLService.create(classes, maxImages, dataset.id);
     const name = createJob.zipPath.split("/")[1]; // OpenImages_ETC.zip
-    dataset.name = name; // OpenImages_ETC.zip
+    dataset.name = name.replace("OpenImages_", "").replace(".zip", ""); // ETC
     dataset.path = `datasets/${dataset.id}/${name}`;
     const zipPath = `${this.path}/${createJob.zipPath}`;
     fs.createReadStream(zipPath).pipe(unzipper.Extract({ path: zipPath.replace(".zip", "") }));
