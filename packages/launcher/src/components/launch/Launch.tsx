@@ -20,6 +20,7 @@ import Docker from "../../docker/Docker";
 import Localhost from "../../docker/Localhost";
 import Dockerode from "dockerode"; // used for Dockerode.Container class
 import StopIcon from "@material-ui/icons/Stop";
+import * as dns from "dns";
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
@@ -69,10 +70,19 @@ export default function Launch(): ReactElement {
     const connected = await docker.isConnected();
     if (connected) {
       // setPulling(true);
-      setStatus("Pulling Axon image");
-      await docker.pullImage();
-      // setPulling(false);
-      setStatus("Finished pulling.");
+      dns.resolve("www.google.com", (err) => {
+        if (err) {
+          console.log("No connection, Skipping Pulling Images");
+        } else {
+          console.log("Connected to Internet, Pulling Images");
+          setStatus("Pulling Axon image");
+          await docker.pullImage();
+          // setPulling(false);
+          setStatus("Finished pulling.");
+
+        }
+      });
+
       // image downloaded
       const containers = await docker.getContainers();
       if (containers !== null && containers.length > 0) {
