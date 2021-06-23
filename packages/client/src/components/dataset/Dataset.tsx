@@ -6,7 +6,9 @@ import {
   GridList,
   GridListTile,
   IconButton,
+  Link,
   Menu,
+  MenuItem,
   Toolbar,
   Typography
 } from "@material-ui/core";
@@ -29,6 +31,7 @@ const GET_DATASET = gql`
     dataset(id: $id) {
       id
       name
+      path
       images {
         path
         size {
@@ -106,6 +109,16 @@ export default function Dataset(props: { id: string }): ReactElement {
         >
           <RenameDatasetDialogButton id={props.id} handler={handleClose} />
           <DeleteDatasetDialogButton dataset={data.dataset} handler={handleClose} />
+          <MenuItem>
+            <Link
+              href={`http://localhost:4000/${data.dataset?.path}`}
+              color={"inherit"}
+              target={"_blank"}
+              style={{ textDecoration: "none" }}
+            >
+              <Typography variant={"body1"}>Download</Typography>
+            </Link>
+          </MenuItem>
         </Menu>
       </Toolbar>
       <Container>
