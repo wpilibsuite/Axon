@@ -91,12 +91,9 @@ export default function Launch(): ReactElement {
       });
       setActiveContainer(container);
       localhost.waitForStart();
-      
     } else {
       setClicked(false);
     }
-
-
   };
 
   docker.isConnected().then((value) => {
@@ -114,7 +111,7 @@ export default function Launch(): ReactElement {
       setStatus("Removing old containers");
       await docker.reset();
     }
-  }
+  };
 
   const stopContainer = async () => {
     if (activeContainer !== null) {
