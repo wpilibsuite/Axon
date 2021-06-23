@@ -45,13 +45,12 @@ const GET_DATASET = gql`
 
 function DataGalleryBase(props: { images: GetDataset_dataset_images[]; scrollPosition: ScrollPosition }) {
   return (
-    <GridList cellHeight={160} cols={3}>
+    <GridList cellHeight={300} cols={3}>
       {props.images.map((image, index) => (
         <GridListTile key={index}>
           <LazyLoadImage
             alt={image.path}
-            height={image.size.height}
-            width={image.size.width}
+            height={300}
             src={encodeURI(`http://localhost:4000/${image.path}`)}
             scrollPosition={props.scrollPosition}
           />
