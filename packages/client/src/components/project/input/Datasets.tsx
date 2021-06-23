@@ -32,10 +32,7 @@ export default function Datasets(props: { id: string; selected: GetProjectData_p
 
   const { data, loading, error } = useQuery<GetDatasets, GetDatasets>(GET_DATASETS);
 
-  let datasetName = "Dataset";
-  if (props.selected != null) {
-    datasetName = props.selected.name;
-  }
+  const datasetName = props.selected?.name ?? "";
 
   if (loading) return <p>LOADING</p>;
   if (error || !data) return <p>ERROR</p>;
