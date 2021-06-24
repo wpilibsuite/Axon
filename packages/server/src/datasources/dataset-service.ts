@@ -9,7 +9,6 @@ import { imageSize as sizeOf } from "image-size";
 import { glob } from "glob";
 import { CreateJob, LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import { Sequelize } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
 import { Dataset } from "../store";
 import MLService from "../mL";
 import rimraf = require("rimraf");
@@ -86,10 +85,18 @@ export class DatasetService extends DataSource {
   }
 
   async createDataset(classes: string[], maxImages: number): Promise<CreateJob> {
-    const id = uuidv4();
-    const directory = `data/create/${id}`;
-    await mkdirp(directory);
-    return await this.mLService.create(classes, maxImages, directory, id);
+    console.log("Creating new dataset");
+    const dataset = Dataset.build({ name: classes[0] });
+    await mkdirp(`data/datasets/${dataset.id}`);
+    await mkdirp("data/create");
+    const createJob = await this.mLService.create(classes, maxImages, dataset.id);
+    const name = createJob.zipPath.split("/")[1]; // OpenImages_ETC.zip
+    dataset.name = name.replace("OpenImages_", "").replace(".zip", ""); // ETC
+    dataset.path = `datasets/${dataset.id}/${name}`;
+    const zipPath = `${this.path}/${createJob.zipPath}`;
+    fs.createReadStream(zipPath).pipe(unzipper.Extract({ path: zipPath.replace(".zip", "") }));
+    await dataset.save();
+    return createJob;
   }
 
   async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
@@ -177,6 +184,7 @@ export class DatasetService extends DataSource {
   private async upload(id: string, name: string, stream: fs.ReadStream) {
     const extractPath = `${this.path}/${id}`;
     const savePath = path.join(extractPath, name);
+    console.log(`Save path ${savePath}`);
     await mkdirp(extractPath);
 
     await new Promise((resolve, reject) => {
