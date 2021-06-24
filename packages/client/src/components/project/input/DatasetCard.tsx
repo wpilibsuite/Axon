@@ -79,6 +79,7 @@ export function DatasetCard(props: { projectId: string; dataset: GetDatasets_dat
           <Checkbox
             icon={<RadioButtonUnchecked />}
             checkedIcon={<RadioButtonChecked />}
+            color={"primary"}
             onChange={handleOnSelect}
             checked={data?.project?.dataset?.id === props.dataset.id}
           />
