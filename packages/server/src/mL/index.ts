@@ -134,7 +134,7 @@ export default class MLService {
     }
     console.log("Creating parameter file");
     await creator.writeParameterFile();
-    console.log("Startin Python script");
+    console.log("Starting Python script");
     await creator.createDataset();
     console.log("Created dataset " + id);
     const path = await creator.getZipPath();
