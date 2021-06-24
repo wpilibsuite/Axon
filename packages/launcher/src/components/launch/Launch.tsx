@@ -20,7 +20,7 @@ import Docker from "../../docker/Docker";
 import Localhost from "../../docker/Localhost";
 import Dockerode from "dockerode"; // used for Dockerode.Container class
 import StopIcon from "@material-ui/icons/Stop";
-import * as dns from "dns";
+import * as https from "https";
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
@@ -69,15 +69,36 @@ export default function Launch(): ReactElement {
   const startContainer = async () => {
     const connected = await docker.isConnected();
     if (connected) {
+      // try {
+      //   await pullContainers();
+      // } catch(e){
+      //   console.log("===================================");
+      //   console.log(e);
+      // }
+
       // setPulling(true);
-      dns.resolve("www.google.com", (err) => {
-        if (err) {
-          console.log("No connection, Skipping Pulling Images");
-        } else {
-          console.log("Connected to Internet, Pulling Images");
+      const options = {
+        hostname: "google.com",
+        port: 443,
+        path: "/",
+        method: "GET",
+        headers: {"Access-Control-Allow-Origin" : "*" }
+      }
+
+      const req = https.request(options, res => {
+        console.log(`statusCode: ${res.statusCode}`)
+        console.log('headers:', res.headers);
+        if(res.statusCode === 200){
+          console.log("====================");
           pullContainers();
         }
-      });
+      })
+
+      req.end();
+
+      req.on('error', error => {
+        console.error(error)
+      })
 
       setStatus("Creating container");
       const container = await docker.createContainer();
@@ -102,7 +123,13 @@ export default function Launch(): ReactElement {
 
   const pullContainers = async () => {
     setStatus("Pulling Axon image");
-    await docker.pullImage();
+    console.log("hi");
+    try {
+      await docker.pullImage();
+    } catch (e){
+      console.log("============");
+    }
+    console.log("yo");
     // setPulling(false);
     setStatus("Finished pulling.");
     // image downloaded

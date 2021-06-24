@@ -87,7 +87,8 @@ export default class Docker {
    */
   async pullImage(): Promise<void> {
     console.log("Docker ping: " + (await this.docker.ping()));
-    return new Promise<void>((resolve) => {
+    try {
+      return new Promise<void>((resolve) => {
       console.info(`Pulling image ${this.image.name}:${this.image.tag}`);
       this.docker.pull(
         `${this.image.name}:${this.image.tag}`,
@@ -99,6 +100,10 @@ export default class Docker {
         }
       );
     });
+    } catch (e){
+      return;
+    }
+
   }
 
   /**
