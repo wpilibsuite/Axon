@@ -14,7 +14,7 @@ import {
   Typography
 } from "@material-ui/core";
 import gql from "graphql-tag";
-import { useMutation } from "@apollo/client";
+import { useApolloClient, useMutation } from "@apollo/client";
 import { TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
 import { CloudDownload, ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
@@ -82,6 +82,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const [createID, setCreateID] = React.useState("");
   const [zipPath, setZipPath] = React.useState("");
   const [createState, setCreateState] = React.useState(CreateState.Entering);
+  const apolloClient = useApolloClient();
 
   const [createDataset] = useMutation<Created>(CREATE_DATASET_MUTATION, {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -154,6 +155,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
     if (!error) {
       setCreateState(CreateState.Creating);
       await createDataset({ variables: { classes: keys, maxImages: maxNumber } });
+      await apolloClient.resetStore();
     }
   };
 
@@ -271,7 +273,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
     return (
       <Grid container justify={"center"}>
         <Tooltip title={"Download new dataset"}>
-          <IconButton target={"_blank"} href={`http://localhost:4000/create/${zipPath}`}>
+          <IconButton target={"_blank"} href={`http://localhost:4000/datasets/${zipPath}`}>
             <CloudDownload className={classes.largeIcon} />
           </IconButton>
         </Tooltip>

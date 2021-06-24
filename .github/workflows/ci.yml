@@ -62,10 +62,14 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Base - Docker meta
         id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v3
         with:
           images: wpilib/axon
-          tag-edge: true
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=edge
+            type=semver,pattern={{version}}
       - name: Base - Build and push
         uses: docker/build-push-action@v2
         with:

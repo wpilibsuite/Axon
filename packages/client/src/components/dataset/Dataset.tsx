@@ -6,7 +6,9 @@ import {
   GridList,
   GridListTile,
   IconButton,
+  Link,
   Menu,
+  MenuItem,
   Toolbar,
   Typography
 } from "@material-ui/core";
@@ -29,6 +31,7 @@ const GET_DATASET = gql`
     dataset(id: $id) {
       id
       name
+      path
       images {
         path
         size {
@@ -42,13 +45,12 @@ const GET_DATASET = gql`
 
 function DataGalleryBase(props: { images: GetDataset_dataset_images[]; scrollPosition: ScrollPosition }) {
   return (
-    <GridList cellHeight={160} cols={3}>
+    <GridList cellHeight={300} cols={3}>
       {props.images.map((image, index) => (
         <GridListTile key={index}>
           <LazyLoadImage
             alt={image.path}
-            height={image.size.height}
-            width={image.size.width}
+            height={300}
             src={encodeURI(`http://localhost:4000/${image.path}`)}
             scrollPosition={props.scrollPosition}
           />
@@ -106,6 +108,16 @@ export default function Dataset(props: { id: string }): ReactElement {
         >
           <RenameDatasetDialogButton id={props.id} handler={handleClose} />
           <DeleteDatasetDialogButton dataset={data.dataset} handler={handleClose} />
+          <MenuItem>
+            <Link
+              href={`http://localhost:4000/${data.dataset?.path}`}
+              color={"inherit"}
+              target={"_blank"}
+              style={{ textDecoration: "none" }}
+            >
+              <Typography variant={"body1"}>Download</Typography>
+            </Link>
+          </MenuItem>
         </Menu>
       </Toolbar>
       <Container>
