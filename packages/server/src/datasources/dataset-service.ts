@@ -118,7 +118,7 @@ export class DatasetService extends DataSource {
   }
 
   private async listImages(id: string): Promise<LabeledImage[]> {
-    const name = (await Dataset.findByPk(id)).name;
+    const name = (await Dataset.findByPk(id)).path;
 
     if (name.slice(name.length - 4) === ".tar") {
       const imageMetaPaths = glob.sync(`${this.path}/${id}/*/ann/*.json`);
