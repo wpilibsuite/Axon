@@ -69,7 +69,7 @@ export default function UploadDatasetDialogButton(): ReactElement {
             <Typography variant={"body1"}> Upload Dataset</Typography>
             <input
               type="file"
-              accept=".zip, .tar.gz"
+              accept=".zip, .tar.gz, .tar"
               style={{ display: "none" }}
               required
               onChange={onChange}

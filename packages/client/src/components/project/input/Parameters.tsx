@@ -1,6 +1,6 @@
 import { UpdateHyperparameters, UpdateHyperparametersVariables } from "./__generated__/UpdateHyperparameters";
 import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
-import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
+import { GetProjectData_project_dataset } from "../__generated__/GetProjectData";
 import { createStyles, FormControl, Grid, TextField, Theme } from "@material-ui/core";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { makeStyles } from "@material-ui/core/styles";
@@ -52,7 +52,10 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-export default function Parameters(props: { id: string; datasets: GetProjectData_project_datasets[] }): ReactElement {
+export default function Parameters(props: {
+  id: string;
+  dataset: GetProjectData_project_dataset | null;
+}): ReactElement {
   const classes = useStyles();
   const { loading, error, data } = useQuery<GetHyperparameters, GetHyperparametersVariables>(GET_HYPERPARAMETERS, {
     variables: {
@@ -148,7 +151,7 @@ export default function Parameters(props: { id: string; datasets: GetProjectData
       </Grid>
       <Grid item xs={12} md>
         <FormControl style={{ width: "100%" }}>
-          <Datasets id={props.id} selected={props.datasets} />
+          <Datasets id={props.id} selected={props.dataset} />
         </FormControl>
       </Grid>
     </Grid>

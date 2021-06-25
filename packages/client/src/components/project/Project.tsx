@@ -35,7 +35,7 @@ const GET_PROJECT_DATA = gql`
     project(id: $id) {
       id
       name
-      datasets {
+      dataset {
         name
       }
       exports {
@@ -82,7 +82,7 @@ export default function Project(props: { id: string }): ReactElement {
             </div>
           </Grid>
           <Grid item xs={12}>
-            <Input id={props.id} datasets={data.project.datasets} />
+            <Input id={props.id} dataset={data.project.dataset} />
           </Grid>
           <Grid item xs={12}>
             <Metrics id={props.id} />
