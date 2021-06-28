@@ -47,8 +47,10 @@ interface CheckpointAttributes {
 
 type CheckpointCreationAttributes = Optional<CheckpointAttributes, keyof CheckpointAttributes>;
 
-export class Checkpoint extends Model<CheckpointAttributes, CheckpointCreationAttributes>
-  implements CheckpointAttributes {
+export class Checkpoint
+  extends Model<CheckpointAttributes, CheckpointCreationAttributes>
+  implements CheckpointAttributes
+{
   public name: string;
   public step: number;
   public fullPath: string;

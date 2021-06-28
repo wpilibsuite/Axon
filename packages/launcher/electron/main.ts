@@ -5,7 +5,6 @@ import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-insta
 
 // import version from "./package.json";
 
-
 let win: BrowserWindow | null = null;
 
 function createWindow() {
@@ -29,8 +28,6 @@ function createWindow() {
   win.on("closed", () => (win = null));
 
   win.setMenu(null);
-
-
 
   // Hot Reloading
   if (isDev) {
@@ -66,8 +63,8 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.on("axon", (event => {
+ipcMain.on("axon", (event) => {
   event.reply("axon-reply", app.getVersion());
-}));
+});
 
 console.log(app.getVersion());

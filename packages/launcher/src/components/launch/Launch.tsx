@@ -53,7 +53,7 @@ const socket = {
 const dockerode = new Dockerode2(socket);
 const docker = new Docker(dockerode, socket);
 const localhost = new Localhost();
-const ipcRenderer  = electron.ipcRenderer;
+const ipcRenderer = electron.ipcRenderer;
 
 export default function Launch(): ReactElement {
   const classes = useStyles();
@@ -105,11 +105,11 @@ export default function Launch(): ReactElement {
     if (version === "none") {
       ipcRenderer.send("axon", "unused");
       ipcRenderer.on("axon-reply", (event: any, arg: string) => {
-        console.log("reply: " + arg)
+        console.log("reply: " + arg);
         setVersion(arg);
-      })
+      });
     }
-  }
+  };
   getVersion();
 
   const stopContainer = async () => {

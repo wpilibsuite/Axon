@@ -131,17 +131,15 @@ export class DatasetService extends DataSource {
       const imageMetaPaths = glob.sync(`${this.path}/${id}/*/ann/*.json`);
       return Promise.all(
         imageMetaPaths
-          .map(
-            async (metaPath): Promise<SuperviselyImage> => {
-              return {
-                imagePath: metaPath
-                  .replace("/usr/src/app/packages/server/data/datasets", "datasets")
-                  .replace("ann", "img")
-                  .replace(/\.[^/.]+$/, ""),
-                annotation: JSON.parse((await fs.promises.readFile(metaPath)).toString())
-              };
-            }
-          )
+          .map(async (metaPath): Promise<SuperviselyImage> => {
+            return {
+              imagePath: metaPath
+                .replace("/usr/src/app/packages/server/data/datasets", "datasets")
+                .replace("ann", "img")
+                .replace(/\.[^/.]+$/, ""),
+              annotation: JSON.parse((await fs.promises.readFile(metaPath)).toString())
+            };
+          })
           .map(
             async (image): Promise<LabeledImage> => ({
               path: (await image).imagePath,
@@ -164,17 +162,15 @@ export class DatasetService extends DataSource {
     } else if (name.slice(name.length - 4) === ".zip") {
       const imagePaths = glob.sync(`${this.path}/${id}/**/*.jpg`);
       return Promise.all(
-        imagePaths.map(
-          async (imagePath): Promise<LabeledImage> => {
-            const dimensions = await sizeOf(imagePath);
-            return {
-              path: imagePath.replace("/usr/src/app/packages/server/data/datasets", "datasets"),
-              size: { width: dimensions.width, height: dimensions.height },
-              tags: [],
-              object_labels: []
-            };
-          }
-        )
+        imagePaths.map(async (imagePath): Promise<LabeledImage> => {
+          const dimensions = await sizeOf(imagePath);
+          return {
+            path: imagePath.replace("/usr/src/app/packages/server/data/datasets", "datasets"),
+            size: { width: dimensions.width, height: dimensions.height },
+            tags: [],
+            object_labels: []
+          };
+        })
       );
     } else {
       return [];
