@@ -89,21 +89,20 @@ export default class Docker {
     console.log("Docker ping: " + (await this.docker.ping()));
     try {
       return new Promise<void>((resolve) => {
-      console.info(`Pulling image ${this.image.name}:${this.image.tag}`);
-      this.docker.pull(
-        `${this.image.name}:${this.image.tag}`,
-        (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
-          this.docker.modem.followProgress(stream, () => {
-            console.info(`Finished pulling image ${this.image.name}:${this.image.tag}`);
-            resolve();
-          });
-        }
-      );
-    });
-    } catch (e){
+        console.info(`Pulling image ${this.image.name}:${this.image.tag}`);
+        this.docker.pull(
+          `${this.image.name}:${this.image.tag}`,
+          (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
+            this.docker.modem.followProgress(stream, () => {
+              console.info(`Finished pulling image ${this.image.name}:${this.image.tag}`);
+              resolve();
+            });
+          }
+        );
+      });
+    } catch (e) {
       return;
     }
-
   }
 
   /**

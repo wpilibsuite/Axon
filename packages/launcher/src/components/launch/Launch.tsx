@@ -82,23 +82,23 @@ export default function Launch(): ReactElement {
         port: 443,
         path: "/",
         method: "GET",
-        headers: {"Access-Control-Allow-Origin" : "*" }
-      }
+        headers: { "Access-Control-Allow-Origin": "*" }
+      };
 
-      const req = https.request(options, res => {
-        console.log(`statusCode: ${res.statusCode}`)
-        console.log('headers:', res.headers);
-        if(res.statusCode === 200){
+      const req = https.request(options, (res) => {
+        console.log(`statusCode: ${res.statusCode}`);
+        console.log("headers:", res.headers);
+        if (res.statusCode === 200) {
           console.log("====================");
           pullContainers();
         }
-      })
+      });
 
       req.end();
 
-      req.on('error', error => {
-        console.error(error)
-      })
+      req.on("error", (error) => {
+        console.error(error);
+      });
 
       setStatus("Creating container");
       const container = await docker.createContainer();
@@ -126,7 +126,7 @@ export default function Launch(): ReactElement {
     console.log("hi");
     try {
       await docker.pullImage();
-    } catch (e){
+    } catch (e) {
       console.log("============");
     }
     console.log("yo");
