@@ -1,4 +1,4 @@
-import { app, BrowserWindow, nativeImage } from "electron";
+import { app, BrowserWindow, nativeImage, ipcMain } from "electron";
 import * as path from "path";
 import * as isDev from "electron-is-dev";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
@@ -26,6 +26,10 @@ function createWindow() {
   win.on("closed", () => (win = null));
 
   win.setMenu(null);
+
+  ipcMain.on("axon", (event => {
+    event.reply("axon-reply", process.env.npm_package_version);
+  }));
 
   // Hot Reloading
   if (isDev) {
@@ -60,3 +64,4 @@ app.on("activate", () => {
     createWindow();
   }
 });
+console.log("Testing log");

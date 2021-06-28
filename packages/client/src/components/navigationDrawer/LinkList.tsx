@@ -74,8 +74,10 @@ export default function LinkList(): ReactElement {
   const datasets = useQuery<TreeGetDatasetList, TreeGetDatasetList>(GET_DATASETS);
   const projects = useQuery<TreeGetProjectList, TreeGetProjectList>(GET_PROJECTS);
 
-  if (datasets.loading || projects.loading) return <CircularProgress className={classes.loader} />;
-  if (!datasets.data || !projects.data) return <CircularProgress className={classes.loader} />;
+  // if (datasets.loading || projects.loading) return <CircularProgress className={classes.loader} />;
+  if (datasets.loading || projects.loading) return <p> loading </p>;
+  // if (!datasets.data || !projects.data) return <CircularProgress className={classes.loader} />;
+  if (!datasets.data || !projects.data) return <p> no data </p>;
   if (datasets.error || projects.error) return <p>ERROR</p>;
 
   return (

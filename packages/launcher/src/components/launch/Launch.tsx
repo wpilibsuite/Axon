@@ -20,6 +20,7 @@ import Docker from "../../docker/Docker";
 import Localhost from "../../docker/Localhost";
 import Dockerode from "dockerode"; // used for Dockerode.Container class
 import StopIcon from "@material-ui/icons/Stop";
+const electron = window.require("electron");
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
@@ -52,6 +53,7 @@ const socket = {
 const dockerode = new Dockerode2(socket);
 const docker = new Docker(dockerode, socket);
 const localhost = new Localhost();
+const ipcRenderer  = electron.ipcRenderer;
 
 export default function Launch(): ReactElement {
   const classes = useStyles();
@@ -60,6 +62,7 @@ export default function Launch(): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [clicked, setClicked] = React.useState(false);
   const [activeContainer, setActiveContainer] = React.useState<Dockerode.Container | null>(null);
+  const [version, setVersion] = React.useState("none");
 
   const handleClose = () => {
     setClicked(true);
@@ -98,6 +101,16 @@ export default function Launch(): ReactElement {
   docker.isConnected().then((value) => {
     setOpen(!value && !clicked);
   });
+  const getVersion = async () => {
+    if (version === "none") {
+      ipcRenderer.send("axon", "unused");
+      ipcRenderer.on("axon-reply", (event: any, arg: string) => {
+        console.log("reply: " + arg)
+        setVersion(arg);
+      })
+    }
+  }
+  getVersion();
 
   const stopContainer = async () => {
     if (activeContainer !== null) {
@@ -124,7 +137,7 @@ export default function Launch(): ReactElement {
       </Dialog>
       <div className={classes.centered}>
         <Typography variant="h3" gutterBottom>
-          Axon Launcher
+          Axon Launcher: {version}
         </Typography>
       </div>
       <div className={classes.centered}>

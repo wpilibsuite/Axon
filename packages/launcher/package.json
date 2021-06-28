@@ -2,6 +2,7 @@
   "name": "launcher",
   "productName": "Axon",
   "version": "0.0.1",
+  "buildVersion": "0.0.1",
   "private": true,
   "description": "Axon, a WPILib tool",
   "author": "WPILib <developers@wpilib.org>",
