@@ -8804,15 +8804,13 @@ module.exports = (() => {
               }
             }
             return (
-              u
-                .getMapWithDefault(this.packageRegistry, r)
-                .set(A, {
-                  packageLocation: E,
-                  packageDependencies: B,
-                  packagePeers: y,
-                  linkType: e.linkType,
-                  discardFromLookup: t.discardFromLookup || !1
-                }),
+              u.getMapWithDefault(this.packageRegistry, r).set(A, {
+                packageLocation: E,
+                packageDependencies: B,
+                packagePeers: y,
+                linkType: e.linkType,
+                discardFromLookup: t.discardFromLookup || !1
+              }),
               { packageLocation: I, buildDirective: p.length > 0 ? p : null }
             );
           }
