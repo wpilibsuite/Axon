@@ -229,6 +229,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
                 <Autocomplete
                   options={labelOptions}
                   style={{ width: 300 }}
+                  onChange={(event, value) => console.log(value)}
                   renderInput={(params) => (
                     <TextField
                       {...params}
