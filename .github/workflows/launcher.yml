@@ -25,8 +25,10 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 14
+      - name: Set install timeout
+        run: yarn config set network-timeout 500000 -g
       - name: Install Packages
-        run: yarn --network-timeout 500000
+        run: yarn install
       - name: Build
         run: yarn launch:build
       - uses: actions/upload-artifact@v2
