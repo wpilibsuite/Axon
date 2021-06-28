@@ -14,10 +14,11 @@ import {
   Typography
 } from "@material-ui/core";
 import gql from "graphql-tag";
-import { useApolloClient, useMutation } from "@apollo/client";
-import { TreeItem } from "@material-ui/lab";
+import { useApolloClient, useMutation, useQuery } from "@apollo/client";
+import { Autocomplete, TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
 import { CloudDownload, ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
+import { GetValidLabels } from "./__generated__/GetValidLabels";
 
 const useStyles = makeStyles((theme) => ({
   link: {
@@ -62,6 +63,12 @@ enum CreateState {
   Done
 }
 
+const GET_VALID_LABELS = gql`
+  query GetValidLabels {
+    validLabels
+  }
+`;
+
 const CREATE_DATASET_MUTATION = gql`
   mutation CreateDataset($classes: [String!]!, $maxImages: Int!) {
     createDataset(classes: $classes, maxImages: $maxImages) {
@@ -83,6 +90,13 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const [zipPath, setZipPath] = React.useState("");
   const [createState, setCreateState] = React.useState(CreateState.Entering);
   const apolloClient = useApolloClient();
+
+  const { data, loading } = useQuery<GetValidLabels>(GET_VALID_LABELS);
+  const labelOptions = data
+    ? data.validLabels
+    : loading
+    ? ["Loading Class Suggestions"]
+    : ["Error w/ Class Suggestions"];
 
   const [createDataset] = useMutation<Created>(CREATE_DATASET_MUTATION, {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -212,12 +226,19 @@ export default function CreateDatasetDialogButton(): ReactElement {
                 </Grid>
               )}
               <Grid item xs={10}>
-                <TextField
-                  error={errors[index]}
-                  helperText={errors[index] ? "Please enter a class name or remove this field." : "Class name"}
-                  placeholder={"Type class name here"}
-                  onChange={(event) => update(index, event.target.value)}
-                  className={classes.textfield}
+                <Autocomplete
+                  options={labelOptions}
+                  style={{ width: 300 }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={errors[index]}
+                      helperText={errors[index] ? "Please enter a class name or remove this field." : "Class name"}
+                      placeholder={"Type class name here"}
+                      onChange={(event) => update(index, event.target.value)}
+                      className={classes.textfield}
+                    />
+                  )}
                 />
               </Grid>
             </>
