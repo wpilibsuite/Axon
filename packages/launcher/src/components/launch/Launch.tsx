@@ -110,7 +110,9 @@ export default function Launch(): ReactElement {
       });
     }
   };
-  getVersion();
+  getVersion().then(() => {
+    docker.setTag(version);
+  });
 
   const stopContainer = async () => {
     if (activeContainer !== null) {

@@ -9,7 +9,8 @@ export default class Docker {
   readonly docker: Dockerode;
   readonly socket: { socketPath: string };
   mount: string;
-  readonly image = { name: "wpilib/axon", tag: "edge" };
+  tag = "edge";
+  image = { name: "wpilib/axon", tag: this.tag };
 
   constructor(docker: Dockerode, socket: { socketPath: string }) {
     this.docker = docker;
@@ -26,6 +27,10 @@ export default class Docker {
     } catch (e) {
       return false;
     }
+  }
+
+  setTag(tag: string): void {
+    this.tag = tag;
   }
 
   /**
@@ -86,6 +91,8 @@ export default class Docker {
    * Pull resources needed for training.
    */
   async pullImage(): Promise<void> {
+    console.log("Checking tag");
+    while (this.tag === "edge"); // wait until axon version is known
     console.log("Docker ping: " + (await this.docker.ping()));
     return new Promise<void>((resolve) => {
       console.info(`Pulling image ${this.image.name}:${this.image.tag}`);
