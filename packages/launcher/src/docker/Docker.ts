@@ -85,10 +85,10 @@ export default class Docker {
   /**
    * Pull resources needed for training.
    */
-  async pullImage(): Promise<void> {
+  async pullImage(tag: string): Promise<void> {
     console.log("Docker ping: " + (await this.docker.ping()));
     return new Promise<void>((resolve) => {
-      console.info(`Pulling image ${this.image.name}:${this.image.tag}`);
+      console.info(`Pulling image ${this.image.name}:${tag}`);
       this.docker.pull(
         `${this.image.name}:${this.image.tag}`,
         (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {

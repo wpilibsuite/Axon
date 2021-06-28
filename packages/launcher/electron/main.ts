@@ -1,7 +1,8 @@
-import { app, BrowserWindow, nativeImage } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import * as path from "path";
 import * as isDev from "electron-is-dev";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
+import * as https from "https";
 
 let win: BrowserWindow | null = null;
 
@@ -59,4 +60,23 @@ app.on("activate", () => {
   if (win === null) {
     createWindow();
   }
+});
+
+ipcMain.on("request-tags", (event) => {
+  https
+    .get("https://registry.hub.docker.com/v2/repositories/wpilib/axon/tags", (res) => {
+      res.on("data", (d: Buffer) => {
+        const data = JSON.parse(d.toString()).results.map((element: { name: string }) => {
+          return element.name;
+        });
+        event.reply("axon-tags", data);
+      });
+    })
+    .on("error", (e) => {
+      console.error(e);
+    });
+});
+
+ipcMain.on("request-version", (event) => {
+  event.reply("launcher-version", process.env.npm_package_version);
 });
