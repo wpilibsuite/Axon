@@ -19,7 +19,7 @@
     "dev": "yarn generate && concurrently --kill-others-on-fail \"yarn workspace client dev\" \"yarn workspace server dev\"",
     "format": "prettier --write .",
     "test:format": "prettier --check .",
-    "test:lint": "yarn workspaces run test:lint",
+    "test:lint": "yarn workspaces foreach run test:lint",
     "dockerdev": "docker build --build-arg AXON_VERSION=edge -t axon:local . && docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock -v wpilib-axon-volume:/usr/src/app/packages/server/data -p 3000:3000 -p 4000:4000 axon:local"
   },
   "author": "WPILib <developers@wpilib.org>",
@@ -31,5 +31,9 @@
   },
   "resolutions": {
     "fs-capacitor": "^6.2.0"
+  },
+  "dependencies": {
+    "@yarnpkg/plugin-workspace-tools": "^3.0.0-rc.6",
+    "add": "^2.0.6"
   }
 }

@@ -3380,6 +3380,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/emscripten@npm:^1.38.0":
+  version: 1.39.4
+  resolution: "@types/emscripten@npm:1.39.4"
+  checksum: b848421e2597a0ce56b74c6427f843cfd8f26dec8eaaa1929317e9417bc06eaa934057c317cbb561ade2f5462b6906e37868608211e09f9f507dca62066795a8
+  languageName: node
+  linkType: hard
+
 "@types/eslint-visitor-keys@npm:^1.0.0":
   version: 1.0.0
   resolution: "@types/eslint-visitor-keys@npm:1.0.0"
@@ -4407,6 +4414,43 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@yarnpkg/fslib@npm:^2.5.0-rc.6":
+  version: 2.5.0-rc.6
+  resolution: "@yarnpkg/fslib@npm:2.5.0-rc.6"
+  dependencies:
+    "@yarnpkg/libzip": ^2.2.2-rc.4
+    tslib: ^1.13.0
+  checksum: b71b14c53c848a8391040c19ac8f8c9a562c9502dd6894a7b669b872cdf741eafb2009ed19664a2112e406d91447180731c5bfabb7e2f0389456e997c8367fe3
+  languageName: node
+  linkType: hard
+
+"@yarnpkg/libzip@npm:^2.2.2-rc.4":
+  version: 2.2.2-rc.4
+  resolution: "@yarnpkg/libzip@npm:2.2.2-rc.4"
+  dependencies:
+    "@types/emscripten": ^1.38.0
+    tslib: ^1.13.0
+  checksum: 49b30c14177df30b90cbef20639239dd310c9d62ccba4a3d32722efa7fe9f804f459388b18d1cd080226c612fd95f5fc938b93b3cb8655513b7d140afa18e559
+  languageName: node
+  linkType: hard
+
+"@yarnpkg/plugin-workspace-tools@npm:^3.0.0-rc.6":
+  version: 3.0.0-rc.6
+  resolution: "@yarnpkg/plugin-workspace-tools@npm:3.0.0-rc.6"
+  dependencies:
+    "@yarnpkg/fslib": ^2.5.0-rc.6
+    clipanion: ^3.0.0-rc.10
+    micromatch: ^4.0.2
+    p-limit: ^2.2.0
+    tslib: ^1.13.0
+    typanion: ^3.3.0
+  peerDependencies:
+    "@yarnpkg/cli": ^3.0.0-rc.6
+    "@yarnpkg/core": ^3.0.0-rc.6
+  checksum: 266e90263608d4eaffe5bfdea4050f723194798b5068943ad7aac3718fc381d659683a5aa3a23f755d7cecf49f0a3e37316dc9b73e164b5c00e536262751d66d
+  languageName: node
+  linkType: hard
+
 "@zeit/schemas@npm:2.6.0":
   version: 2.6.0
   resolution: "@zeit/schemas@npm:2.6.0"
@@ -4500,6 +4544,13 @@ __metadata:
   bin:
     acorn: bin/acorn
   checksum: 3fa70393843c3fd4af691f449563e983e064c5c3f655fd943f5f77fb767257623f8afc0a2454b0037aa0c4dd95374c75a9e0e6c54a5f497fc63e63449ad6327c
+  languageName: node
+  linkType: hard
+
+"add@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "add@npm:2.0.6"
+  checksum: 8599798e63565ee9acb4c0d79485501a60450491c47830fa7bee6ad4f311a880e8f8417deeb69804dbb54765246fd704d3e34fa4ab1b57ed70ae00344ee9d00f
   languageName: node
   linkType: hard
 
@@ -5773,6 +5824,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "axon@workspace:."
   dependencies:
+    "@yarnpkg/plugin-workspace-tools": ^3.0.0-rc.6
+    add: ^2.0.6
     concurrently: ^5.2.0
     prettier: ^2.0.5
   languageName: unknown
@@ -7326,6 +7379,17 @@ __metadata:
     typescript: ^3.9.6
   languageName: unknown
   linkType: soft
+
+"clipanion@npm:^3.0.0-rc.10":
+  version: 3.0.0-rc.12
+  resolution: "clipanion@npm:3.0.0-rc.12"
+  dependencies:
+    typanion: ^3.3.1
+  peerDependencies:
+    typanion: "*"
+  checksum: b221278f7a84c3ba192730a9dcbc18ab9b013714d6401ed722872b5833a36775485c47fdd0a8edfec52fda254038c364511905b19b3f950cd774ae54e9948c8e
+  languageName: node
+  linkType: hard
 
 "clipboardy@npm:1.2.3":
   version: 1.2.3
@@ -21900,6 +21964,13 @@ resolve@^1.1.7:
   languageName: node
   linkType: hard
 
+"tslib@npm:^1.13.0":
+  version: 1.14.1
+  resolution: "tslib@npm:1.14.1"
+  checksum: f44fe7f216946b17d3e3074df3746372703cf24e9127b4c045511456e8e4bf25515fb0a1bb3937676cc305651c5d4fcb6377b0588a4c6a957e748c4c28905d17
+  languageName: node
+  linkType: hard
+
 "tslib@npm:^2.0.0, tslib@npm:~2.0.0":
   version: 2.0.0
   resolution: "tslib@npm:2.0.0"
@@ -21959,6 +22030,13 @@ resolve@^1.1.7:
   version: 0.14.5
   resolution: "tweetnacl@npm:0.14.5"
   checksum: e1c9d52e2e9f582fd0df9ea26ba5a9ab88b9a38b69625d8e55c5e8870a4832ac8c32f8854b41fce7b59f97258bb103535363f9eda7050aa70e75824b972c7dde
+  languageName: node
+  linkType: hard
+
+"typanion@npm:^3.3.0, typanion@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "typanion@npm:3.3.1"
+  checksum: 4341c4199f5ce022c9e486a47fff9509bb887768c9496fec86e10bdac9631f34298b9257dc5c9425e2eb177c3df5189ba029570114a5fddbfb11928330023262
   languageName: node
   linkType: hard
 
