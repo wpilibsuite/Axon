@@ -3,8 +3,6 @@ import * as path from "path";
 import * as isDev from "electron-is-dev";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
-// import version from "./package.json";
-
 let win: BrowserWindow | null = null;
 
 function createWindow() {
