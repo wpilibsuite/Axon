@@ -78,5 +78,5 @@ ipcMain.on("request-tags", (event) => {
 });
 
 ipcMain.on("request-version", (event) => {
-  event.reply("launcher-version", process.env.npm_package_version);
+  event.returnValue = process.env.npm_package_version;
 });
