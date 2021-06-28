@@ -3,6 +3,9 @@ import * as path from "path";
 import * as isDev from "electron-is-dev";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
+// import version from "./package.json";
+
+
 let win: BrowserWindow | null = null;
 
 function createWindow() {
@@ -27,9 +30,7 @@ function createWindow() {
 
   win.setMenu(null);
 
-  ipcMain.on("axon", (event => {
-    event.reply("axon-reply", process.env.npm_package_version);
-  }));
+
 
   // Hot Reloading
   if (isDev) {
@@ -64,4 +65,9 @@ app.on("activate", () => {
     createWindow();
   }
 });
-console.log("Testing log");
+
+ipcMain.on("axon", (event => {
+  event.reply("axon-reply", app.getVersion());
+}));
+
+console.log(app.getVersion());
