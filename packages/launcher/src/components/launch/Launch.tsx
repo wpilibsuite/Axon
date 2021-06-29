@@ -110,11 +110,6 @@ export default function Launch(): ReactElement {
     }
   };
 
-
-  const resetDocker = async () => {
-    await docker.resetDocker();
-  }
-
   return (
     <Container>
       <Dialog open={open} onClose={handleClose}>
@@ -152,8 +147,8 @@ export default function Launch(): ReactElement {
             </IconButton>
           </Tooltip>
         )}
+        <ResetDockerButton callback={docker.resetDocker} docker={docker.docker} />
       </div>
-      <ResetDockerButton callback={docker.resetDocker} />
       <div className={classes.centered}>{status !== "OFF" && <Typography>{status}</Typography>}</div>
       {progress}
     </Container>

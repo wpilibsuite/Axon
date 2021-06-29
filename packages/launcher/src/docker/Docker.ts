@@ -159,8 +159,15 @@ export default class Docker {
   public async resetDocker(): Promise<void> {
     // prune containers
     await this.docker.pruneContainers();
+    console.log("Pruned containers");
     // delete wpilib-axon-volume volume
-    const volume = await this.docker.getVolume("wpilib-axon-volume");
-    await volume.remove();
+    try {
+      const volume = await this.docker.getVolume("wpilib-axon-volume");
+      console.log("Got volume");
+      await volume.remove();
+      console.log("Removed volume");
+    } catch (error) {
+      console.log("No volume to delete");
+    }
   }
 }
