@@ -20,7 +20,7 @@ function Copyright() {
         {"."}
       </Typography>
       <Typography variant="body2" color="textSecondary" align="center">
-        Launcher version: {launcherVersion}
+        Launcher version: {ipcRenderer.sendSync("launcher-version")}
       </Typography>
     </div>
   );
