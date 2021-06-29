@@ -125,14 +125,16 @@ export default class MLService {
     console.info(`${tester.test.id}: Test complete`);
   }
 
-  async create(classes: string[], maxImages: number, directory: string, id: string): Promise<CreateJob> {
+  async create(classes: string[], maxImages: number, id: string): Promise<CreateJob> {
     const creator: Creator = new Creator(classes, maxImages, id);
 
     const validLabels = await creator.checkLabels();
     if (!validLabels.success) {
       return validLabels;
     }
+    console.log("Creating parameter file");
     await creator.writeParameterFile();
+    console.log("Starting Python script");
     await creator.createDataset();
     console.log("Created dataset " + id);
     const path = await creator.getZipPath();

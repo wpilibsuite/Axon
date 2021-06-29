@@ -38,8 +38,7 @@
     "sequelize": "^6.3.3",
     "sqlite3": "^5.0.0",
     "tar": "^6.0.2",
-    "unzipper": "^0.10.11",
-    "uuid": "^8.3.2"
+    "unzipper": "^0.10.11"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^1.16.2",
