@@ -20,6 +20,7 @@ import Docker from "../../docker/Docker";
 import Localhost from "../../docker/Localhost";
 import Dockerode from "dockerode"; // used for Dockerode.Container class
 import StopIcon from "@material-ui/icons/Stop";
+import ResetDockerButton from "./ResetDockerButton";
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
@@ -95,6 +96,7 @@ export default function Launch(): ReactElement {
       setClicked(false);
     }
   };
+
   docker.isConnected().then((value) => {
     setOpen(!value && !clicked);
   });
@@ -107,6 +109,11 @@ export default function Launch(): ReactElement {
       }
     }
   };
+
+
+  const resetDocker = async () => {
+    await docker.resetDocker();
+  }
 
   return (
     <Container>
@@ -146,6 +153,7 @@ export default function Launch(): ReactElement {
           </Tooltip>
         )}
       </div>
+      <ResetDockerButton callback={docker.resetDocker} />
       <div className={classes.centered}>{status !== "OFF" && <Typography>{status}</Typography>}</div>
       {progress}
     </Container>

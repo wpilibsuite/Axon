@@ -155,4 +155,12 @@ export default class Docker {
     await container.wait();
     await container.remove();
   }
+
+  public async resetDocker(): Promise<void> {
+    // prune containers
+    await this.docker.pruneContainers();
+    // delete wpilib-axon-volume volume
+    const volume = await this.docker.getVolume("wpilib-axon-volume");
+    await volume.remove();
+  }
 }
