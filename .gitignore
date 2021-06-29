@@ -183,3 +183,4 @@ build/
 
 dist/
 log.txt
+*.pyc

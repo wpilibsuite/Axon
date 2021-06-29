@@ -83,6 +83,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const [keys, setKeys] = React.useState([""]);
+  const [inputs, setInputs] = React.useState([""]);
   const [errors, setErrors] = React.useState([false]);
   const [maxNumber, setMaxNumber] = React.useState(0);
   const [numberError, setNumberError] = React.useState(false);
@@ -116,6 +117,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
 
   const handleClose = () => {
     setKeys([""]);
+    setInputs([""]);
     setErrors([false]);
     setCreateID("");
     setMaxNumber(0);
@@ -125,6 +127,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
   };
   const handleFailed = () => {
     setKeys([""]);
+    setInputs([""]);
     setErrors([false]);
     setCreateID("");
     setMaxNumber(0);
@@ -134,6 +137,8 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const append = () => {
     const test: string[] = [...keys];
     setKeys(test.concat([""]));
+    const testInputs: string[] = [...inputs];
+    setInputs(testInputs.concat([""]));
     const testErrors: boolean[] = [...errors];
     setErrors(testErrors.concat([false]));
   };
@@ -142,10 +147,18 @@ export default function CreateDatasetDialogButton(): ReactElement {
     test[index] = element;
     setKeys(test);
   };
+  const updateInputs = (index: number, element: string) => {
+    const test: string[] = [...inputs];
+    test[index] = element;
+    setInputs(test);
+  };
   const remove = (index: number) => {
     const test: string[] = [...keys];
     test.splice(index, 1);
     setKeys(test);
+    const testInputs: string[] = [...inputs];
+    testInputs.splice(index, 1);
+    setInputs(testInputs);
     const testErrors: boolean[] = [...errors];
     testErrors.splice(index, 1);
     setErrors(testErrors);
@@ -228,15 +241,18 @@ export default function CreateDatasetDialogButton(): ReactElement {
               <Grid item xs={10}>
                 <Autocomplete
                   options={labelOptions}
-                  style={{ width: 300 }}
-                  onChange={(event, value) => console.log(value)}
+                  value={keys[index]}
+                  inputValue={inputs[index]}
+                  onInputChange={(event, newInputValue) => {
+                    updateInputs(index, newInputValue);
+                  }}
+                  onChange={(event, newValue) => update(index, newValue as string)}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       error={errors[index]}
                       helperText={errors[index] ? "Please enter a class name or remove this field." : "Class name"}
                       placeholder={"Type class name here"}
-                      onChange={(event) => update(index, event.target.value)}
                       className={classes.textfield}
                     />
                   )}
