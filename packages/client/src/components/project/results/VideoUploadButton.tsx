@@ -60,10 +60,10 @@ export default function VideoUploadButton(props: { id: string }): ReactElement {
           />
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose}>
+          <Button autoFocus variant={"contained"} onClick={handleClose}>
             Cancel
           </Button>
-          <Button autoFocus onClick={handleSave} variant="contained" color="primary">
+          <Button variant={"contained"} onClick={handleSave} variant="contained" color="primary">
             Save
           </Button>
         </DialogActions>
