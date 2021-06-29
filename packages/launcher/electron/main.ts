@@ -62,11 +62,12 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.on("request-internet", (event) =>{
-  https.get("https://hub.docker.com/", (res) => {
-    event.reply("internet-status", res.statusCode === 200);
-  }).on("error", (e) => {
-    event.reply("internet-status", false);
-  });
+ipcMain.on("request-internet", (event) => {
+  https
+    .get("https://hub.docker.com/", (res) => {
+      event.reply("internet-status", res.statusCode === 200);
+    })
+    .on("error", (e) => {
+      event.reply("internet-status", false);
+    });
 });
-

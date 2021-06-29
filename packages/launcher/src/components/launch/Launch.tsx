@@ -44,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
   inline: {
     display: "inline-flex"
   },
-  progress:{
+  progress: {
     flexWrap: "wrap",
     alignItems: "center",
     justifyContent: "center",
@@ -71,7 +71,6 @@ export default function Launch(): ReactElement {
   const [internetConnection, setInternetConnection] = React.useState(false);
   const [checkedInternetConnection, setCheckedInternetConnection] = React.useState(false);
 
-
   const getInternetConnection = async () => {
     const ipcRenderer: IpcRenderer = window.require("electron").ipcRenderer;
     await ipcRenderer.on("internet-status", (event, arg: boolean) => {
@@ -83,7 +82,7 @@ export default function Launch(): ReactElement {
 
   if (!checkedInternetConnection) {
     getInternetConnection();
-    return <CircularProgress className={classes.progress}/>;
+    return <CircularProgress className={classes.progress} />;
   }
 
   const handleClose = () => {
@@ -119,7 +118,6 @@ export default function Launch(): ReactElement {
       });
       setActiveContainer(container);
       localhost.waitForStart();
-
     } else {
       setClicked(false);
     }
