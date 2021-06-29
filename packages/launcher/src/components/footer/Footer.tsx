@@ -4,11 +4,7 @@ import { ReactElement } from "react";
 import { IpcRenderer } from "electron";
 
 function Copyright() {
-  const [launcherVersion, setLauncherVersion] = React.useState("Loading");
   const ipcRenderer: IpcRenderer = window.require("electron").ipcRenderer;
-  ipcRenderer.on("launcher-version", (event, args: string) => {
-    setLauncherVersion(args);
-  });
   return (
     <div>
       <Typography variant="body2" color="textSecondary" align="center">
