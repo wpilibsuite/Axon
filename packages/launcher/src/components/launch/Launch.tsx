@@ -1,6 +1,7 @@
 import React, { ReactElement } from "react";
 import {
   Button,
+  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -20,7 +21,7 @@ import Docker from "../../docker/Docker";
 import Localhost from "../../docker/Localhost";
 import Dockerode from "dockerode"; // used for Dockerode.Container class
 import StopIcon from "@material-ui/icons/Stop";
-import * as https from "https";
+import { IpcRenderer } from "electron";
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
@@ -61,6 +62,27 @@ export default function Launch(): ReactElement {
   const [open, setOpen] = React.useState(false);
   const [clicked, setClicked] = React.useState(false);
   const [activeContainer, setActiveContainer] = React.useState<Dockerode.Container | null>(null);
+  const [internetConnection, setInternetConnection] = React.useState(false);
+  const [checkedInternetConnection, setCheckedInternetConnection] = React.useState(false);
+
+
+  const getInternetConnection = async () => {
+    const ipcRenderer: IpcRenderer = window.require("electron").ipcRenderer;
+    console.log("lit");
+    await ipcRenderer.on("internet-status", (event, arg: boolean) => {
+      console.log(arg);
+      console.log("hi");
+      setInternetConnection(arg);
+      setCheckedInternetConnection(true);
+    });
+    ipcRenderer.send("request-internet");
+  };
+
+  if (!checkedInternetConnection) {
+    console.log("yo");
+    getInternetConnection();
+    return <CircularProgress />;
+  }
 
   const handleClose = () => {
     setClicked(true);
@@ -69,10 +91,14 @@ export default function Launch(): ReactElement {
   const startContainer = async () => {
     const connected = await docker.isConnected();
     if (connected) {
-      setStatus("Pulling Axon image");
-      await docker.pullImage();
-      // setPulling(false);
-      setStatus("Finished pulling.");
+      if (internetConnection) {
+        setStatus("Pulling Axon image");
+        await docker.pullImage();
+        // setPulling(false);
+        setStatus("Finished pulling.");
+      } else {
+        console.log("No Internet Connection Detected, Skipping Pulling Images");
+      }
       // image downloaded
       const containers = await docker.getContainers();
       if (containers !== null && containers.length > 0) {
@@ -91,6 +117,7 @@ export default function Launch(): ReactElement {
       });
       setActiveContainer(container);
       localhost.waitForStart();
+
     } else {
       setClicked(false);
     }
