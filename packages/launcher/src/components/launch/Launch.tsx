@@ -78,7 +78,7 @@ export default function Launch(): ReactElement {
 
     ipcRenderer.on("axon-tags", (event, args: string[]) => {
       setAxonVersions(args);
-      setAxonVersion(args[args.length - 1]);
+      setAxonVersion(args[0]);
     });
     ipcRenderer.send("request-tags");
     ipcRenderer.send("request-version");
