@@ -5,7 +5,7 @@ export const Mutation: MutationResolvers = {
   resetDocker: async (parent, args, { docker }) => {
     return await docker.reset();
   },
-  resetVolume: async (parent, args, { docker, dataSources }) => {
+  resetVolume: async (parent, args, { docker }) => {
     const [volume] = await Promise.all([docker.resetVolume(), sequelize.sync({ force: true })]);
     return volume;
   },
