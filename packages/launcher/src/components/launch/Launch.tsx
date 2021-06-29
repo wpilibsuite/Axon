@@ -69,37 +69,16 @@ export default function Launch(): ReactElement {
   const startContainer = async () => {
     const connected = await docker.isConnected();
     if (connected) {
-      // try {
-      //   await pullContainers();
-      // } catch(e){
-      //   console.log("===================================");
-      //   console.log(e);
-      // }
-
-      // setPulling(true);
-      const options = {
-        hostname: "google.com",
-        port: 443,
-        path: "/",
-        method: "GET",
-        headers: { "Access-Control-Allow-Origin": "*" }
-      };
-
-      const req = https.request(options, (res) => {
-        console.log(`statusCode: ${res.statusCode}`);
-        console.log("headers:", res.headers);
-        if (res.statusCode === 200) {
-          console.log("====================");
-          pullContainers();
-        }
-      });
-
-      req.end();
-
-      req.on("error", (error) => {
-        console.error(error);
-      });
-
+      setStatus("Pulling Axon image");
+      await docker.pullImage();
+      // setPulling(false);
+      setStatus("Finished pulling.");
+      // image downloaded
+      const containers = await docker.getContainers();
+      if (containers !== null && containers.length > 0) {
+        setStatus("Removing old containers");
+        await docker.reset();
+      }
       setStatus("Creating container");
       const container = await docker.createContainer();
       // setContainer(container);
@@ -120,25 +99,6 @@ export default function Launch(): ReactElement {
   docker.isConnected().then((value) => {
     setOpen(!value && !clicked);
   });
-
-  const pullContainers = async () => {
-    setStatus("Pulling Axon image");
-    console.log("hi");
-    try {
-      await docker.pullImage();
-    } catch (e) {
-      console.log("============");
-    }
-    console.log("yo");
-    // setPulling(false);
-    setStatus("Finished pulling.");
-    // image downloaded
-    const containers = await docker.getContainers();
-    if (containers !== null && containers.length > 0) {
-      setStatus("Removing old containers");
-      await docker.reset();
-    }
-  };
 
   const stopContainer = async () => {
     if (activeContainer !== null) {

@@ -4,6 +4,7 @@ import { DockerImage } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { DATA_DIR } from "../constants";
 import * as path from "path";
+import * as https from "https";
 
 export const CONTAINER_MOUNT_PATH = "/wpi-data";
 export const VOLUME_NAME = "wpilib-axon-volume";
@@ -167,5 +168,19 @@ export default class Docker {
     await container.start();
     await container.wait();
     await container.remove();
+  }
+
+  public async isConnectedToInternet(): Promise<boolean>{
+    const options = {
+      hostname: "hub.docker.com",
+      port: 443,
+      path: "/v2",
+      method: "GET",
+    };
+    let result = false;
+    const req = https.request(options, (res) => {
+      result = res.statusCode === 200;
+    });
+    return result;
   }
 }

@@ -15,6 +15,7 @@ type Query {
   testjobs: [Testjob!]!
   projects: [Project!]!
   dockerState: DockerState!
+  internetConnection: Boolean!
 }
 
 type Mutation {

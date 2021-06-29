@@ -36,5 +36,8 @@ export const Query: QueryResolvers = {
   },
   testjobs: (_, args, { dataSources }) => {
     return dataSources.projectService.getTestjobs();
+  },
+  internetConnection: async (_, arg, {docker}) => {
+    return await docker.isConnectedToInternet();
   }
 };
