@@ -9,7 +9,7 @@ import * as fs from "fs";
 
 type TrainParameters = {
   "eval-frequency": number;
-  "dataset-path": string[];
+  "dataset-path": string;
   "percent-eval": number;
   "batch-size": number;
   checkpoint: string;
@@ -49,9 +49,13 @@ export default class Trainer {
 
     this.status = TrainStatus.Writing;
 
-    const DATASETPATHS = (await this.project.getDatasets()).map((dataset) =>
-      path.posix.join(Docker.containerProjectPath(this.project), "dataset", path.basename(dataset.path))
+    const DATASETPATHS = path.posix.join(
+      Docker.containerProjectPath(this.project),
+      "dataset",
+      path.basename((await this.project.getDataset()).path)
     );
+    console.log("====================================================");
+    console.log(DATASETPATHS);
 
     const INITCKPT =
       this.project.initialCheckpoint !== "default"
@@ -67,7 +71,7 @@ export default class Trainer {
       epochs: this.lastEpoch,
       checkpoint: INITCKPT
     };
-
+    console.log(`Project dir: ${this.project.directory}`);
     const HYPERPARAMETER_FILE_PATH = path.posix.join(this.project.directory, "hyperparameters.json");
     await fs.promises.writeFile(HYPERPARAMETER_FILE_PATH, JSON.stringify(trainParameters));
   }
@@ -107,12 +111,14 @@ export default class Trainer {
 
     this.status = TrainStatus.Moving;
 
-    for (const dataset of await this.project.getDatasets())
-      await fs.promises.copyFile(
-        path.posix.join("data", dataset.path),
-        path.posix.join(this.project.directory, "dataset", path.basename(dataset.path))
-      );
-    console.log("datasets copied");
+    const dataset = await this.project.getDataset();
+    await fs.promises.copyFile(
+      path.posix.join("data", dataset.path),
+      path.posix.join(this.project.directory, "dataset", path.basename(dataset.path))
+    );
+    console.log("===========================");
+    console.log(path.posix.join(this.project.directory, "dataset", path.basename(dataset.path)));
+    console.log("dataset copied");
 
     //custom checkpoints not yet supported by gui
     if (this.project.initialCheckpoint != "default") {

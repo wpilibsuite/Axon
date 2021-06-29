@@ -2,8 +2,8 @@ import { ProjectResolvers } from "../schema/__generated__/graphql";
 import { Context } from "../context";
 
 export const Project: ProjectResolvers = {
-  datasets(parent) {
-    return parent.getDatasets();
+  dataset(parent) {
+    return parent.getDataset();
   },
   checkpoints(parent, _, { dataSources }: Context) {
     return dataSources.projectService.getCheckpoints(parent.id);

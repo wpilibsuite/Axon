@@ -4,6 +4,7 @@ scalar Upload
 type Query {
   isDockerConnected: Boolean!
   dockerVersion: String!
+  getAxonVersion: String!
 
   dataset(id: ID!): Dataset
   datasets: [Dataset!]!
@@ -20,7 +21,8 @@ type Mutation {
   resetDocker: Boolean!
   resetVolume: Boolean!
 
-  createDataset(upload: Upload!): Dataset
+  createDataset(classes: [String!]!, maxImages: Int!): CreateJob
+  addDataset(upload: Upload!): Dataset
   renameDataset(id: ID!, newName: String!): Dataset
   deleteDataset(id: ID!): Dataset
 
@@ -52,6 +54,7 @@ enum DockerState {
   TRAIN_PULL
   EXPORT_PULL
   TEST_PULL
+  CREATE_PULL
   READY
 }
 
@@ -135,7 +138,7 @@ type Project {
   id: ID!
   name: String!
   initialCheckpoint: String!
-  datasets: [Dataset!]!
+  dataset: Dataset
 
   directory: String!
 
@@ -147,6 +150,14 @@ type Project {
   checkpoints: [Checkpoint!]!
   exports: [Export!]!
   videos: [Video!]!
+}
+
+enum DatasetCreateStatus {
+  Idle
+  Preparing
+  Downloading
+  AddingToRegistry
+  Done
 }
 
 enum TrainStatus {
@@ -182,10 +193,16 @@ type Testjob {
   streamPort: String!
 }
 
+type CreateJob {
+  success: Int!
+  createID: String!
+  zipPath: String!
+}
+
 input ProjectUpdateInput {
   name: String
 
-  datasets: [String!]
+  dataset: String
   initialCheckpoint: String
 
   epochs: Int

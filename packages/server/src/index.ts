@@ -22,7 +22,7 @@ const app = new Koa();
 const server = new ApolloServer({
   schema: schema,
   dataSources: () => ({
-    datasetService: new DatasetService(sequelize, DATASET_DATA_DIR),
+    datasetService: new DatasetService(sequelize, mLService, DATASET_DATA_DIR),
     projectService: new ProjectService(sequelize, mLService, PROJECT_DATA_DIR)
   }),
   context: {

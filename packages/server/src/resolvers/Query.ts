@@ -4,6 +4,9 @@ export const Query: QueryResolvers = {
   isDockerConnected: async (parent, args, { docker }) => {
     return await docker.isConnected();
   },
+  getAxonVersion: async (parent, args, { docker }) => {
+    return docker.getAxonVersion();
+  },
   dockerVersion: async (parent, args, { docker }) => {
     return await docker.version();
   },

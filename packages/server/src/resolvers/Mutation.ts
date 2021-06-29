@@ -11,9 +11,12 @@ export const Mutation: MutationResolvers = {
     ]);
     return volume && dataset && project;
   },
-  createDataset: async (parent, { upload }, { dataSources }) => {
+  createDataset: async (parent, { classes, maxImages }, { dataSources }) => {
+    return dataSources.datasetService.createDataset(classes, maxImages);
+  },
+  addDataset: async (parent, { upload }, { dataSources }) => {
     const { createReadStream, filename } = await upload;
-    return dataSources.datasetService.createDataset(filename, createReadStream());
+    return dataSources.datasetService.addDataset(filename, createReadStream());
   },
   renameDataset: async (parent, { id, newName }, { dataSources }) => {
     return dataSources.datasetService.renameDataset(id, newName);

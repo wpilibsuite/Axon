@@ -1,5 +1,5 @@
 import { GetProjectData, GetProjectDataVariables } from "./__generated__/GetProjectData";
-import { Grid, Typography } from "@material-ui/core";
+import { CircularProgress, Grid, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
@@ -24,6 +24,9 @@ const useStyles = makeStyles((theme) => ({
   largeIcon: {
     width: 60,
     height: 60
+  },
+  progress: {
+    marginLeft: 50
   }
 }));
 
@@ -32,7 +35,7 @@ const GET_PROJECT_DATA = gql`
     project(id: $id) {
       id
       name
-      datasets {
+      dataset {
         name
       }
       exports {
@@ -63,7 +66,7 @@ export default function Project(props: { id: string }): ReactElement {
     pollInterval: 3000
   });
 
-  if (loading) return <p>LOADING</p>;
+  if (loading) return <CircularProgress className={classes.progress} />;
   if (error) return <p>{error.message}</p>;
 
   if (data?.project) {
@@ -79,7 +82,7 @@ export default function Project(props: { id: string }): ReactElement {
             </div>
           </Grid>
           <Grid item xs={12}>
-            <Input id={props.id} datasets={data.project.datasets} />
+            <Input id={props.id} dataset={data.project.dataset} />
           </Grid>
           <Grid item xs={12}>
             <Metrics id={props.id} />

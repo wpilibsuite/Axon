@@ -5,14 +5,15 @@ import gql from "graphql-tag";
 import { TreeItem, TreeView } from "@material-ui/lab";
 import { useQuery } from "@apollo/client";
 import NavigationTreeItem from "./NavigationTreeItem";
-import { Tooltip, Typography } from "@material-ui/core";
+import { Tooltip, Typography, CircularProgress } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
-import AddDatasetDialogButton from "./AddDatasetDialogButton";
+import UploadDatasetDialogButton from "./UploadDatasetDialogButton";
 import AddProjectDialogButton from "./AddProjectDialogButton";
 import { TreeGetProjectList } from "./__generated__/TreeGetProjectList";
 import { TreeGetDatasetList } from "./__generated__/TreeGetDatasetList";
 import SettingsDialogButton from "./settings/SettingsDialogButton";
+import CreateDatasetDialogButton from "./CreateDatasetDialogButton";
 
 const useStyles = makeStyles((theme) => ({
   item: {
@@ -30,6 +31,12 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     padding: theme.spacing(0.5, 0)
+  },
+  loader: {
+    maxHeight: 25,
+    maxWidth: 25,
+    marginTop: 20,
+    marginLeft: 75
   }
 }));
 
@@ -68,8 +75,9 @@ export default function LinkList(): ReactElement {
   const datasets = useQuery<TreeGetDatasetList, TreeGetDatasetList>(GET_DATASETS);
   const projects = useQuery<TreeGetProjectList, TreeGetProjectList>(GET_PROJECTS);
 
-  if (datasets.loading || projects.loading) return <p>LOADING</p>;
-  if (datasets.error || projects.error || !datasets.data || !projects.data) return <p>ERROR</p>;
+  if (datasets.loading || projects.loading) return <CircularProgress className={classes.loader} />;
+  if (!datasets.data || !projects.data) return <CircularProgress className={classes.loader} />;
+  if (datasets.error || projects.error) return <p>ERROR</p>;
 
   return (
     <TreeView defaultCollapseIcon={<ExpandMore />} defaultExpandIcon={<ChevronRight />} defaultExpanded={["1", "2"]}>
@@ -90,7 +98,8 @@ export default function LinkList(): ReactElement {
             </Link>
           </Tooltip>
         ))}
-        <AddDatasetDialogButton />
+        <CreateDatasetDialogButton />
+        <UploadDatasetDialogButton />
       </TreeItem>
       <TreeItem
         nodeId={"2"}

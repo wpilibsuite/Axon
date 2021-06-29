@@ -7,9 +7,10 @@ import * as unzipper from "unzipper";
 import * as tar from "tar";
 import { imageSize as sizeOf } from "image-size";
 import { glob } from "glob";
-import { LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
+import { CreateJob, LabeledImage, ObjectLabel, Point } from "../schema/__generated__/graphql";
 import { Sequelize } from "sequelize";
 import { Dataset } from "../store";
+import MLService from "../mL";
 import rimraf = require("rimraf");
 
 interface SuperviselyMeta {
@@ -46,13 +47,14 @@ interface SuperviselyImage {
 }
 
 export class DatasetService extends DataSource {
+  private readonly mLService: MLService;
   private readonly path: string;
   private store: Sequelize;
 
-  constructor(store: Sequelize, path: string) {
+  constructor(store: Sequelize, mLService: MLService, path: string) {
     super();
-
     this.path = path;
+    this.mLService = mLService;
     this.store = store;
   }
 
@@ -82,7 +84,22 @@ export class DatasetService extends DataSource {
     return images;
   }
 
-  async createDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
+  async createDataset(classes: string[], maxImages: number): Promise<CreateJob> {
+    console.log("Creating new dataset");
+    const dataset = Dataset.build({ name: classes[0] });
+    await mkdirp(`data/datasets/${dataset.id}`);
+    await mkdirp("data/create");
+    const createJob = await this.mLService.create(classes, maxImages, dataset.id);
+    const name = createJob.zipPath.split("/")[1]; // OpenImages_ETC.zip
+    dataset.name = name.replace("OpenImages_", "").replace(".zip", ""); // ETC
+    dataset.path = `datasets/${dataset.id}/${name}`;
+    const zipPath = `${this.path}/${createJob.zipPath}`;
+    fs.createReadStream(zipPath).pipe(unzipper.Extract({ path: zipPath.replace(".zip", "") }));
+    await dataset.save();
+    return createJob;
+  }
+
+  async addDataset(filename: string, stream: fs.ReadStream): Promise<Dataset> {
     const dataset = Dataset.build({ name: filename });
     dataset.path = `datasets/${dataset.id}/${filename}`;
     await this.upload(dataset.id, dataset.name, stream).then(() => dataset.save());
@@ -108,7 +125,7 @@ export class DatasetService extends DataSource {
   }
 
   private async listImages(id: string): Promise<LabeledImage[]> {
-    const name = (await Dataset.findByPk(id)).name;
+    const name = (await Dataset.findByPk(id)).path;
 
     if (name.slice(name.length - 4) === ".tar") {
       const imageMetaPaths = glob.sync(`${this.path}/${id}/*/ann/*.json`);
@@ -167,6 +184,7 @@ export class DatasetService extends DataSource {
   private async upload(id: string, name: string, stream: fs.ReadStream) {
     const extractPath = `${this.path}/${id}`;
     const savePath = path.join(extractPath, name);
+    console.log(`Save path ${savePath}`);
     await mkdirp(extractPath);
 
     await new Promise((resolve, reject) => {

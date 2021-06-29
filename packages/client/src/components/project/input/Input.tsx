@@ -1,5 +1,15 @@
-import { LinearProgress, Typography, Box, Grid } from "@material-ui/core";
-import { GetProjectData_project_datasets } from "../__generated__/GetProjectData";
+import {
+  LinearProgress,
+  Typography,
+  Box,
+  Grid,
+  DialogTitle,
+  Dialog,
+  DialogActions,
+  Button,
+  DialogContent
+} from "@material-ui/core";
+import { GetProjectData_project_dataset } from "../__generated__/GetProjectData";
 import { StartButton, StopButton, PauseButton } from "./Buttons";
 import { TrainStatus } from "../../../__generated__/globalTypes";
 import { GetTrainjobs } from "./__generated__/GetTrainjobs";
@@ -18,7 +28,9 @@ const GET_TRAINJOBS = gql`
   }
 `;
 
-export default function Input(props: { id: string; datasets: GetProjectData_project_datasets[] }): ReactElement {
+export default function Input(props: { id: string; dataset: GetProjectData_project_dataset | null }): ReactElement {
+  const [open, setOpen] = React.useState(false);
+  const [lastStep, setLastStep] = React.useState(false);
   const { data, loading, error } = useQuery<GetTrainjobs>(GET_TRAINJOBS, {
     pollInterval: 2000
   });
@@ -29,23 +41,50 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
 
   const trainjob = data.trainjobs.find((job) => job.projectID === props.id);
 
-  if (trainjob === undefined)
+  if (trainjob === undefined) {
+    if (lastStep) {
+      setOpen(true);
+      setLastStep(false);
+    }
     return (
       <>
+        <Dialog open={open}>
+          <DialogTitle>Training Complete</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Your model has finished training. Choose a checkpoint from the graph and export it to test it or use it on
+              your robot.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant={"contained"}
+              onClick={() => {
+                setOpen(false);
+              }}
+            >
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Grid container spacing={3} justify={"center"} alignItems={"center"} style={{ width: "100%" }}>
           <Grid item xs={11}>
-            <Parameters id={props.id} datasets={props.datasets} />
+            <Parameters id={props.id} dataset={props.dataset} />
           </Grid>
           <Grid item xs={1}>
-            <StartButton id={props.id} selected={props.datasets} />
+            <StartButton id={props.id} selected={props.dataset} />
           </Grid>
         </Grid>
       </>
     );
+  }
 
   let statusMessage;
   switch (trainjob.status) {
     case TrainStatus.Idle:
+      if (lastStep) {
+        setLastStep(false);
+      }
       statusMessage = "Idling";
       break;
     case TrainStatus.Paused:
@@ -61,12 +100,21 @@ export default function Input(props: { id: string; datasets: GetProjectData_proj
       statusMessage = "Moving data";
       break;
     case TrainStatus.Extracting:
+      if (lastStep) {
+        setLastStep(false);
+      }
       statusMessage = "Extracting dataset";
       break;
     case TrainStatus.Training:
+      if (!lastStep) {
+        setLastStep(true);
+      }
       statusMessage = "Training";
       break;
     case TrainStatus.Stopped:
+      if (!lastStep) {
+        setLastStep(true);
+      }
       statusMessage = "Finishing up";
       break;
   }

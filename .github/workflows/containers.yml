@@ -25,10 +25,14 @@ jobs:
       # Base
       - name: Base - Docker meta
         id: base_docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v3
         with:
           images: wpilib/axon-base
-          tag-edge: true
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=edge
+            type=semver,pattern={{version}}
       - name: Base - Build and push
         uses: docker/build-push-action@v2
         with:
@@ -41,10 +45,14 @@ jobs:
       # Dataset
       - name: Dataset - Docker meta
         id: dataset_docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v3
         with:
           images: wpilib/axon-dataset
-          tag-edge: true
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=edge
+            type=semver,pattern={{version}}
       - name: Dataset - Build and push
         uses: docker/build-push-action@v2
         with:
@@ -59,10 +67,14 @@ jobs:
       # Metrics
       - name: Metrics - Docker meta
         id: metrics_docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v3
         with:
           images: wpilib/axon-metrics
-          tag-edge: true
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=edge
+            type=semver,pattern={{version}}
       - name: Metrics - Build and push
         uses: docker/build-push-action@v2
         with:
@@ -77,10 +89,14 @@ jobs:
       # Training
       - name: Training - Docker meta
         id: training_docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v3
         with:
           images: wpilib/axon-training
-          tag-edge: true
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=edge
+            type=semver,pattern={{version}}
       - name: Training - Build and push
         uses: docker/build-push-action@v2
         with:
@@ -95,10 +111,14 @@ jobs:
       # tflite
       - name: tflite - Docker meta
         id: tflite_docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v3
         with:
           images: wpilib/axon-tflite
-          tag-edge: true
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=edge
+            type=semver,pattern={{version}}
       - name: tflite - Build and push
         uses: docker/build-push-action@v2
         with:
@@ -110,32 +130,18 @@ jobs:
           labels: ${{ steps.tflite_docker_meta.outputs.labels }}
           build-args: |
             BASE_VERSION=${{ steps.base_docker_meta.outputs.version }}
-      # openimages
-      - name: openimages - Docker meta
-        id: openimages_docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
-        with:
-          images: wpilib/axon-openimages
-          tag-edge: true
-      - name: openimages - Build and push
-        uses: docker/build-push-action@v2
-        with:
-          push: ${{ env.push }}
-          load: ${{ !env.push }}
-          context: containers/mobilenet/openimages
-          file: containers/mobilenet/openimages/Dockerfile
-          tags: ${{ steps.openimages_docker_meta.outputs.tags }}
-          labels: ${{ steps.openimages_docker_meta.outputs.labels }}
-          build-args: |
-            BASE_VERSION=${{ steps.base_docker_meta.outputs.version }}
 
       # Test
       - name: Test - Docker meta
         id: test_docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v3
         with:
           images: wpilib/axon-test
-          tag-edge: true
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=edge
+            type=semver,pattern={{version}}
       - name: Test - Build and push
         uses: docker/build-push-action@v2
         with:

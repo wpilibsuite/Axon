@@ -1,9 +1,10 @@
-import { Trainjob, Exportjob, Testjob, DockerState } from "../schema/__generated__/graphql";
+import { Trainjob, Exportjob, Testjob, DockerState, CreateJob } from "../schema/__generated__/graphql";
 import { Project, Test } from "../store";
 import Exporter from "./Exporter";
 import Trainer from "./Trainer";
 import Tester from "./Tester";
 import Docker from "./Docker";
+import Creator from "./Creator";
 
 export default class MLService {
   private dockerState: DockerState;
@@ -122,6 +123,22 @@ export default class MLService {
 
     this.testjobs = this.testjobs.filter((job) => job !== tester);
     console.info(`${tester.test.id}: Test complete`);
+  }
+
+  async create(classes: string[], maxImages: number, id: string): Promise<CreateJob> {
+    const creator: Creator = new Creator(classes, maxImages, id);
+
+    const validLabels = await creator.checkLabels();
+    if (!validLabels.success) {
+      return validLabels;
+    }
+    console.log("Creating parameter file");
+    await creator.writeParameterFile();
+    console.log("Starting Python script");
+    await creator.createDataset();
+    console.log("Created dataset " + id);
+    const path = await creator.getZipPath();
+    return { success: 1, createID: id, zipPath: path };
   }
 
   /**

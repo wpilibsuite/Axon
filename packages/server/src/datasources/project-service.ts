@@ -104,8 +104,8 @@ export class ProjectService extends DataSource {
     if (updates.name !== undefined) {
       project.name = updates.name;
     }
-    if (updates.datasets !== undefined) {
-      await project.setDatasets(updates.datasets);
+    if (updates.dataset !== undefined) {
+      await project.setDataset(updates.dataset);
     }
     if (updates.epochs !== undefined) {
       project.epochs = updates.epochs;
@@ -128,9 +128,7 @@ export class ProjectService extends DataSource {
   async setDatasetInProject(projectId: string, datasetId: string, isIncluded: boolean): Promise<Project> {
     const project = await Project.findByPk(projectId);
     if (isIncluded) {
-      await project.addDataset(datasetId);
-    } else {
-      await project.removeDataset(datasetId);
+      await project.setDataset(datasetId);
     }
     return project;
   }
