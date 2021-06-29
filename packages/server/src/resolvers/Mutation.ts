@@ -6,10 +6,7 @@ export const Mutation: MutationResolvers = {
     return await docker.reset();
   },
   resetVolume: async (parent, args, { docker, dataSources }) => {
-    const [volume] = await Promise.all([
-      docker.resetVolume(),
-      sequelize.sync({ force: true })
-    ]);
+    const [volume] = await Promise.all([docker.resetVolume(), sequelize.sync({ force: true })]);
     return volume;
   },
   createDataset: async (parent, { classes, maxImages }, { dataSources }) => {
