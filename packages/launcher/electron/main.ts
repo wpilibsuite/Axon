@@ -66,22 +66,7 @@ ipcMain.on("request-internet", (event) =>{
   https.get("https://hub.docker.com/", (res) => {
     event.reply("internet-status", res.statusCode === 200);
   }).on("error", (e) => {
-    console.error(e);
+    event.reply("internet-status", false);
   });
 });
 
-async function isConnectedToInternet(): Promise<boolean>{
-  const options = {
-    hostname: "hub.docker.com",
-    port: 443,
-    path: "/v2",
-    method: "GET"
-  };
-  let result = false;
-  const req = await https.request(options, (res) => {
-    console.log(res.statusCode === 200);
-    result = res.statusCode === 200;
-  });
-  req.end();
-  return result;
-}
