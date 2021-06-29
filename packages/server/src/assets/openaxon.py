@@ -96,6 +96,7 @@ class OpenImagesDownloader:
         for image_path in images:
             im = Image.open(image_path)
             width, height = im.size
+            print(im.verify())
             file_id = image_path.split("/")[-1].rstrip(".jpg")
             copyfile(image_path, self.directory + "/tar/" + image_path.split("/")[-1])
             self.image_data.update({file_id: {"height": height, "width": width}})

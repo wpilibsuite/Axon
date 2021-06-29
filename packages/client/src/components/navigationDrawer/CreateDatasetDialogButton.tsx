@@ -299,7 +299,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
         <Button variant={"contained"} onClick={handleClose}>
           Cancel
         </Button>
-        <Button autofocus variant={"contained"} color={"primary"} autoFocus onClick={handleCreate}>
+        <Button variant={"contained"} color={"primary"} autoFocus onClick={handleCreate}>
           Create
         </Button>
       </>
@@ -316,7 +316,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
         <Button variant={"contained"} onClick={handleFailed}>
           Back
         </Button>
-        <Button autofocus variant={"contained"} onClick={handleClose}>
+        <Button variant={"contained"} onClick={handleClose}>
           Close
         </Button>
       </>
@@ -325,7 +325,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
 
   const getDoneActions = () => {
     return (
-      <Button autofocus variant={"contained"} onClick={handleClose}>
+      <Button variant={"contained"} onClick={handleClose}>
         Close
       </Button>
     );
