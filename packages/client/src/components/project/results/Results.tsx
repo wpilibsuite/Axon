@@ -2,7 +2,7 @@ import { List, ListItem, Typography, Card } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
 import { gql, useQuery } from "@apollo/client";
-import ExportjobsList from "./ExportjobsList";
+import ExportJobsList from "./ExportJobsList";
 import React, { ReactElement } from "react";
 import ExportMenu from "./ExportMenu";
 
@@ -33,7 +33,7 @@ export default function Results(props: {
   return (
     <>
       {props.exports.length > 0 && <Typography>Exported Models</Typography>}
-      <ExportjobsList id={props.id} />
+      <ExportJobsList id={props.id} />
       <List>
         {props.exports.map((exprt) => (
           <Card key={exprt.name} variant="outlined">

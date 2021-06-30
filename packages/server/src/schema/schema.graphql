@@ -19,6 +19,7 @@ type Query {
 
 type Mutation {
   resetDocker: Boolean!
+  resetVolume: Boolean!
 
   createDataset(classes: [String!]!, maxImages: Int!): CreateJob
   addDataset(upload: Upload!): Dataset

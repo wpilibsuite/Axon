@@ -14,7 +14,7 @@ const GET_EXPORTJOBS = gql`
   }
 `;
 
-export default function ExportjobsList(props: { id: string }): JSX.Element {
+export default function ExportJobsList(props: { id: string }): JSX.Element {
   const { data, loading, error } = useQuery<Exportjobs>(GET_EXPORTJOBS, {
     pollInterval: 2000
   });

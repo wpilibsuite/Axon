@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react";
 
-export default function About(): ReactElement {
+export default function Documentation(): ReactElement {
   return (
     <iframe
       height="100%"

@@ -54,10 +54,10 @@ export default function RenameDatasetDialogButton(props: { id: string; handler: 
           />
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose}>
+          <Button autoFocus variant={"contained"} onClick={handleClose}>
             Cancel
           </Button>
-          <Button autoFocus onClick={handleRename} color="primary">
+          <Button variant={"contained"} onClick={handleRename} color="primary">
             Rename
           </Button>
         </DialogActions>
