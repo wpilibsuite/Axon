@@ -173,9 +173,7 @@ export default function Launch(): ReactElement {
         </DialogActions>
       </Dialog>
       <div className={classes.centered}>
-        <Typography variant="h3" gutterBottom>
-          Axon Launcher
-        </Typography>
+        <Typography variant="h3">Axon Launcher</Typography>
       </div>
       <div className={classes.centered}>
         <img src={logo} alt={logo} className={classes.logo} />
@@ -196,10 +194,11 @@ export default function Launch(): ReactElement {
             })}
           </Select>
         </FormControl>
+      </div>
+      <div className={classes.centered}>
         {getButton(status !== "OFF")}
         <ResetDockerButton callback={docker.resetDocker} docker={docker.docker} disabled={status !== "OFF"} />
       </div>
-      <div className={classes.centered}>{status !== "OFF" && <Typography>{status}</Typography>}</div>
       {progress}
     </Container>
   );
