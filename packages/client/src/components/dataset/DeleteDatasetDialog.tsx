@@ -1,15 +1,6 @@
 import React, { ReactElement } from "react";
 import { useApolloClient, useMutation } from "@apollo/client";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  MenuItem,
-  TextField,
-  Typography
-} from "@material-ui/core";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Typography } from "@material-ui/core";
 import gql from "graphql-tag";
 import { GetDataset_dataset } from "./__generated__/GetDataset";
 
