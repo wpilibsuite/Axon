@@ -109,7 +109,7 @@ export default function Launch(): ReactElement {
         await docker.reset();
       }
       setStatus("Creating container");
-      const container = await docker.createContainer();
+      const container = await docker.createContainer(axonVersion);
       // setContainer(container);
       // setContainerReady(true);
       console.log("Container created.");
