@@ -38,7 +38,7 @@ export default class MLService {
 
     https
       .get("https://hub.docker.com/", async (res) => {
-        if(res.statusCode === 200) {
+        if (res.statusCode === 200) {
           this.dockerState = DockerState.TrainPull;
           await this.docker.pullImages(Object.values(Trainer.images));
 
