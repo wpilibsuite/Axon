@@ -57,6 +57,7 @@ const useStyles = makeStyles((theme) => ({
   },
   selector: {
     width: "25%"
+  }
 }));
 
 const os = window.require("os");
@@ -119,10 +120,9 @@ export default function Launch(): ReactElement {
   const startContainer = async () => {
     const connected = await docker.isConnected();
     if (connected) {
-
       if (internetConnection) {
         setStatus("Pulling Axon image");
-        await docker.pullImage();
+        await docker.pullImage(axonVersion);
         // setPulling(false);
         setStatus("Finished pulling.");
       } else {
