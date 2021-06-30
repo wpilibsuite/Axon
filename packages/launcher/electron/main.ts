@@ -43,9 +43,9 @@ function createWindow() {
     .then((name) => console.log(`Added Extension:  ${name}`))
     .catch((err) => console.log("An error occurred: ", err));
 
-  if (isDev) {
-    win.webContents.openDevTools();
-  }
+  // if (isDev) {
+  win.webContents.openDevTools();
+  // }
 }
 
 app.on("ready", createWindow);
@@ -102,5 +102,6 @@ ipcMain.on("request-tags", (event) => {
 
 ipcMain.on("launcher-version", (event) => {
   // gets build version for launcher. ENV variables are difficult with electron.
-  event.returnValue = process.env.npm_package_version;
+  // event.returnValue = app.getVersion();
+  event.returnValue = "Version " + JSON.stringify(app.getVersion());
 });
