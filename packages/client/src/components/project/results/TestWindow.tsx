@@ -2,7 +2,7 @@ import { Button, Dialog, DialogActions, DialogContent, MenuItem, Typography } fr
 import { GetProjectData_project_exports } from "../__generated__/GetProjectData";
 import TestInput from "./TestInput";
 import TestList from "./TestList";
-import Testjobs from "./Testjobs";
+import TestJobs from "./TestJobs";
 import React from "react";
 type Export = GetProjectData_project_exports;
 
@@ -36,11 +36,11 @@ export default function TestWindow(props: { exprt: Export; handler: () => void }
             {`Model: ${props.exprt.name}`}
           </Typography>
           <TestInput exprt={props.exprt} active={active} setActive={setActive} />
-          <Testjobs exprtID={props.exprt.id} onComplete={handleCompleted} />
+          <TestJobs exprtID={props.exprt.id} onComplete={handleCompleted} />
           <TestList exprtID={props.exprt.id} />
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose}>
+          <Button autoFocus variant={"contained"} onClick={handleClose}>
             Close
           </Button>
         </DialogActions>

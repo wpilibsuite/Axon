@@ -55,10 +55,10 @@ export default function RenameProjectDialog(props: { id: string; handler: () => 
           />
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose}>
+          <Button variant={"contained"} onClick={handleClose}>
             Cancel
           </Button>
-          <Button autoFocus onClick={handleRename} color="primary">
+          <Button autoFocus variant={"contained"} onClick={handleRename} color="primary">
             Rename
           </Button>
         </DialogActions>

@@ -23,7 +23,7 @@ const STOP_TEST = gql`
   }
 `;
 
-export default function Testjobs(props: { exprtID: string; onComplete: (id: string) => void }): React.ReactElement {
+export default function TestJobs(props: { exprtID: string; onComplete: (id: string) => void }): React.ReactElement {
   const [stopTest] = useMutation(STOP_TEST);
   const handleStop = (id: string) => {
     stopTest({ variables: { id } }).catch((err) => {
