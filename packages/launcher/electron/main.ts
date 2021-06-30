@@ -1,7 +1,8 @@
-import { app, BrowserWindow, nativeImage } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import * as path from "path";
 import * as isDev from "electron-is-dev";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
+import * as https from "https";
 
 let win: BrowserWindow | null = null;
 
@@ -59,4 +60,47 @@ app.on("activate", () => {
   if (win === null) {
     createWindow();
   }
+});
+
+function bufferToSortedArray(buffer: Buffer): string[] {
+  /*
+    latest
+    semantic sort with most recent first
+    edge
+   */
+  const array = JSON.parse(buffer.toString()).results.map((element: { name: string }) => {
+    return element.name;
+  });
+  const sorted: string[] = [];
+  if (array.includes("latest")) {
+    sorted.push("latest");
+  }
+  array.sort();
+  array.forEach((element: string) => {
+    if (element.match(/^\d+\.\d+\.\d+$/)) {
+      sorted.push(element);
+    }
+  });
+  if (array.includes("edge")) {
+    sorted.push("edge");
+  }
+  return sorted;
+}
+
+ipcMain.on("request-tags", (event) => {
+  // asks API for all metadata for Axon image, filters to only tags
+  https
+    .get("https://registry.hub.docker.com/v2/repositories/wpilib/axon/tags", (res) => {
+      res.on("data", (buffer: Buffer) => {
+        event.reply("axon-tags", bufferToSortedArray(buffer));
+      });
+    })
+    .on("error", (e) => {
+      console.error(e);
+    });
+});
+
+ipcMain.on("launcher-version", (event) => {
+  // gets build version for launcher. ENV variables are difficult with electron.
+  event.returnValue = process.env.npm_package_version;
 });

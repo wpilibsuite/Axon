@@ -85,10 +85,10 @@ export default class Docker {
   /**
    * Pull resources needed for training.
    */
-  async pullImage(): Promise<void> {
+  async pullImage(tag: string): Promise<void> {
     console.log("Docker ping: " + (await this.docker.ping()));
     return new Promise<void>((resolve) => {
-      console.info(`Pulling image ${this.image.name}:${this.image.tag}`);
+      console.info(`Pulling image ${this.image.name}:${tag}`);
       this.docker.pull(
         `${this.image.name}:${this.image.tag}`,
         (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
@@ -154,5 +154,20 @@ export default class Docker {
     await container.start();
     await container.wait();
     await container.remove();
+  }
+
+  public async resetDocker(): Promise<void> {
+    // prune containers
+    await this.docker.pruneContainers();
+    console.log("Pruned containers");
+    // delete wpilib-axon-volume volume
+    try {
+      const volume = await this.docker.getVolume("wpilib-axon-volume");
+      console.log("Got volume");
+      await volume.remove();
+      console.log("Removed volume");
+    } catch (error) {
+      console.log("No volume to delete");
+    }
   }
 }

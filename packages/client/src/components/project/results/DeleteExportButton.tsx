@@ -40,10 +40,10 @@ export default function DeleteExportButton(props: { id: string; name: string; ha
           <Typography>{`Are you sure you want to delete ${props.name}?`}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose}>
+          <Button autoFocus variant={"contained"} onClick={handleClose}>
             Cancel
           </Button>
-          <Button autoFocus onClick={handleDelete} disabled={deleting} color="secondary">
+          <Button variant={"contained"} onClick={handleDelete} disabled={deleting} color="secondary">
             Delete
           </Button>
         </DialogActions>

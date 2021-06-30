@@ -12,6 +12,7 @@ import UploadDatasetDialogButton from "./UploadDatasetDialogButton";
 import AddProjectDialogButton from "./AddProjectDialogButton";
 import { TreeGetProjectList } from "./__generated__/TreeGetProjectList";
 import { TreeGetDatasetList } from "./__generated__/TreeGetDatasetList";
+import SettingsDialogButton from "./settings/SettingsDialogButton";
 import CreateDatasetDialogButton from "./CreateDatasetDialogButton";
 
 const useStyles = makeStyles((theme) => ({
@@ -60,7 +61,7 @@ const GET_DATASETS = gql`
   }
 `;
 
-let number = 4;
+let number = 5;
 
 function getNext(): string {
   const temp = number;
@@ -117,9 +118,10 @@ export default function LinkList(): ReactElement {
         ))}
         <AddProjectDialogButton />
       </TreeItem>
-      <Link to={"/about"} className={classes.link}>
-        <NavigationTreeItem text={"About"} nodeId={"3"} icon={Info} />
+      <Link to={"/docs"} className={classes.link}>
+        <NavigationTreeItem text={"Docs"} nodeId={"3"} icon={Info} />
       </Link>
+      <SettingsDialogButton nodeId={"4"} />
     </TreeView>
   );
 }

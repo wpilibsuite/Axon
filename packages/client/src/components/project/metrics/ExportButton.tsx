@@ -38,7 +38,7 @@ export function ExportButton(props: { id: string; selected: Checkpoint | null; o
     );
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
-      <Button variant="outlined" color="primary" onClick={handleExport}>
+      <Button variant={"contained"} color="primary" onClick={handleExport}>
         Export
       </Button>
     </div>

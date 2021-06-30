@@ -90,10 +90,10 @@ export default function AddProjectDialogButton(): ReactElement {
               />
             </DialogContent>
             <DialogActions>
-              <Button autoFocus onClick={handleClose}>
+              <Button variant={"contained"} onClick={handleClose}>
                 Cancel
               </Button>
-              <Button autoFocus onClick={handleCreate} color="primary">
+              <Button autoFocus variant={"contained"} onClick={handleCreate} color="primary">
                 Create
               </Button>
             </DialogActions>

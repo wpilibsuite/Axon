@@ -1,14 +1,14 @@
 import React, { ReactElement } from "react";
 import { Route, Switch } from "react-router-dom";
 import Project from "../project";
-import About from "../about";
+import Documentation from "../docs";
 import Dataset from "../dataset";
 
 export default function AppRoutes(): ReactElement {
   return (
     <Switch>
-      <Route path="/" exact component={About} />
-      <Route path="/about" exact component={About} />
+      <Route path="/" exact component={Documentation} />
+      <Route path="/docs" exact component={Documentation} />
       <Route
         exact
         path="/datasets/:id"

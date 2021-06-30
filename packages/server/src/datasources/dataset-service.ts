@@ -208,4 +208,12 @@ export class DatasetService extends DataSource {
     const buffer = await fs.promises.readFile("src/assets/valid_labels.json");
     return JSON.parse(buffer.toString());
   }
+
+  async reset(): Promise<boolean> {
+    const datasets = await this.getDatasets();
+    for (const dataset of datasets) {
+      await dataset.destroy();
+    }
+    return true;
+  }
 }
