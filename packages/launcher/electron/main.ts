@@ -76,8 +76,9 @@ function bufferToSortedArray(buffer: Buffer): string[] {
     sorted.push("latest");
   }
   array.sort();
+  const tags = ["edge", "latest", "main", "master"];
   array.forEach((element: string) => {
-    if (element !== "edge" && element !== "latest") {
+    if (!tags.includes(element[0])) {
       sorted.push(element);
     }
   });
