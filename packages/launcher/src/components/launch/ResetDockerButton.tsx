@@ -23,6 +23,7 @@ const useStyles = makeStyles((theme) => ({
 type ResetProps = {
   callback: () => void;
   docker: Dockerode;
+  disabled: boolean;
 };
 
 export default function ResetDockerButton(props: ResetProps): ReactElement {
@@ -53,7 +54,7 @@ export default function ResetDockerButton(props: ResetProps): ReactElement {
         </DialogActions>
       </Dialog>
       <Tooltip title={"Delete all user data"}>
-        <IconButton onClick={() => setOpen(true)}>
+        <IconButton disabled={props.disabled} onClick={() => setOpen(true)}>
           <DeleteForever className={classes.trash} />
         </IconButton>
       </Tooltip>

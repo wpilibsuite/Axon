@@ -147,7 +147,7 @@ export default function Launch(): ReactElement {
             </IconButton>
           </Tooltip>
         )}
-        <ResetDockerButton callback={docker.resetDocker} docker={docker.docker} />
+        <ResetDockerButton callback={docker.resetDocker} docker={docker.docker} disabled={status !== "OFF"} />
       </div>
       <div className={classes.centered}>{status !== "OFF" && <Typography>{status}</Typography>}</div>
       {progress}
