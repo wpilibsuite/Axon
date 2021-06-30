@@ -76,9 +76,9 @@ function bufferToSortedArray(buffer: Buffer): string[] {
     sorted.push("latest");
   }
   array.sort();
-  const tags = ["edge", "latest", "main", "master"];
+  const tag = new RegExp("d+.d+.d+");
   array.forEach((element: string) => {
-    if (!tags.includes(element[0])) {
+    if (element.match(tag)) {
       sorted.push(element);
     }
   });
