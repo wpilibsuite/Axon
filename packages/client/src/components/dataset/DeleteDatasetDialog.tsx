@@ -41,7 +41,7 @@ export default function DeleteDatasetDialogButton(props: {
     if (confirmation === props.dataset.name) {
       deleteDataset({ variables: { id: props.dataset.id } }).then(() => {
         apolloClient.resetStore().then(() => {
-          window.location.href = "/about";
+          window.location.href = "/docs";
           handleClose();
         });
       });
@@ -60,10 +60,10 @@ export default function DeleteDatasetDialogButton(props: {
           <TextField onChange={(event) => setConfirmation(event.target.value)} autoFocus margin="dense" fullWidth />
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose}>
+          <Button autoFocus variant={"contained"} onClick={handleClose}>
             Cancel
           </Button>
-          <Button autoFocus onClick={handleDelete} color="primary">
+          <Button variant={"contained"} onClick={handleDelete} color="primary">
             Delete
           </Button>
         </DialogActions>

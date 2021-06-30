@@ -4,6 +4,7 @@ import { DockerImage } from "../schema/__generated__/graphql";
 import { Project } from "../store";
 import { DATA_DIR } from "../constants";
 import * as path from "path";
+import * as rimraf from "rimraf";
 
 export const CONTAINER_MOUNT_PATH = "/wpi-data";
 export const VOLUME_NAME = "wpilib-axon-volume";
@@ -91,6 +92,14 @@ export default class Docker {
         await container.remove();
       })
     );
+    return true;
+  }
+
+  async resetVolume(): Promise<boolean> {
+    console.log("Reset volume mutation run");
+    await new Promise((resolve) => rimraf("/wpi-data/create", resolve));
+    await new Promise((resolve) => rimraf("/wpi-data/projects", resolve));
+    await new Promise((resolve) => rimraf("/wpi-data/datasets", resolve));
     return true;
   }
 
