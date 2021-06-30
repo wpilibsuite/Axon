@@ -43,9 +43,9 @@ function createWindow() {
     .then((name) => console.log(`Added Extension:  ${name}`))
     .catch((err) => console.log("An error occurred: ", err));
 
-  // if (isDev) {
-  win.webContents.openDevTools();
-  // }
+  if (isDev) {
+    win.webContents.openDevTools();
+  }
 }
 
 app.on("ready", createWindow);
