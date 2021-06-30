@@ -203,4 +203,12 @@ export class DatasetService extends DataSource {
     if (name.slice(name.length - 4) === ".zip")
       fs.createReadStream(savePath).pipe(unzipper.Extract({ path: savePath.replace(".zip", "") }));
   }
+
+  async reset(): Promise<boolean> {
+    const datasets = await this.getDatasets();
+    for (const dataset of datasets) {
+      await dataset.destroy();
+    }
+    return true;
+  }
 }
