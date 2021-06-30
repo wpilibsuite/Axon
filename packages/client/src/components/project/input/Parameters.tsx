@@ -1,12 +1,13 @@
 import { UpdateHyperparameters, UpdateHyperparametersVariables } from "./__generated__/UpdateHyperparameters";
 import { GetHyperparameters, GetHyperparametersVariables } from "./__generated__/GetHyperparameters";
 import { GetProjectData_project_dataset } from "../__generated__/GetProjectData";
-import { createStyles, FormControl, Grid, TextField, Theme } from "@material-ui/core";
+import { createStyles, FormControl, Grid, TextField, Theme, Tooltip, Typography } from "@material-ui/core";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { makeStyles } from "@material-ui/core/styles";
 import { ReactElement } from "react";
 import React from "react";
 import Datasets from "./Datasets";
+import { InfoOutlined } from "@material-ui/icons";
 
 Parameters.fragments = {
   hyperparameters: gql`
@@ -48,6 +49,14 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     parametersContainer: {
       width: "100%"
+    },
+    info: {
+      display: "flex",
+      alignItems: "center",
+      flexWrap: "wrap"
+    },
+    infoIcon: {
+      paddingLeft: "5px"
     }
   })
 );
@@ -102,7 +111,19 @@ export default function Parameters(props: {
           <TextField
             name="epochs"
             margin={"normal"}
-            label="Epochs"
+            InputLabelProps={{ style: { pointerEvents: "auto" } }}
+            label={
+              <div className={classes.info}>
+                <Typography variant={"body2"}>Epochs</Typography>
+                <Tooltip
+                  title={
+                    "The number of steps to train the model. More epochs means more chances for the model to improve, but too many epochs can lead to decreasing precision."
+                  }
+                >
+                  <InfoOutlined className={classes.infoIcon} />
+                </Tooltip>
+              </div>
+            }
             variant="outlined"
             type="number"
             value={data?.project?.epochs}
@@ -115,7 +136,19 @@ export default function Parameters(props: {
           <TextField
             name="batchSize"
             margin={"normal"}
-            label="Batch Size"
+            InputLabelProps={{ style: { pointerEvents: "auto" } }}
+            label={
+              <div className={classes.info}>
+                <Typography variant={"body2"}>Batch Size</Typography>
+                <Tooltip
+                  title={
+                    "The number of images in each batch. Higher batch size means faster training, but requires more memory."
+                  }
+                >
+                  <InfoOutlined className={classes.infoIcon} />
+                </Tooltip>
+              </div>
+            }
             variant="outlined"
             type="number"
             value={data?.project?.batchSize}
@@ -128,7 +161,19 @@ export default function Parameters(props: {
           <TextField
             name="evalFrequency"
             margin={"normal"}
-            label="Evaluation Frequency"
+            InputLabelProps={{ style: { pointerEvents: "auto" } }}
+            label={
+              <div className={classes.info}>
+                <Typography variant={"body2"}>Evaluation Frequency</Typography>
+                <Tooltip
+                  title={
+                    "The frequency of checkpoint generation. A lower frequency will better describe the model's performance, but too low of a frequency can become less useful and take too much time."
+                  }
+                >
+                  <InfoOutlined className={classes.infoIcon} />
+                </Tooltip>
+              </div>
+            }
             variant="outlined"
             type="number"
             value={data?.project?.evalFrequency}
@@ -141,7 +186,19 @@ export default function Parameters(props: {
           <TextField
             name="percentEval"
             margin={"normal"}
-            label="Percent Evaluation"
+            InputLabelProps={{ style: { pointerEvents: "auto" } }}
+            label={
+              <div className={classes.info}>
+                <Typography variant={"body2"}>Percent Evaluation</Typography>
+                <Tooltip
+                  title={
+                    "The percent of the dataset used for training versus validation. A higher percent means a a stronger training dataset, but a weaker validation dataset. 70 is a good percent in general."
+                  }
+                >
+                  <InfoOutlined className={classes.infoIcon} />
+                </Tooltip>
+              </div>
+            }
             variant="outlined"
             type="number"
             value={data?.project?.percentEval}
