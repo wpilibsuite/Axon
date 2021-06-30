@@ -53,11 +53,10 @@ export default function DeleteDatasetDialogButton(props: {
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Confirm Dataset Deletion</DialogTitle>
         <DialogContent dividers>
-          <p>
-            {" "}
+          <Typography>
             Are you sure you want to permanently delete dataset &ldquo;{props.dataset.name}&rdquo;? This action cannot
-            be undone.{" "}
-          </p>
+            be undone.
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button autoFocus variant={"contained"} onClick={handleClose}>

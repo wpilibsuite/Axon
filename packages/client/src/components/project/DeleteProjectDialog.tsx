@@ -53,11 +53,10 @@ export default function DeleteProjectDialogButton(props: {
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Confirm Project Deletion</DialogTitle>
         <DialogContent dividers>
-          <p>
-            {" "}
+          <Typography>
             Are you sure you want to permanently delete project &ldquo;{props.project.name}&rdquo;? This action cannot
-            be undone.{" "}
-          </p>
+            be undone.
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button autoFocus variant={"contained"} onClick={handleClose}>
