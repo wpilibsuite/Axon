@@ -77,7 +77,7 @@ function bufferToSortedArray(buffer: Buffer): string[] {
   }
   array.sort();
   array.forEach((element: string) => {
-    if (element !== "edge" && element !== "latest") {
+    if (element.match(/^\d+\.\d+\.\d+$/)) {
       sorted.push(element);
     }
   });
