@@ -109,7 +109,11 @@ export function StopButton(props: { id: string }): ReactElement {
   };
   if (stopping) return <Button>Stopping...</Button>;
 
-  return <Button onClick={handleClick}>Stop</Button>;
+  return (
+    <Button variant={"contained"} onClick={handleClick}>
+      Stop
+    </Button>
+  );
 }
 
 const PAUSE_TRAINING = gql`
@@ -152,6 +156,10 @@ export function PauseButton(props: { id: string; job: GetTrainjobs_trainjobs }):
   } else {
     if (resuming) setResuming(false);
     if (pausing) return <Button>Pausing...</Button>;
-    return <Button onClick={handlePause}>Pause</Button>;
+    return (
+      <Button variant={"contained"} onClick={handlePause}>
+        Pause
+      </Button>
+    );
   }
 }
