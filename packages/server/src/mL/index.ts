@@ -26,7 +26,6 @@ export default class MLService {
    * pull docker images.
    */
   async initialize(): Promise<void> {
-    console.log(process.env);
     this.dockerState = DockerState.ScanningForDocker;
     if (!(await this.docker.isConnected())) {
       this.dockerState = DockerState.NoDocker;
