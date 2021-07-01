@@ -1,15 +1,6 @@
 import React, { ReactElement } from "react";
 import { useApolloClient, useMutation } from "@apollo/client";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  MenuItem,
-  TextField,
-  Typography
-} from "@material-ui/core";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Typography } from "@material-ui/core";
 import gql from "graphql-tag";
 import { GetDataset_dataset } from "./__generated__/GetDataset";
 
@@ -26,7 +17,6 @@ export default function DeleteDatasetDialogButton(props: {
   handler: () => void;
 }): ReactElement {
   const [open, setOpen] = React.useState<boolean>(false);
-  const [confirmation, setConfirmation] = React.useState<string>("");
   const [deleteDataset] = useMutation(DELETE_DATASET_MUTATION);
   const apolloClient = useApolloClient();
 
@@ -38,14 +28,12 @@ export default function DeleteDatasetDialogButton(props: {
     setOpen(false);
   };
   const handleDelete = () => {
-    if (confirmation === props.dataset.name) {
-      deleteDataset({ variables: { id: props.dataset.id } }).then(() => {
-        apolloClient.resetStore().then(() => {
-          window.location.href = "/docs";
-          handleClose();
-        });
+    deleteDataset({ variables: { id: props.dataset.id } }).then(() => {
+      apolloClient.resetStore().then(() => {
+        window.location.href = "/docs";
+        handleClose();
       });
-    }
+    });
   };
 
   return (
@@ -56,8 +44,10 @@ export default function DeleteDatasetDialogButton(props: {
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Confirm Dataset Deletion</DialogTitle>
         <DialogContent dividers>
-          <p> Please confirm dataset deletion by typing &ldquo;{props.dataset.name}&rdquo; </p>
-          <TextField onChange={(event) => setConfirmation(event.target.value)} autoFocus margin="dense" fullWidth />
+          <Typography>
+            Are you sure you want to permanently delete dataset &ldquo;{props.dataset.name}&rdquo;? This action cannot
+            be undone.
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button autoFocus variant={"contained"} onClick={handleClose}>

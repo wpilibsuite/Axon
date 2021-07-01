@@ -1,13 +1,4 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  MenuItem,
-  TextField,
-  Typography
-} from "@material-ui/core";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Typography } from "@material-ui/core";
 import { useApolloClient, useMutation } from "@apollo/client";
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
@@ -26,7 +17,6 @@ export default function DeleteProjectDialogButton(props: {
   handler: () => void;
 }): ReactElement {
   const [open, setOpen] = React.useState<boolean>(false);
-  const [confirmation, setConfirmation] = React.useState<string>("");
   const [deleteProject] = useMutation(DELETE_PROJECT_MUTATION);
   const apolloClient = useApolloClient();
 
@@ -38,14 +28,12 @@ export default function DeleteProjectDialogButton(props: {
     setOpen(false);
   };
   const handleDelete = () => {
-    if (confirmation === props.project.name) {
-      deleteProject({ variables: { id: props.project.id } }).then(() => {
-        apolloClient.resetStore().then(() => {
-          window.location.href = "/docs";
-          handleClose();
-        });
+    deleteProject({ variables: { id: props.project.id } }).then(() => {
+      apolloClient.resetStore().then(() => {
+        window.location.href = "/docs";
+        handleClose();
       });
-    }
+    });
   };
 
   return (
@@ -56,8 +44,10 @@ export default function DeleteProjectDialogButton(props: {
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Confirm Project Deletion</DialogTitle>
         <DialogContent dividers>
-          <p> Please confirm project deletion by typing &ldquo;{props.project.name}&rdquo; </p>
-          <TextField onChange={(event) => setConfirmation(event.target.value)} autoFocus margin="dense" fullWidth />
+          <Typography>
+            Are you sure you want to permanently delete project &ldquo;{props.project.name}&rdquo;? This action cannot
+            be undone.
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button autoFocus variant={"contained"} onClick={handleClose}>
