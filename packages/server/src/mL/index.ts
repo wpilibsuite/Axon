@@ -51,7 +51,7 @@ export default class MLService {
           console.log("No internet, skipping pull containers");
         }
       })
-      .on("error", (e) => {
+      .on("error", () => {
         console.log("No internet, skipping pull containers");
       });
 
