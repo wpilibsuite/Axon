@@ -129,7 +129,8 @@ export default function Launch(): ReactElement {
       } else {
         console.log("No Internet Connection Detected, Skipping Pulling Images");
         const containers = await docker.getContainers();
-        if(await containers != null ){ // also check go through the list to see if they match the version
+        if ((await containers) != null) {
+          // also check go through the list to see if they match the version
           console.log("Proceeding with previously pulled container");
         } else {
           console.log("No Internet Connected and No the Selected container has not been found");
