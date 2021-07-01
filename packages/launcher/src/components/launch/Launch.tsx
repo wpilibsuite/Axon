@@ -121,6 +121,7 @@ export default function Launch(): ReactElement {
     const connected = await docker.isConnected();
     if (connected) {
       if (internetConnection) {
+        console.log("Valid Internet Connection");
         setStatus("Pulling Axon image");
         await docker.pullImage(axonVersion);
         // setPulling(false);
