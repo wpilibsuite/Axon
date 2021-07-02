@@ -29,10 +29,57 @@ export default class Docker {
   }
 
   /**
+   * Checks if our container is created
+   */
+  async getContainers(): Promise<Dockerode.ContainerInfo[] | null> {
+    try {
+      const containers = await this.docker.listContainers({
+        all: true,
+        filters: {
+          label: ["axon=main"]
+        }
+      });
+      console.log(containers);
+      return containers;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
    * Get the docker version number.
    */
   async version(): Promise<string> {
     return (await this.docker.version()).Version;
+  }
+
+  /**
+   * Reset Docker by removing all containers.
+   */
+  async reset(): Promise<void> {
+    // Stop active containers that we manage
+    const containers = await this.docker.listContainers({
+      all: true,
+      filters: {
+        label: ["axon=main"]
+      }
+    });
+    await Promise.all(
+      containers.map(async (listContainer: { Id: string; State: string }) => {
+        const container = await this.docker.getContainer(listContainer.Id);
+        console.log("Id: " + listContainer.Id + " State" + listContainer.State);
+        if (listContainer.State === "running") {
+          console.log("stopping " + listContainer.Id);
+          await container.stop();
+        }
+        console.log("removing " + listContainer.Id);
+        try {
+          await container.remove();
+        } catch (e) {
+          console.log("Stopping main axon container");
+        }
+      })
+    );
   }
 
   /**
