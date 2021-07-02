@@ -80,7 +80,6 @@ export default class Docker {
         }
       })
     );
-    return;
   }
 
   /**
