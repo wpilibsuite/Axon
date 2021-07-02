@@ -80,6 +80,7 @@ export default class Docker {
         }
       })
     );
+    return;
   }
 
   /**
@@ -158,28 +159,7 @@ export default class Docker {
 
   public async resetDocker(): Promise<void> {
     // remove containers
-    const containers = await this.docker.listContainers({
-      all: true,
-      filters: {
-        label: ["axon=main"]
-      }
-    });
-    await Promise.all(
-      containers.map(async (listContainer: { Id: string; State: string }) => {
-        const container = await this.docker.getContainer(listContainer.Id);
-        console.log("Id: " + listContainer.Id + " State" + listContainer.State);
-        if (listContainer.State === "running") {
-          console.log("stopping " + listContainer.Id);
-          await container.stop();
-        }
-        console.log("Removing " + listContainer.Id);
-        try {
-          await container.remove();
-        } catch (e) {
-          console.log(`Cannot remove container ${listContainer.Id}`);
-        }
-      })
-    );
+    await this.reset();
     // delete wpilib-axon-volume volume
     try {
       const volume = await this.docker.getVolume(VOLUME_NAME);
