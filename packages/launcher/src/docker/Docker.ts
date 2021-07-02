@@ -29,57 +29,10 @@ export default class Docker {
   }
 
   /**
-   * Checks if our container is created
-   */
-  async getContainers(): Promise<Dockerode.ContainerInfo[] | null> {
-    try {
-      const containers = await this.docker.listContainers({
-        all: true,
-        filters: {
-          label: ["axon=main"]
-        }
-      });
-      console.log(containers);
-      return containers;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /**
    * Get the docker version number.
    */
   async version(): Promise<string> {
     return (await this.docker.version()).Version;
-  }
-
-  /**
-   * Reset Docker by removing all containers.
-   */
-  async reset(): Promise<void> {
-    // Stop active containers that we manage
-    const containers = await this.docker.listContainers({
-      all: true,
-      filters: {
-        label: ["axon=main"]
-      }
-    });
-    await Promise.all(
-      containers.map(async (listContainer: { Id: string; State: string }) => {
-        const container = await this.docker.getContainer(listContainer.Id);
-        console.log("Id: " + listContainer.Id + " State" + listContainer.State);
-        if (listContainer.State === "running") {
-          console.log("stopping " + listContainer.Id);
-          await container.stop();
-        }
-        console.log("removing " + listContainer.Id);
-        try {
-          await container.remove();
-        } catch (e) {
-          console.log("Stopping main axon container");
-        }
-      })
-    );
   }
 
   /**
@@ -157,16 +110,35 @@ export default class Docker {
   }
 
   public async resetDocker(): Promise<void> {
-    // prune containers
-    await this.docker.pruneContainers();
-    console.log("Pruned containers");
+    // remove containers
+    const containers = await this.docker.listContainers({
+      all: true,
+      filters: {
+        label: ["axon=main"]
+      }
+    });
+    await Promise.all(
+      containers.map(async (listContainer: { Id: string; State: string }) => {
+        const container = await this.docker.getContainer(listContainer.Id);
+        console.log("Id: " + listContainer.Id + " State" + listContainer.State);
+        if (listContainer.State === "running") {
+          console.log("stopping " + listContainer.Id);
+          await container.stop();
+        }
+        console.log("Removing " + listContainer.Id);
+        try {
+          await container.remove();
+        } catch (e) {
+          console.log(`Cannot remove container ${listContainer.Id}`);
+        }
+      })
+    );
     // delete wpilib-axon-volume volume
     try {
-      const volume = await this.docker.getVolume("wpilib-axon-volume");
-      console.log("Got volume");
+      const volume = await this.docker.getVolume(VOLUME_NAME);
       await volume.remove();
       console.log("Removed volume");
-    } catch (error) {
+    } catch {
       console.log("No volume to delete");
     }
   }
