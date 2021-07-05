@@ -77,7 +77,7 @@
     "postinstall": "electron-builder install-app-deps",
     "electron:dev": "concurrently \"PORT=2000 BROWSER=none yarn start\" \"wait-on http://localhost:2000 && tsc -p electron -w\" \"wait-on http://localhost:2000 && tsc -p electron && electron .\"",
     "electron:dev:win": "yarn electron:copy-icon && concurrently \"set PORT=2000 BROWSER=none && yarn start\" \"wait-on http://localhost:2000 && tsc -p electron -w\" \"wait-on http://localhost:2000 && tsc -p electron && electron .\"",
-    "electron:build": "yarn build && tsc -p electron && electron-builder",
+    "electron:build": "yarn build && tsc -p electron && ./node_modules/.bin/electron-builder --projectDir .",
     "electron:copy-icon": "cpx src/assets/* build/electron/"
   },
   "browserslist": {
