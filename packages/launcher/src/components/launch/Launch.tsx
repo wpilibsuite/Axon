@@ -58,14 +58,6 @@ const useStyles = makeStyles((theme) => ({
   },
   selector: {
     width: "25%"
-  },
-  error: {
-    color: "red",
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 10
   }
 }));
 
