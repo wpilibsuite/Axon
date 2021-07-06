@@ -47,6 +47,23 @@ export default class Docker {
   }
 
   /**
+   * Checks if our image exists
+   */
+  async getImages(): Promise<Dockerode.ImageInfo[] | null> {
+    try {
+      const images = await this.docker.listImages({
+        all: true
+        // filters: {
+        //   label: ["axon=main"]
+        // }
+      });
+      return images;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
    * Get the docker version number.
    */
   async version(): Promise<string> {

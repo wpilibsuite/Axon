@@ -27,6 +27,7 @@ import Dockerode from "dockerode"; // used for Dockerode.Container class
 import StopIcon from "@material-ui/icons/Stop";
 import ResetDockerButton from "./ResetDockerButton";
 import { IpcRenderer } from "electron";
+import { red } from "@material-ui/core/colors";
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
@@ -57,6 +58,14 @@ const useStyles = makeStyles((theme) => ({
   },
   selector: {
     width: "25%"
+  },
+  error: {
+    color: "red",
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 10
   }
 }));
 
@@ -81,6 +90,8 @@ export default function Launch(): ReactElement {
   const [axonVersion, setAxonVersion] = React.useState("edge");
   const [internetConnection, setInternetConnection] = React.useState(false);
   const [checkedInternetConnection, setCheckedInternetConnection] = React.useState(false);
+  const [hasImages, setHasImages] = React.useState(true);
+  const [clickedImageDialog, setClickedImageDialog] = React.useState(false);
 
   const getVersions = async () => {
     const ipcRenderer: IpcRenderer = window.require("electron").ipcRenderer;
@@ -117,7 +128,14 @@ export default function Launch(): ReactElement {
     setClicked(true);
   };
 
+  const handleImageDialogClose = () => {
+    setClickedImageDialog(true);
+  }
+
   const startContainer = async () => {
+    setCheckedInternetConnection(false); // Ensures that the internet connection is
+    await getInternetConnection();
+
     const connected = await docker.isConnected();
     if (connected) {
       if (internetConnection) {
@@ -126,14 +144,33 @@ export default function Launch(): ReactElement {
         await docker.pullImage(axonVersion);
         // setPulling(false);
         setStatus("Finished pulling.");
+        setHasImages(true);
       } else {
         console.log("No Internet Connection Detected, Skipping Pulling Images");
-        const containers = await docker.getContainers();
-        if ((await containers) != null) {
+        const images = await docker.getImages();
+        if ( images !== null && images.length > 0) {
+          let count = 0;
+          for(let i = 0; i < images.length; i++){
+            if(axonVersion === images[i].RepoTags[0].substring(images[i].RepoTags[0].length - axonVersion.length)){
+              count++;
+              console.log(images[i].RepoTags[0]);
+            }
+          }
+          if(count >= 7){ // more than seven images w/ the correct tag
+            console.log("Proceeding with previously pulled container");
+            setHasImages(true);
+          } else {
+            console.log("No Internet Connected and the Selected images have not been found");
+            setHasImages(false);
+            setClickedImageDialog(false);
+            return;
+          }
           // also check go through the list to see if they match the version
-          console.log("Proceeding with previously pulled container");
         } else {
-          console.log("No Internet Connected and No the Selected container has not been found");
+          console.log("No Internet Connected and the Selected images have not been found");
+          setHasImages(false);
+          setClickedImageDialog(false);
+          return;
         }
       }
 
@@ -158,6 +195,7 @@ export default function Launch(): ReactElement {
     } else {
       setClicked(false);
     }
+
   };
 
   docker.isConnected().then((value) => {
@@ -205,6 +243,17 @@ export default function Launch(): ReactElement {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={!hasImages && !clickedImageDialog} onClose={handleImageDialogClose}>
+        <DialogTitle>{"Issue Pulling Images"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Axon had trouble pulling the images for the selected version. Either select a version that you have run before, or connect to the internet to pull the required images.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleImageDialogClose}>Cancel</Button>
         </DialogActions>
       </Dialog>
       <div className={classes.centered}>
