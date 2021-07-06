@@ -100,6 +100,10 @@ export default function Launch(): ReactElement {
     await ipcRenderer.on("internet-status", (event, arg: boolean) => {
       setInternetConnection(arg);
       setCheckedInternetConnection(true);
+      if (!arg) {
+        // need to look for own tags
+        getTagsFromSystem();
+      }
     });
     ipcRenderer.send("request-internet");
   };
@@ -114,6 +118,27 @@ export default function Launch(): ReactElement {
     getInternetConnection();
     return <CircularProgress className={classes.progress} />;
   }
+
+  const getTagsFromSystem = async () => {
+    const images = await docker.getImages();
+    if (images !== null && images.length > 0) {
+      let imageMap = new Map();
+      for (let i = 0; i < images.length; i++) {
+        let tmpTag = images[i].RepoTags[0].split(":")[1];
+        if (imageMap.has(tmpTag)) {
+          imageMap.set(tmpTag, imageMap.get(tmpTag) + 1);
+        } else {
+          imageMap.set(tmpTag, 1);
+        }
+      }
+      const tmpTags: string[] = [];
+      imageMap.forEach((value: string, key: number) => {
+        if (key >= 7) tmpTags.push(value);
+      });
+      setAxonVersions(tmpTags);
+      setAxonVersion(tmpTags[0]);
+    }
+  };
 
   const handleClose = () => {
     setClicked(true);
