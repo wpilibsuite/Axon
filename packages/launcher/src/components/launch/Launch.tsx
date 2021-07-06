@@ -87,7 +87,7 @@ export default function Launch(): ReactElement {
   const getVersions = async () => {
     const ipcRenderer: IpcRenderer = window.require("electron").ipcRenderer;
 
-    ipcRenderer.on("axon-tags", (event, args: string[]) => {
+    await ipcRenderer.on("axon-tags", (event, args: string[]) => {
       setAxonVersions(args);
       setAxonVersion(args[0]);
     });
