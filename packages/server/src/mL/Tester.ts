@@ -1,5 +1,5 @@
-import { DockerImage, Testjob } from "../schema/__generated__/graphql";
-import { Project, Export, Video, Test } from "../store";
+import { DockerImage, Testjob, TrainStatus } from "../schema/__generated__/graphql";
+import { Export, Project, Test, Video } from "../store";
 import { Container } from "dockerode";
 import * as Archiver from "archiver";
 import * as mkdirp from "mkdirp";
@@ -11,14 +11,14 @@ export default class Tester {
   static readonly images: Record<string, DockerImage> = {
     test: { name: "wpilib/axon-test", tag: process.env.AXON_VERSION || "edge" }
   };
-
-  private videoFilename: string;
-  private container: Container;
-  private streamPort: string;
-  private cancelled = false;
   readonly project: Project;
   readonly docker: Docker;
   test: Test;
+  private videoFilename: string;
+  private container: Container;
+  private readonly streamPort: string;
+  private cancelled = false;
+  percentDone: number;
 
   constructor(project: Project, docker: Docker, port: string, name: string, exportID: string, videoID: string) {
     this.test = this.createTest(name, exportID, videoID, project.directory);
@@ -39,11 +39,39 @@ export default class Tester {
     const test = Test.build({
       exportID: exportID,
       videoID: videoID,
-      name: name
+      name: name,
+      percentDone: 0
     });
     test.directory = path.posix.join(projDir, "tests", test.id);
     console.log(`Test ID: ${test.id}`);
     return test;
+  }
+
+  /**
+   * Calls updateTestProgress every 10 seconds until testing is stopped.
+   */
+  public async startCheckpointRoutine(): Promise<void> {
+    console.log(this.test.directory);
+    const UPDATE_INTERVAL = 10000;
+    while (this.test.percentDone !== 1.0) {
+      await new Promise((resolve) => setTimeout(resolve, UPDATE_INTERVAL));
+      await this.updateTestProgress();
+    }
+    await new Promise((resolve) => setTimeout(resolve, UPDATE_INTERVAL));
+    await this.updateTestProgress();
+    console.log("Test progress update routine terminated.");
+  }
+
+  async updateTestProgress(): Promise<void> {
+    const test = this.test;
+    const PROGRESS_PATH = path.posix.join(test.directory, "progress.json");
+    if (fs.existsSync(PROGRESS_PATH)) {
+      const progressJSON = JSON.parse(fs.readFileSync(PROGRESS_PATH, "utf8"));
+      test.percentDone = progressJSON["percentDone"];
+      console.log(`Percent done: ${test.percentDone}`);
+    } else {
+      console.log("Path does not exist");
+    }
   }
 
   /**
@@ -92,7 +120,8 @@ export default class Tester {
     const testparameters = {
       "output-vid-path": outputVidPath,
       "test-video": videoPath,
-      "model-tar": modelPath
+      "model-tar": modelPath,
+      "test-dir": this.test.directory.replace("/usr/src/app/packages/server/data", "/wpi-data")
     };
     const filepath = path.posix.join(this.project.directory, "testparameters.json");
     fs.writeFileSync(filepath, JSON.stringify(testparameters));
@@ -157,7 +186,16 @@ export default class Tester {
   public async stop(): Promise<Test> {
     this.cancelled = true;
     if (this.container && (await this.container.inspect()).State.Running) await this.container.kill({ force: true });
+    this.test.percentDone = 1.0;
+    this.stopPolling();
     return this.test;
+  }
+
+  /*
+   Sets exit condition for updateTestProgress job
+   */
+  stopPolling(): void {
+    fs.writeFileSync(path.posix.join(this.test.directory, "progress.json"), JSON.stringify({ percentDone: 1.0 }));
   }
 
   public getJob(): Testjob {
@@ -167,7 +205,8 @@ export default class Tester {
       name: this.test.name,
       exportID: this.test.exportID,
       projectID: this.project.id,
-      streamPort: this.streamPort
+      streamPort: this.streamPort,
+      percentDone: this.test.percentDone
     };
   }
 }

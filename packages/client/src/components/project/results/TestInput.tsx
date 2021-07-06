@@ -3,7 +3,7 @@ import { GetProjectData_project_exports } from "../__generated__/GetProjectData"
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { GetVideos } from "./__generated__/GetVideos";
 import VideoUploadButton from "./VideoUploadButton";
-import React, { ChangeEvent } from "react";
+import React from "react";
 type Export = GetProjectData_project_exports;
 
 const TEST_MODEL_MUTATION = gql`
@@ -26,8 +26,9 @@ export default function TestInput(props: {
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
   };
-  const handleVideoChange = (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
-    setVideoID(event.target.value as string);
+  const handleVideoChange = (id: unknown) => {
+    setVideoID(id as string);
+    console.log(("video id changed to " + id) as string);
   };
   const handleTest = () => {
     const projectID = props.exprt.projectID;
@@ -43,23 +44,29 @@ export default function TestInput(props: {
   if (props.active) tooltipMessage = "Test already in progress.";
 
   return (
-    <FormControl fullWidth>
-      <FormControl style={{ width: "100%" }}>
-        <VideoSelect id={props.exprt.projectID} onSelect={handleVideoChange} />
+    <div>
+      <FormControl fullWidth>
+        <FormControl style={{ width: "100%" }}>
+          <VideoSelect
+            selected={videoID === undefined ? "" : videoID}
+            id={props.exprt.projectID}
+            onSelect={handleVideoChange}
+          />
+        </FormControl>
+        <FormControl style={{ width: "100%" }}>
+          <TextField margin={"normal"} variant="outlined" value={name} onChange={handleNameChange} />
+        </FormControl>
+        <FormControl style={{ width: "40%", display: "flex", justifyContent: "center" }}>
+          <Tooltip title={tooltipMessage}>
+            <span>
+              <Button variant="contained" color="primary" onClick={handleTest} disabled={props.active || !videoID}>
+                Test
+              </Button>
+            </span>
+          </Tooltip>
+        </FormControl>
       </FormControl>
-      <FormControl style={{ width: "100%" }}>
-        <TextField margin={"normal"} variant="outlined" value={name} onChange={handleNameChange} />
-      </FormControl>
-      <FormControl style={{ width: "40%", display: "flex", justifyContent: "center" }}>
-        <Tooltip title={tooltipMessage}>
-          <span>
-            <Button variant="contained" color="primary" onClick={handleTest} disabled={!videoID || props.active}>
-              Test
-            </Button>
-          </span>
-        </Tooltip>
-      </FormControl>
-    </FormControl>
+    </div>
   );
 }
 
@@ -76,10 +83,7 @@ const GET_VIDEOS = gql`
   }
 `;
 
-function VideoSelect(props: {
-  id: string;
-  onSelect: (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => void;
-}): React.ReactElement {
+function VideoSelect(props: { id: string; onSelect: (event: unknown) => void; selected: string }): React.ReactElement {
   const { data, loading, error } = useQuery<GetVideos>(GET_VIDEOS, {
     variables: {
       id: props.id
@@ -89,12 +93,17 @@ function VideoSelect(props: {
 
   if (loading) return <p>LOADING</p>;
   if (error || !data) return <p>{error?.message}</p>;
-  if (data.project === null) return <p>NOPROJECT</p>;
+  if (data.project === null) return <p>NO PROJECT</p>;
+  if (props.selected === "" && data.project.videos.length > 0) {
+    console.log("Setting default");
+    props.selected = data.project?.videos[0].id;
+    props.onSelect(data.project?.videos[0].id);
+  }
 
   return (
     <>
       <InputLabel style={{ paddingLeft: "10px" }}>Select Video</InputLabel>
-      <Select variant="outlined" onChange={props.onSelect}>
+      <Select value={props.selected} variant="outlined" onChange={(event) => props.onSelect(event.target.value)}>
         {data.project?.videos.map((video) => (
           <MenuItem value={video.id} key={video.id}>
             {video.name}
