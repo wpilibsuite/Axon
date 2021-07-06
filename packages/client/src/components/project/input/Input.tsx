@@ -16,6 +16,7 @@ import { GetTrainjobs } from "./__generated__/GetTrainjobs";
 import { gql, useQuery } from "@apollo/client";
 import React, { ReactElement } from "react";
 import Parameters from "./Parameters";
+import { makeStyles } from "@material-ui/core/styles";
 
 const GET_TRAINJOBS = gql`
   query GetTrainjobs {
@@ -28,7 +29,15 @@ const GET_TRAINJOBS = gql`
   }
 `;
 
+const useStyles = makeStyles((theme) => ({
+  interactButtons: {
+    padding: "5px",
+    display: "inline-block"
+  }
+}));
+
 export default function Input(props: { id: string; dataset: GetProjectData_project_dataset | null }): ReactElement {
+  const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const [lastStep, setLastStep] = React.useState(false);
   const { data, loading, error } = useQuery<GetTrainjobs>(GET_TRAINJOBS, {
@@ -123,8 +132,12 @@ export default function Input(props: { id: string; dataset: GetProjectData_proje
     <>
       <h1>{statusMessage}</h1>
       <ProgressBar />
-      <StopButton id={props.id} />
-      <PauseButton id={props.id} job={trainjob} />
+      <div className={classes.interactButtons}>
+        <StopButton id={props.id} />
+      </div>
+      <div className={classes.interactButtons}>
+        <PauseButton id={props.id} job={trainjob} />
+      </div>
     </>
   );
 

@@ -9,7 +9,7 @@ export default class Docker {
   readonly docker: Dockerode;
   readonly socket: { socketPath: string };
   mount: string;
-  readonly image = { name: "wpilib/axon", tag: "edge" };
+  readonly imageName = "wpilib/axon";
 
   constructor(docker: Dockerode, socket: { socketPath: string }) {
     this.docker = docker;
@@ -88,12 +88,12 @@ export default class Docker {
   async pullImage(tag: string): Promise<void> {
     console.log("Docker ping: " + (await this.docker.ping()));
     return new Promise<void>((resolve) => {
-      console.info(`Pulling image ${this.image.name}:${tag}`);
+      console.info(`Pulling image ${this.imageName}:${tag}`);
       this.docker.pull(
-        `${this.image.name}:${this.image.tag}`,
+        `${this.imageName}:${tag}`,
         (err: string, stream: { pipe: (arg0: NodeJS.WriteStream) => void }) => {
           this.docker.modem.followProgress(stream, () => {
-            console.info(`Finished pulling image ${this.image.name}:${this.image.tag}`);
+            console.info(`Finished pulling image ${this.imageName}:${tag}`);
             resolve();
           });
         }
@@ -106,20 +106,18 @@ export default class Docker {
    *
    * If the container already exists (as known by its name), it will remove that container first.
    *
-   * @param project The project for this container
-   * @param image The image to base this container on
-   * @param ports The ports to expose
+   * @param axonVersion tag to use to create container
    */
-  async createContainer(): Promise<Container> {
-    console.log(`Creating container ${this.image.name}`);
+  async createContainer(axonVersion: string): Promise<Container> {
+    console.log(`Creating container ${this.imageName}`);
     const ports = ["3000", "4000"];
 
     const options: ContainerCreateOptions = {
-      Image: `${this.image.name}:${this.image.tag}`,
+      Image: `${this.imageName}:${axonVersion}`,
       name: `axon`,
       Labels: {
         axon: "main",
-        "wpilib-ml-name": this.image.name
+        "wpilib-ml-name": this.imageName
       },
       AttachStdin: false,
       AttachStdout: true,
@@ -134,7 +132,7 @@ export default class Docker {
       },
       ExposedPorts: Object.assign({}, ...ports.map((port) => ({ [port]: {} })))
     };
-    console.log(`Options created for ${this.image.name}:${this.image.tag}`);
+    console.log(`Options created for ${this.imageName}:${axonVersion}`);
 
     const container = await this.docker.createContainer(options);
     const logFilePath = window.require("electron-log").transports.file.getFile().path;
@@ -157,16 +155,14 @@ export default class Docker {
   }
 
   public async resetDocker(): Promise<void> {
-    // prune containers
-    await this.docker.pruneContainers();
-    console.log("Pruned containers");
+    // remove containers
+    await this.reset();
     // delete wpilib-axon-volume volume
     try {
-      const volume = await this.docker.getVolume("wpilib-axon-volume");
-      console.log("Got volume");
+      const volume = await this.docker.getVolume(VOLUME_NAME);
       await volume.remove();
       console.log("Removed volume");
-    } catch (error) {
+    } catch {
       console.log("No volume to delete");
     }
   }

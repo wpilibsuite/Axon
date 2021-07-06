@@ -144,7 +144,7 @@ export default function Launch(): ReactElement {
         await docker.reset();
       }
       setStatus("Creating container");
-      const container = await docker.createContainer();
+      const container = await docker.createContainer(axonVersion);
       // setContainer(container);
       // setContainerReady(true);
       console.log("Container created.");
@@ -232,7 +232,7 @@ export default function Launch(): ReactElement {
       </div>
       <div className={classes.centered}>
         {getButton(status !== "OFF")}
-        <ResetDockerButton callback={docker.resetDocker} docker={docker.docker} disabled={status !== "OFF"} />
+        <ResetDockerButton docker={docker} disabled={status !== "OFF"} />
       </div>
       {progress}
     </Container>
