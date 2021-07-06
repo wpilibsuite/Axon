@@ -102,5 +102,5 @@ ipcMain.on("request-tags", (event) => {
 
 ipcMain.on("launcher-version", (event) => {
   // gets build version for launcher. ENV variables are difficult with electron.
-  event.returnValue = process.env.npm_package_version;
+  event.returnValue = app.getVersion();
 });

@@ -11,7 +11,7 @@ import {
 } from "@material-ui/core";
 import { DeleteForever } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
-import * as Dockerode from "dockerode";
+import Docker from "../../docker/Docker";
 
 const useStyles = makeStyles((theme) => ({
   trash: {
@@ -21,8 +21,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type ResetProps = {
-  callback: () => void;
-  docker: Dockerode;
+  docker: Docker;
   disabled: boolean;
 };
 
@@ -30,8 +29,7 @@ export default function ResetDockerButton(props: ResetProps): ReactElement {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const handleConfirm = () => {
-    setOpen(false);
-    props.callback();
+    props.docker.resetDocker().then((r) => setOpen(false));
   };
 
   return (

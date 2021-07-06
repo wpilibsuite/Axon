@@ -107,9 +107,13 @@ export function StopButton(props: { id: string }): ReactElement {
     stopTraining({ variables: { id: props.id } });
     setStopping(true);
   };
-  if (stopping) return <Button>Stopping...</Button>;
+  if (stopping) return <Button variant={"contained"}>Stopping...</Button>;
 
-  return <Button onClick={handleClick}>Stop</Button>;
+  return (
+    <Button variant={"contained"} color={"primary"} onClick={handleClick}>
+      Stop
+    </Button>
+  );
 }
 
 const PAUSE_TRAINING = gql`
@@ -148,10 +152,18 @@ export function PauseButton(props: { id: string; job: GetTrainjobs_trainjobs }):
   if (props.job.status === TrainStatus.Paused) {
     if (pausing) setPausing(false);
     if (resuming) return <Button>Resuming...</Button>;
-    return <Button onClick={handleResume}>Resume</Button>;
+    return (
+      <Button variant={"contained"} onClick={handleResume}>
+        Resume
+      </Button>
+    );
   } else {
     if (resuming) setResuming(false);
     if (pausing) return <Button>Pausing...</Button>;
-    return <Button onClick={handlePause}>Pause</Button>;
+    return (
+      <Button variant={"contained"} onClick={handlePause}>
+        Pause
+      </Button>
+    );
   }
 }

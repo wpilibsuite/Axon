@@ -1,11 +1,12 @@
 import { GetProjectData_project_dataset } from "../__generated__/GetProjectData";
 import { GetDatasets } from "./__generated__/GetDatasets";
-import { createStyles, TextField, Theme } from "@material-ui/core";
+import { createStyles, TextField, Theme, Tooltip, Typography } from "@material-ui/core";
 import React, { ReactElement } from "react";
 import { DatasetCard } from "./DatasetCard";
 import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import { makeStyles } from "@material-ui/core/styles";
+import { InfoOutlined } from "@material-ui/icons";
 
 export const GET_DATASETS = gql`
   query GetDatasets {
@@ -23,6 +24,14 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       maxWidth: "25ch"
+    },
+    info: {
+      display: "flex",
+      alignItems: "center",
+      flexWrap: "wrap"
+    },
+    infoIcon: {
+      paddingLeft: "5px"
     }
   })
 );
@@ -47,7 +56,19 @@ export default function Datasets(props: { id: string; selected: GetProjectData_p
       className={classes.root}
       select
       margin={"normal"}
-      label="Datasets"
+      InputLabelProps={{ style: { pointerEvents: "auto" } }}
+      label={
+        <div className={classes.info}>
+          <Typography variant={"body2"}>Dataset</Typography>
+          <Tooltip
+            title={
+              "The dataset used for training. The model learns how to detect objects based on patterns from the dataset."
+            }
+          >
+            <InfoOutlined className={classes.infoIcon} />
+          </Tooltip>
+        </div>
+      }
       variant="outlined"
       value={datasetName}
       SelectProps={{
