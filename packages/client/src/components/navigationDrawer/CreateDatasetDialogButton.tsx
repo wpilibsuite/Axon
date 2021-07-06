@@ -93,6 +93,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const apolloClient = useApolloClient();
 
   const { data, loading } = useQuery<GetValidLabels>(GET_VALID_LABELS);
+  console.log(data);
   const labelOptions = data
     ? data.validLabels
     : loading
@@ -144,11 +145,13 @@ export default function CreateDatasetDialogButton(): ReactElement {
   };
   const update = (index: number, element: string) => {
     const test: string[] = [...keys];
+    console.log(element);
     test[index] = element;
     setKeys(test);
   };
   const updateInputs = (index: number, element: string) => {
     const test: string[] = [...inputs];
+    console.log(element);
     test[index] = element;
     setInputs(test);
   };
@@ -168,7 +171,8 @@ export default function CreateDatasetDialogButton(): ReactElement {
     let error = false;
     const testErrors: boolean[] = [...errors];
     for (let i = 0; i < keys.length; i++) {
-      testErrors[i] = keys[i].length === 0;
+      testErrors[i] = keys[i].length === 0 && inputs[i].length === 0;
+      console.log(keys[i] + " " + inputs[i]);
       error = error || testErrors[i];
     }
     setErrors(testErrors);
@@ -245,8 +249,13 @@ export default function CreateDatasetDialogButton(): ReactElement {
                   inputValue={inputs[index]}
                   onInputChange={(event, newInputValue) => {
                     updateInputs(index, newInputValue);
+                    console.log(newInputValue);
                   }}
-                  onChange={(event, newValue) => update(index, newValue as string)}
+                  onChange={(event, newValue) => {
+                    update(index, newValue as string);
+                    console.log(newValue as string);
+                  }}
+
                   renderInput={(params) => (
                     <TextField
                       {...params}
