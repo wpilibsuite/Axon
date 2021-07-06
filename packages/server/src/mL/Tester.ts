@@ -1,4 +1,4 @@
-import { DockerImage, Testjob, TrainStatus } from "../schema/__generated__/graphql";
+import { DockerImage, Testjob } from "../schema/__generated__/graphql";
 import { Export, Project, Test, Video } from "../store";
 import { Container } from "dockerode";
 import * as Archiver from "archiver";
