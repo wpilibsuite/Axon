@@ -130,11 +130,10 @@ export default function Launch(): ReactElement {
 
   const handleImageDialogClose = () => {
     setClickedImageDialog(true);
-  }
+  };
 
   const startContainer = async () => {
     setCheckedInternetConnection(false); // Ensures that the internet connection is
-    await getInternetConnection();
 
     const connected = await docker.isConnected();
     if (connected) {
@@ -148,15 +147,16 @@ export default function Launch(): ReactElement {
       } else {
         console.log("No Internet Connection Detected, Skipping Pulling Images");
         const images = await docker.getImages();
-        if ( images !== null && images.length > 0) {
+        if (images !== null && images.length > 0) {
           let count = 0;
-          for(let i = 0; i < images.length; i++){
-            if(axonVersion === images[i].RepoTags[0].substring(images[i].RepoTags[0].length - axonVersion.length)){
+          for (let i = 0; i < images.length; i++) {
+            if (axonVersion === images[i].RepoTags[0].substring(images[i].RepoTags[0].length - axonVersion.length)) {
               count++;
               console.log(images[i].RepoTags[0]);
             }
           }
-          if(count >= 7){ // more than seven images w/ the correct tag
+          if (count >= 7) {
+            // more than seven images w/ the correct tag
             console.log("Proceeding with previously pulled container");
             setHasImages(true);
           } else {
@@ -195,7 +195,6 @@ export default function Launch(): ReactElement {
     } else {
       setClicked(false);
     }
-
   };
 
   docker.isConnected().then((value) => {
@@ -249,7 +248,8 @@ export default function Launch(): ReactElement {
         <DialogTitle>{"Issue Pulling Images"}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Axon had trouble pulling the images for the selected version. Either select a version that you have run before, or connect to the internet to pull the required images.
+            Axon had trouble pulling the images for the selected version. Either select a version that you have run
+            before, or connect to the internet to pull the required images.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
