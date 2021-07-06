@@ -27,7 +27,6 @@ import Dockerode from "dockerode"; // used for Dockerode.Container class
 import StopIcon from "@material-ui/icons/Stop";
 import ResetDockerButton from "./ResetDockerButton";
 import { IpcRenderer } from "electron";
-import { red } from "@material-ui/core/colors";
 
 const Dockerode2 = window.require("dockerode"); // used for connecting to docker socket
 
