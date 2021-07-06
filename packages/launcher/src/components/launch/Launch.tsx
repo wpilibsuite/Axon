@@ -124,7 +124,6 @@ export default function Launch(): ReactElement {
   };
 
   const startContainer = async () => {
-    setCheckedInternetConnection(false); // Ensures that the internet connection is
 
     const connected = await docker.isConnected();
     if (connected) {
