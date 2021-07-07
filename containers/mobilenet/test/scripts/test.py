@@ -34,10 +34,8 @@ class Tester:
         output_vid_path = data["output-vid-path"]
         self.video_path = data["test-video"]
         self.test_dir = data["test-dir"]
-        try:
+        if not os.path.isdir(self.test_dir):
             os.mkdir(self.test_dir)
-        except:
-            pass
         model_path = data["model-tar"]
         tar = tarfile.open(model_path)
         tar.extractall("/tensorflow/models/research/")
