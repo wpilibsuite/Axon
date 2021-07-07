@@ -255,7 +255,6 @@ export default function CreateDatasetDialogButton(): ReactElement {
                     update(index, newValue as string);
                     console.log(newValue as string);
                   }}
-
                   renderInput={(params) => (
                     <TextField
                       {...params}
