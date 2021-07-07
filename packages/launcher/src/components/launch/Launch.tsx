@@ -96,7 +96,7 @@ export default function Launch(): ReactElement {
   };
   const getTagsFromSystem = async () => {
     const connected = await docker.isConnected();
-    if(connected) {
+    if (connected) {
       const images = await docker.getImages();
       if (images !== null && images.length > 0) {
         let imageMap = new Map();
