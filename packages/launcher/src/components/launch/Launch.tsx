@@ -96,12 +96,12 @@ export default function Launch(): ReactElement {
   };
   const getTagsFromSystem = async () => {
     const connected = await docker.isConnected();
-    if(connected) {
+    if (connected) {
       const images = await docker.getImages();
       if (images !== null && images.length > 0) {
-        let imageMap = new Map();
+        const imageMap = new Map();
         for (let i = 0; i < images.length; i++) {
-          let tmpTag = images[i].RepoTags[0].split(":")[1];
+          const tmpTag = images[i].RepoTags[0].split(":")[1];
           if (imageMap.has(tmpTag)) {
             imageMap.set(tmpTag, imageMap.get(tmpTag) + 1);
           } else {
