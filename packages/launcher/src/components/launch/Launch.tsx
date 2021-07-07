@@ -110,7 +110,7 @@ export default function Launch(): ReactElement {
         }
         const tmpTags: string[] = [];
         imageMap.forEach((value: number, key: string) => {
-          if (value >= 7) tmpTags.push(key);
+          if (value >= 6) tmpTags.push(key);
         });
         console.log(tmpTags);
         setAxonVersions(tmpTags);
@@ -171,7 +171,7 @@ export default function Launch(): ReactElement {
               console.log(images[i].RepoTags[0]);
             }
           }
-          if (count >= 7) {
+          if (count >= 6) {
             // more than seven images w/ the correct tag
             console.log("Proceeding with previously pulled container");
             setHasImages(true);
@@ -207,6 +207,7 @@ export default function Launch(): ReactElement {
         setActiveContainer(null);
       });
       setActiveContainer(container);
+      console.log("Active container set.");
       localhost.waitForStart();
     } else {
       setClicked(false);
