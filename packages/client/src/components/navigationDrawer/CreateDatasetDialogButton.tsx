@@ -215,7 +215,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
                 <TextField
                   error={errors[index]}
                   helperText={errors[index] ? "Please enter a class name or remove this field." : "Class name"}
-                  placeholder={"Type class name here"}
+                  placeholder={"XD"}
                   onChange={(event) => update(index, event.target.value)}
                   className={classes.textfield}
                 />

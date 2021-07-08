@@ -166,13 +166,14 @@ export default function Launch(): ReactElement {
         if (images !== null && images.length > 0) {
           let count = 0;
           for (let i = 0; i < images.length; i++) {
+            // Check if axonVersion is equal to the tag on the image name
             if (axonVersion === images[i].RepoTags[0].substring(images[i].RepoTags[0].length - axonVersion.length)) {
               count++;
               console.log(images[i].RepoTags[0]);
             }
           }
           if (count >= 6) {
-            // more than seven images w/ the correct tag
+            // more than six images w/ the correct tag
             console.log("Proceeding with previously pulled container");
             setHasImages(true);
           } else {

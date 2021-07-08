@@ -53,9 +53,6 @@ export default class Docker {
     try {
       const images = await this.docker.listImages({
         all: true
-        // filters: {
-        //   label: ["axon=main"]
-        // }
       });
       return images;
     } catch (e) {
