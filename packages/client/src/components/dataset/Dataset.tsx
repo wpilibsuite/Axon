@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import React, { ReactElement, useEffect } from "react";
 import gql from "graphql-tag";
 import {
   CircularProgress,
@@ -73,14 +73,22 @@ const DataGallery = trackWindowScroll(DataGalleryBase);
 export default function Dataset(props: { id: string }): ReactElement {
   const classes = useStyles();
   const [pageNumber, setPageNumber] = React.useState(0);
+  const [idState, setIdState] = React.useState(props.id);
   const { data, loading, error } = useQuery<GetDataset, GetDatasetVariables>(GET_DATASET, {
     variables: {
       id: props.id
     }
   });
+  
+  if(idState !== props.id){
+    setIdState(props.id);
+  }
+
+  useEffect(() => {
+    setPageNumber(0);
+  }, [idState]);
 
   const imagesPerPage = 48;
-
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
