@@ -13,6 +13,8 @@ import {
   Typography
 } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
+import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
@@ -23,6 +25,12 @@ import { makeStyles } from "@material-ui/core/styles";
 const useStyles = makeStyles((theme) => ({
   progress: {
     marginLeft: 50
+  }, centered: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 10
   }
 }));
 
@@ -64,17 +72,33 @@ const DataGallery = trackWindowScroll(DataGalleryBase);
 
 export default function Dataset(props: { id: string }): ReactElement {
   const classes = useStyles();
+  const [pageNumber, setPageNumber] = React.useState(0);
   const { data, loading, error } = useQuery<GetDataset, GetDatasetVariables>(GET_DATASET, {
     variables: {
       id: props.id
     }
   });
 
+  const imagesPerPage = 48;
+
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
+  const incrementPage = () =>{
+    setPageNumber((pageNumber+1) % Math.floor(((data?.dataset?.images.length || 0) / imagesPerPage) + 1));
+  }
+
+  const decrementPage = () =>{
+    if(pageNumber - 1 < 0){
+      setPageNumber(Math.floor(((data?.dataset?.images.length || 0) / imagesPerPage) + 1) - 1);
+    } else {
+      setPageNumber(pageNumber-1);
+    }
+  }
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -122,7 +146,20 @@ export default function Dataset(props: { id: string }): ReactElement {
       </Toolbar>
       <Container>
         <Typography variant="h6">{data.dataset?.images.length} Image Samples</Typography>
-        <DataGallery images={data.dataset?.images || []} />
+        <DataGallery images={(data.dataset?.images.slice(pageNumber * imagesPerPage, (pageNumber + 1) * imagesPerPage)) || []} />
+      </Container>
+      <Container>
+        <div className={classes.centered}>
+          <IconButton onClick={decrementPage} aria-label="Back Page">
+            <ArrowBackIosIcon />
+          </IconButton>
+          <IconButton onClick={incrementPage} aria-label="Forward Page">
+            <ArrowForwardIosIcon />
+          </IconButton>
+        </div>
+        <div className={classes.centered}>
+          <Typography>Page Number: {pageNumber}</Typography>
+        </div>
       </Container>
     </Container>
   );
