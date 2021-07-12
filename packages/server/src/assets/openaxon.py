@@ -145,6 +145,7 @@ class OpenImagesDownloader:
 
     def make_zip(self):
         with ZipFile("data/datasets/{}".format(self.name), 'w') as zipFile:
+            zipFile.write("/tmp/{}/data.json".format(self.create_id), "meta.json")
             for directory in "train test".split():
                 for folderName, subfolders, filenames in os.walk(self.directory + "/tar/" + directory):
                     for filename in filenames:
