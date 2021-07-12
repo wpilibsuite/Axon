@@ -79,7 +79,7 @@ export default function Dataset(props: { id: string }): ReactElement {
       id: props.id
     }
   });
-  
+
   if(idState !== props.id){
     setIdState(props.id);
   }
@@ -154,6 +154,16 @@ export default function Dataset(props: { id: string }): ReactElement {
       </Toolbar>
       <Container>
         <Typography variant="h6">{data.dataset?.images.length} Image Samples</Typography>
+        <Container>
+          <div className={classes.centered}>
+            <IconButton onClick={decrementPage} aria-label="Back Page">
+              <ArrowBackIosIcon />
+            </IconButton>
+            <IconButton onClick={incrementPage} aria-label="Forward Page">
+              <ArrowForwardIosIcon />
+            </IconButton>
+          </div>
+        </Container>
         <DataGallery images={(data.dataset?.images.slice(pageNumber * imagesPerPage, (pageNumber + 1) * imagesPerPage)) || []} />
       </Container>
       <Container>
