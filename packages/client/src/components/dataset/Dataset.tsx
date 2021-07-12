@@ -13,8 +13,8 @@ import {
   Typography
 } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
-import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
-import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
+import ArrowForwardIosIcon from "@material-ui/icons/ArrowForwardIos";
+import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
@@ -25,7 +25,8 @@ import { makeStyles } from "@material-ui/core/styles";
 const useStyles = makeStyles((theme) => ({
   progress: {
     marginLeft: 50
-  }, centered: {
+  },
+  centered: {
     display: "flex",
     flexWrap: "wrap",
     justifyContent: "center",
@@ -80,7 +81,7 @@ export default function Dataset(props: { id: string }): ReactElement {
     }
   });
 
-  if(idState !== props.id){
+  if (idState !== props.id) {
     setIdState(props.id);
   }
 
@@ -96,17 +97,17 @@ export default function Dataset(props: { id: string }): ReactElement {
     setAnchorEl(event.currentTarget);
   };
 
-  const incrementPage = () =>{
-    setPageNumber((pageNumber+1) % Math.floor(((data?.dataset?.images.length || 0) / imagesPerPage) + 1));
-  }
+  const incrementPage = () => {
+    setPageNumber((pageNumber + 1) % Math.floor((data?.dataset?.images.length || 0) / imagesPerPage + 1));
+  };
 
-  const decrementPage = () =>{
-    if(pageNumber - 1 < 0){
-      setPageNumber(Math.floor(((data?.dataset?.images.length || 0) / imagesPerPage) + 1) - 1);
+  const decrementPage = () => {
+    if (pageNumber - 1 < 0) {
+      setPageNumber(Math.floor((data?.dataset?.images.length || 0) / imagesPerPage + 1) - 1);
     } else {
-      setPageNumber(pageNumber-1);
+      setPageNumber(pageNumber - 1);
     }
-  }
+  };
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -164,7 +165,9 @@ export default function Dataset(props: { id: string }): ReactElement {
             </IconButton>
           </div>
         </Container>
-        <DataGallery images={(data.dataset?.images.slice(pageNumber * imagesPerPage, (pageNumber + 1) * imagesPerPage)) || []} />
+        <DataGallery
+          images={data.dataset?.images.slice(pageNumber * imagesPerPage, (pageNumber + 1) * imagesPerPage) || []}
+        />
       </Container>
       <Container>
         <div className={classes.centered}>
