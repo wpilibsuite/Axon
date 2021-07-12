@@ -1,20 +1,16 @@
 import { IconButton, Menu } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
-import React, { ReactElement } from "react";
-import { GetProjectData_project } from "./__generated__/GetProjectData";
-import { makeStyles } from "@material-ui/core/styles";
-import DeleteProjectDialogButton from "./DeleteProjectDialog";
-import RenameProjectDialog from "./RenameProjectDialog";
+import React from "react";
+import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
+import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
+import RenameExportButton from "./RenameExportButton";
+import DeleteExportButton from "./DeleteExportButton";
 
-const useStyles = makeStyles((theme) => ({
-  largeIcon: {
-    width: 40,
-    height: 40
-  }
-}));
-
-export default function ProjectMenu(props: { project: GetProjectData_project }): ReactElement {
-  const classes = useStyles();
+export default function ExportMenu(props: {
+  exprt: GetProjectData_project_exports;
+  videos: GetProjectData_project_videos[];
+  jobs: GetTestjobs_testjobs[];
+}): JSX.Element {
   const [anchorEl, setAnchorEl] = React.useState<Element | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -26,9 +22,9 @@ export default function ProjectMenu(props: { project: GetProjectData_project }):
   };
 
   return (
-    <div style={{ display: "inline-flex", float: "right", textAlign: "right" }}>
+    <div style={{ display: "flex", float: "right", textAlign: "right" }}>
       <IconButton onClick={handleClick}>
-        <MoreVertIcon className={classes.largeIcon} />
+        <MoreVertIcon />
       </IconButton>
       <Menu
         id="simple-menu"
@@ -45,8 +41,8 @@ export default function ProjectMenu(props: { project: GetProjectData_project }):
           horizontal: "right"
         }}
       >
-        <RenameProjectDialog id={props.project.id} handler={handleClose} />
-        <DeleteProjectDialogButton project={props.project} handler={handleClose} />
+        <RenameExportButton id={props.exprt.id} handler={handleClose} />
+        <DeleteExportButton id={props.exprt.id} name={props.exprt.name} handler={handleClose} />
       </Menu>
     </div>
   );

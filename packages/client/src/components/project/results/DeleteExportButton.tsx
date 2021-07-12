@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@material-ui/core";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Typography } from "@material-ui/core";
 import { useApolloClient, useMutation } from "@apollo/client";
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
@@ -11,7 +11,7 @@ const DELETE_EXPORT_MUTATION = gql`
   }
 `;
 
-export default function DeleteExportButton(props: { id: string; name: string }): ReactElement {
+export default function DeleteExportButton(props: { id: string; name: string; handler: () => void }): ReactElement {
   const [deleteExport] = useMutation(DELETE_EXPORT_MUTATION);
   const [deleting, setDeleting] = React.useState(false);
   const [open, setOpen] = React.useState(false);
@@ -19,6 +19,7 @@ export default function DeleteExportButton(props: { id: string; name: string }):
 
   const handleClickOpen = () => {
     setOpen(true);
+    props.handler();
   };
   const handleClose = () => {
     setOpen(false);
@@ -30,9 +31,9 @@ export default function DeleteExportButton(props: { id: string; name: string }):
 
   return (
     <>
-      <Button variant={"contained"} onClick={handleClickOpen}>
-        Delete
-      </Button>
+      <MenuItem onClick={handleClickOpen}>
+        <Typography variant={"body1"}>Delete</Typography>
+      </MenuItem>
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Delete Export</DialogTitle>
         <DialogContent dividers>
@@ -42,7 +43,7 @@ export default function DeleteExportButton(props: { id: string; name: string }):
           <Button autoFocus variant={"contained"} onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant={"contained"} onClick={handleDelete} disabled={deleting} color="primary">
+          <Button variant={"contained"} onClick={handleDelete} disabled={deleting} color="secondary">
             Delete
           </Button>
         </DialogActions>

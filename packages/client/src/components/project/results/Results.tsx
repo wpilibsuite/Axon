@@ -5,6 +5,7 @@ import { gql, useQuery } from "@apollo/client";
 import ExportJobsList from "./ExportJobsList";
 import React, { ReactElement } from "react";
 import ExportButtons from "./ExportButtons";
+import ExportMenu from "./ExportMenu";
 
 const GET_TESTJOBS = gql`
   query GetTestjobs {
@@ -63,11 +64,20 @@ function ExportInfo(props: {
     <Grid item xs={4} key={props.exprt.name}>
       <Card onClick={() => props.setSelected(props.exprt)} style={{ width: "100%", padding: "5px" }}>
         <Grid container spacing={3}>
-          <Grid item>
+          <Grid item xs={1}>
             <Radio checked={props.selected !== undefined && props.exprt.id === props.selected.id} color={"primary"} />
           </Grid>
-          <Grid item>
-            <Typography variant={"h6"}>Export: {props.exprt.name}</Typography>
+          <Grid item xs={11}>
+            <Grid container>
+              <Grid item xs={11}>
+                <Typography variant={"h6"} style={{ display: "inline-block", width: "100%" }}>
+                  Export: {props.exprt.name}
+                </Typography>
+              </Grid>
+              <Grid item xs={1}>
+                <ExportMenu exprt={props.exprt} videos={props.videos} jobs={props.jobs} />
+              </Grid>
+            </Grid>
             <Typography>Epoch: {props.exprt.step}</Typography>
             <Typography>Precision: {Math.round(props.exprt.precision * 1000) / 1000}</Typography>
           </Grid>

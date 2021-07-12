@@ -2,8 +2,6 @@ import { Button, Grid } from "@material-ui/core";
 import React from "react";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
-import RenameExportButton from "./RenameExportButton";
-import DeleteExportButton from "./DeleteExportButton";
 import TestWindow from "./TestWindow";
 
 export default function ExportButtons(props: {
@@ -24,16 +22,6 @@ export default function ExportButtons(props: {
             Download
           </Button>
         </Grid>
-        <Grid item>
-          <Button variant={"contained"} disabled>
-            Rename
-          </Button>
-        </Grid>
-        <Grid item>
-          <Button variant={"contained"} disabled>
-            Delete
-          </Button>
-        </Grid>
       </Grid>
     );
   }
@@ -51,12 +39,6 @@ export default function ExportButtons(props: {
         >
           <Button variant={"contained"}>Download</Button>
         </a>
-      </Grid>
-      <Grid item>
-        <RenameExportButton id={props.exprt.id} />
-      </Grid>
-      <Grid item>
-        <DeleteExportButton id={props.exprt.id} name={props.exprt.name} />
       </Grid>
     </Grid>
   );
