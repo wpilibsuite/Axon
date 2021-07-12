@@ -1,10 +1,10 @@
-import { Radio, Typography, Card, RadioGroup, Grid, FormControlLabel } from "@material-ui/core";
+import { Radio, Typography, Card, Grid } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
 import { gql, useQuery } from "@apollo/client";
 import ExportJobsList from "./ExportJobsList";
 import React, { ReactElement } from "react";
-import ExportMenu from "./ExportMenu";
+import ExportButtons from "./ExportButtons";
 
 const GET_TESTJOBS = gql`
   query GetTestjobs {
@@ -35,7 +35,7 @@ export default function Results(props: {
     <>
       {props.exports.length > 0 && <Typography>Exported Models</Typography>}
       <ExportJobsList id={props.id} />
-      <ExportMenu exprt={selectedExport} videos={props.videos} jobs={data.testjobs} />
+      <ExportButtons exprt={selectedExport} videos={props.videos} jobs={data.testjobs} />
       <Grid container spacing={3}>
         {props.exports.map((exprt) => (
           <ExportInfo
@@ -68,9 +68,8 @@ function ExportInfo(props: {
           </Grid>
           <Grid item>
             <Typography variant={"h6"}>Export: {props.exprt.name}</Typography>
-            <Typography>Step:
-              {props.exprt.step}
-            </Typography>
+            <Typography>Epoch: {props.exprt.step}</Typography>
+            <Typography>Precision: {Math.round(props.exprt.precision * 1000) / 1000}</Typography>
           </Grid>
         </Grid>
       </Card>

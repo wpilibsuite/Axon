@@ -44,7 +44,7 @@ export default function DeleteTestButton(props: { id: string; name: string }): R
           <Button autoFocus variant={"contained"} onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant={"contained"} onClick={handleDelete} disabled={deleting} color="secondary">
+          <Button variant={"contained"} onClick={handleDelete} disabled={deleting} color="primary">
             Delete
           </Button>
         </DialogActions>
