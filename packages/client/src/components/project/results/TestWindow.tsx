@@ -6,11 +6,10 @@ import TestJobs from "./TestJobs";
 import React from "react";
 type Export = GetProjectData_project_exports;
 
-export default function TestWindow(props: { exprt: Export; handler: () => void }): React.ReactElement {
+export default function TestWindow(props: { exprt: Export }): React.ReactElement {
   const [open, setOpen] = React.useState(false);
   const handleClick = () => {
     setOpen(true);
-    props.handler();
   };
   const handleClose = () => {
     setOpen(false);
@@ -24,9 +23,9 @@ export default function TestWindow(props: { exprt: Export; handler: () => void }
 
   return (
     <>
-      <MenuItem onClick={handleClick}>
-        <Typography variant={"body1"}>Test</Typography>
-      </MenuItem>
+      <Button variant={"contained"} onClick={handleClick}>
+        Test
+      </Button>
       <Dialog onClose={handleClose} open={open}>
         <DialogContent dividers>
           <Typography variant="h4" style={{ display: "flex", justifyContent: "center" }}>

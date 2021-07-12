@@ -45,6 +45,8 @@ const GET_PROJECT_DATA = gql`
         name
         directory
         downloadPath
+          step
+          precision
       }
       videos {
         id

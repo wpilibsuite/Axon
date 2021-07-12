@@ -11,7 +11,7 @@ const DELETE_EXPORT_MUTATION = gql`
   }
 `;
 
-export default function DeleteExportButton(props: { id: string; name: string; handler: () => void }): ReactElement {
+export default function DeleteExportButton(props: { id: string; name: string }): ReactElement {
   const [deleteExport] = useMutation(DELETE_EXPORT_MUTATION);
   const [deleting, setDeleting] = React.useState(false);
   const [open, setOpen] = React.useState(false);
@@ -19,7 +19,6 @@ export default function DeleteExportButton(props: { id: string; name: string; ha
 
   const handleClickOpen = () => {
     setOpen(true);
-    props.handler();
   };
   const handleClose = () => {
     setOpen(false);
@@ -31,9 +30,9 @@ export default function DeleteExportButton(props: { id: string; name: string; ha
 
   return (
     <>
-      <MenuItem onClick={handleClickOpen}>
-        <Typography variant={"body1"}>Delete</Typography>
-      </MenuItem>
+      <Button variant={"contained"} onClick={handleClickOpen}>
+        Delete
+      </Button>
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Delete Export</DialogTitle>
         <DialogContent dividers>

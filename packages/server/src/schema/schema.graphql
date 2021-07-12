@@ -115,6 +115,8 @@ type Export {
   tarfileName: String!
   downloadPath: String!
   relativeDirPath: String!
+  step: Int!
+  precision: Float!
 }
 
 type Video {

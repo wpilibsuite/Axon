@@ -69,11 +69,16 @@ interface ExportAttributes {
   projectID: string;
   name: string;
   id: string;
+  step: number;
+  precision: number;
 }
 
 type ExportCreationAttributes = Optional<ExportAttributes, keyof ExportAttributes>;
 
 export class Export extends Model<ExportAttributes, ExportCreationAttributes> implements ExportAttributes {
+  public static associations: {
+    tests: Association<Export, Test>;
+  };
   relativeDirPath: string;
   downloadPath: string;
   checkpointID: string;
@@ -81,18 +86,14 @@ export class Export extends Model<ExportAttributes, ExportCreationAttributes> im
   projectID: string;
   directory: string;
   name: string;
-
+  step: number;
+  precision: number;
   public readonly id!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
-
   public getTests!: HasManyGetAssociationsMixin<Test>;
   public addTest!: HasManyAddAssociationMixin<Test, string>;
   public removeTest!: HasManyRemoveAssociationMixin<Test, string>;
-
-  public static associations: {
-    tests: Association<Export, Test>;
-  };
 }
 
 interface VideoAttributes {
@@ -156,42 +157,34 @@ interface ProjectAttributes {
 type ProjectCreationAttributes = Optional<ProjectAttributes, keyof ProjectAttributes>;
 
 export class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implements ProjectAttributes {
-  name: string;
-  directory: string;
-  initialCheckpoint: string;
-
-  epochs: number;
-  batchSize: number;
-  evalFrequency: number;
-  percentEval: number;
-
-  inProgress: boolean;
-
-  public getDataset!: HasOneGetAssociationMixin<Dataset>;
-  public setDataset!: HasOneSetAssociationMixin<Dataset, string>;
-
-  public getCheckpoints!: HasManyGetAssociationsMixin<Checkpoint>;
-  public setCheckpoints!: HasManySetAssociationsMixin<Checkpoint, string>;
-  public addCheckpoint!: HasManyAddAssociationMixin<Checkpoint, string>;
-  public removeCheckpoint!: HasManyRemoveAssociationMixin<Checkpoint, string>;
-
-  public getExports!: HasManyGetAssociationsMixin<Export>;
-  public addExport!: HasManyAddAssociationMixin<Export, string>;
-  public removeExport!: HasManyRemoveAssociationMixin<Export, string>;
-
-  public getVideos!: HasManyGetAssociationsMixin<Video>;
-  public addVideo!: HasManyAddAssociationMixin<Video, string>;
-  public removeVideo!: HasManyRemoveAssociationMixin<Video, string>;
-
-  public readonly id!: string;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
-
   public static associations: {
     checkpoints: Association<Project, Checkpoint>;
     dataset: Association<Project, Dataset>;
     exports: Association<Project, Export>;
   };
+  name: string;
+  directory: string;
+  initialCheckpoint: string;
+  epochs: number;
+  batchSize: number;
+  evalFrequency: number;
+  percentEval: number;
+  inProgress: boolean;
+  public getDataset!: HasOneGetAssociationMixin<Dataset>;
+  public setDataset!: HasOneSetAssociationMixin<Dataset, string>;
+  public getCheckpoints!: HasManyGetAssociationsMixin<Checkpoint>;
+  public setCheckpoints!: HasManySetAssociationsMixin<Checkpoint, string>;
+  public addCheckpoint!: HasManyAddAssociationMixin<Checkpoint, string>;
+  public removeCheckpoint!: HasManyRemoveAssociationMixin<Checkpoint, string>;
+  public getExports!: HasManyGetAssociationsMixin<Export>;
+  public addExport!: HasManyAddAssociationMixin<Export, string>;
+  public removeExport!: HasManyRemoveAssociationMixin<Export, string>;
+  public getVideos!: HasManyGetAssociationsMixin<Video>;
+  public addVideo!: HasManyAddAssociationMixin<Video, string>;
+  public removeVideo!: HasManyRemoveAssociationMixin<Video, string>;
+  public readonly id!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 Dataset.init(
@@ -285,8 +278,17 @@ Export.init(
     relativeDirPath: {
       type: new DataTypes.STRING(),
       allowNull: true
+    },
+    step: {
+      type: new DataTypes.INTEGER(),
+      allowNull: false
+    },
+    precision: {
+      type: new DataTypes.FLOAT(),
+      allowNull: false
     }
   },
+
   {
     sequelize
   }

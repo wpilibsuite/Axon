@@ -21,7 +21,7 @@ const RENAME_EXPORT_MUTATION = gql`
   }
 `;
 
-export default function RenameExportButton(props: { id: string; handler: () => void }): ReactElement {
+export default function RenameExportButton(props: { id: string }): ReactElement {
   const [renameExport] = useMutation(RENAME_EXPORT_MUTATION);
   const [newName, setNewName] = React.useState("");
   const [open, setOpen] = React.useState(false);
@@ -29,10 +29,10 @@ export default function RenameExportButton(props: { id: string; handler: () => v
 
   const handleClickOpen = () => {
     setOpen(true);
-    props.handler();
   };
   const handleClose = () => {
     setOpen(false);
+    window.location.reload();
   };
   const handleRename = async () => {
     renameExport({ variables: { id: props.id, newName } }).then(() =>
@@ -42,9 +42,9 @@ export default function RenameExportButton(props: { id: string; handler: () => v
 
   return (
     <>
-      <MenuItem onClick={handleClickOpen}>
-        <Typography variant={"body1"}>Rename</Typography>
-      </MenuItem>
+      <Button variant={"contained"} onClick={handleClickOpen}>
+        Rename
+      </Button>
       <Dialog onClose={handleClose} open={open}>
         <DialogTitle>Rename Export</DialogTitle>
         <DialogContent dividers>
