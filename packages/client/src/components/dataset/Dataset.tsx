@@ -20,6 +20,7 @@ import {
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import ArrowForwardIosIcon from "@material-ui/icons/ArrowForwardIos";
 import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
+import Pagination from '@material-ui/lab/Pagination';
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
@@ -108,6 +109,10 @@ export default function Dataset(props: { id: string }): ReactElement {
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
+  const handlePage = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPageNumber(value-1)
+  }
+
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -129,7 +134,10 @@ export default function Dataset(props: { id: string }): ReactElement {
   };
 
   if (loading) return <CircularProgress className={classes.progress} />;
-  if (error || !data || !data.dataset) return <p>ERROR</p>;
+  if (error || !data || !data.dataset){
+    console.log(error);
+    return <p>ERROR</p>;
+  }
   console.log(data.dataset.classes);
   return (
     <div className={classes.root}>
@@ -199,17 +207,7 @@ export default function Dataset(props: { id: string }): ReactElement {
         </Grid>
         <Grid item xs={10}>
           <DataGallery images={data.dataset?.images.slice(pageNumber * imagesPerPage, (pageNumber + 1) * imagesPerPage) || []} />
-          <div className={classes.centered}>
-            <IconButton onClick={decrementPage} aria-label="Back Page">
-              <ArrowBackIosIcon />
-            </IconButton>
-            <IconButton onClick={incrementPage} aria-label="Forward Page">
-              <ArrowForwardIosIcon />
-            </IconButton>
-          </div>
-          <div className={classes.centered}>
-            <Typography>Page Number: {pageNumber}</Typography>
-          </div>
+          <Pagination className={classes.centered} count={Math.floor((data?.dataset?.images.length || 0) / imagesPerPage + 1)} page={pageNumber+1} onChange={handlePage} />
         </Grid>
       </Grid>
     </div>
