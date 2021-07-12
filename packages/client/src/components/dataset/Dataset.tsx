@@ -18,9 +18,7 @@ import {
   ListItemIcon
 } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
-import ArrowForwardIosIcon from "@material-ui/icons/ArrowForwardIos";
-import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
-import Pagination from '@material-ui/lab/Pagination';
+import Pagination from "@material-ui/lab/Pagination";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
@@ -110,23 +108,11 @@ export default function Dataset(props: { id: string }): ReactElement {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handlePage = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPageNumber(value-1)
-  }
+    setPageNumber(value - 1);
+  };
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
-  };
-
-  const incrementPage = () => {
-    setPageNumber((pageNumber + 1) % Math.floor((data?.dataset?.images.length || 0) / imagesPerPage + 1));
-  };
-
-  const decrementPage = () => {
-    if (pageNumber - 1 < 0) {
-      setPageNumber(Math.floor((data?.dataset?.images.length || 0) / imagesPerPage + 1) - 1);
-    } else {
-      setPageNumber(pageNumber - 1);
-    }
   };
 
   const handleClose = () => {
@@ -134,7 +120,7 @@ export default function Dataset(props: { id: string }): ReactElement {
   };
 
   if (loading) return <CircularProgress className={classes.progress} />;
-  if (error || !data || !data.dataset){
+  if (error || !data || !data.dataset) {
     console.log(error);
     return <p>ERROR</p>;
   }
@@ -206,8 +192,15 @@ export default function Dataset(props: { id: string }): ReactElement {
           </Card>
         </Grid>
         <Grid item xs={10}>
-          <DataGallery images={data.dataset?.images.slice(pageNumber * imagesPerPage, (pageNumber + 1) * imagesPerPage) || []} />
-          <Pagination className={classes.centered} count={Math.floor((data?.dataset?.images.length || 0) / imagesPerPage + 1)} page={pageNumber+1} onChange={handlePage} />
+          <DataGallery
+            images={data.dataset?.images.slice(pageNumber * imagesPerPage, (pageNumber + 1) * imagesPerPage) || []}
+          />
+          <Pagination
+            className={classes.centered}
+            count={Math.floor((data?.dataset?.images.length || 0) / imagesPerPage + 1)}
+            page={pageNumber + 1}
+            onChange={handlePage}
+          />
         </Grid>
       </Grid>
     </div>
