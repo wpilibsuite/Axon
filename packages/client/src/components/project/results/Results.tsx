@@ -26,7 +26,7 @@ export default function Results(props: {
   const { data, loading, error } = useQuery(GET_TESTJOBS, {
     pollInterval: 2000
   });
-  const [selectedExport, setExprt] = React.useState<GetProjectData_project_exports>();
+  const [selectedExport, setSelectedExprt] = React.useState<GetProjectData_project_exports>();
 
   if (loading) return <p>LOADING</p>;
   if (error) return <p>{error.message}</p>;
@@ -45,7 +45,7 @@ export default function Results(props: {
             jobs={data.testjobs}
             key={exprt.name}
             selected={selectedExport}
-            setSelected={setExprt}
+            setSelected={setSelectedExprt}
           />
         ))}
       </Grid>
