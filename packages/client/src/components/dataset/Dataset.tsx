@@ -1,16 +1,21 @@
 import React, { ReactElement } from "react";
 import gql from "graphql-tag";
 import {
+  Card,
   CircularProgress,
-  Container,
+  List,
+  Grid,
   GridList,
   GridListTile,
   IconButton,
   Link,
+  ListItem,
   Menu,
   MenuItem,
   Toolbar,
-  Typography
+  Typography,
+  ListItemText,
+  ListItemIcon
 } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
@@ -19,10 +24,19 @@ import { useQuery } from "@apollo/client";
 import RenameDatasetDialogButton from "./RenameDatasetDialog";
 import DeleteDatasetDialogButton from "./DeleteDatasetDialog";
 import { makeStyles } from "@material-ui/core/styles";
+import { Label } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   progress: {
     marginLeft: 50
+  },
+  root: {
+    flexGrow: 1,
+    paddingLeft: 25,
+    paddingRight: 25
+  },
+  card: {
+    padding: 10
   }
 }));
 
@@ -32,6 +46,7 @@ const GET_DATASET = gql`
       id
       name
       path
+      classes
       images {
         path
         size {
@@ -82,10 +97,11 @@ export default function Dataset(props: { id: string }): ReactElement {
 
   if (loading) return <CircularProgress className={classes.progress} />;
   if (error || !data || !data.dataset) return <p>ERROR</p>;
+  console.log(data.dataset.classes);
   return (
-    <Container>
+    <div className={classes.root}>
       <Toolbar>
-        <Typography variant="h6" style={{ flexGrow: 1 }}>
+        <Typography variant="h5" style={{ flexGrow: 1 }}>
           {data.dataset?.name}
         </Typography>
         <IconButton onClick={handleMenu} color="inherit">
@@ -120,10 +136,38 @@ export default function Dataset(props: { id: string }): ReactElement {
           </MenuItem>
         </Menu>
       </Toolbar>
-      <Container>
-        <Typography variant="h6">{data.dataset?.images.length} Image Samples</Typography>
-        <DataGallery images={data.dataset?.images || []} />
-      </Container>
-    </Container>
+      <Grid container spacing={3} style={{ paddingLeft: 50 }}>
+        <Grid item>
+          <Card className={classes.card}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant={"h6"}>Stats</Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography>Images: {data.dataset?.images.length}</Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography>Labels:</Typography>
+              </Grid>
+            </Grid>
+            <List>
+              {data.dataset.classes.map((value) => {
+                return (
+                  <ListItem key={value}>
+                    <ListItemIcon>
+                      <Label />
+                    </ListItemIcon>
+                    <ListItemText primary={value} />
+                  </ListItem>
+                );
+              })}
+            </List>
+          </Card>
+        </Grid>
+        <Grid item xs={10}>
+          <DataGallery images={data.dataset?.images || []} />
+        </Grid>
+      </Grid>
+    </div>
   );
 }

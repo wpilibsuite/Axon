@@ -67,7 +67,17 @@ export class DatasetService extends DataSource {
   }
 
   async getDatasetClasses(id: string): Promise<string[]> {
-    return this.readMetaData(id).classes.map((c) => c.title);
+    const dataset = await this.getDataset(id);
+    if (fs.existsSync(path.join(`${this.path}/${id}`, "meta.json"))) {
+      // supervise.ly
+      const META_FILE = path.join(`${this.path}/${id}`, "meta.json");
+      const meta = JSON.parse(fs.readFileSync(META_FILE).toString());
+      return meta.classes.map((c) => c.title);
+    }
+    const META_FILE = path.join(this.path.replace("datasets", ""), `${dataset.path.replace(".zip", "")}`, "meta.json");
+    const meta = JSON.parse(fs.readFileSync(META_FILE).toString());
+    console.log(`labels: ${JSON.stringify(meta)}`);
+    return meta.labels;
   }
 
   async getDatasetTags(id: string): Promise<string[]> {
