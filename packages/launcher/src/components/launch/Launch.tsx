@@ -1,4 +1,4 @@
-import React, { ChangeEvent, ReactElement } from "react";
+import React, { ChangeEvent, ReactElement, useEffect } from "react";
 import {
   Button,
   CircularProgress,
@@ -84,6 +84,10 @@ export default function Launch(): ReactElement {
   const [hasImages, setHasImages] = React.useState(true);
   const [clickedImageDialog, setClickedImageDialog] = React.useState(false);
 
+  useEffect(() => {
+    getVersions();
+  }, [internetConnection]);
+
   const getVersions = async () => {
     const ipcRenderer: IpcRenderer = window.require("electron").ipcRenderer;
 
@@ -94,14 +98,15 @@ export default function Launch(): ReactElement {
     ipcRenderer.send("request-tags");
     ipcRenderer.send("request-version");
   };
+
   const getTagsFromSystem = async () => {
     const connected = await docker.isConnected();
     if (connected) {
       const images = await docker.getImages();
       if (images !== null && images.length > 0) {
         const imageMap = new Map();
-        for (let i = 0; i < images.length; i++) {
-          const tmpTag = images[i].RepoTags[0].split(":")[1];
+        for(const elem of images){
+          const tmpTag = elem.RepoTags[0].split(":")[1];
           if (imageMap.has(tmpTag)) {
             imageMap.set(tmpTag, imageMap.get(tmpTag) + 1);
           } else {
@@ -113,12 +118,15 @@ export default function Launch(): ReactElement {
           if (value >= 6) tmpTags.push(key);
         });
         console.log(tmpTags);
-        setAxonVersions(tmpTags);
-        setAxonVersion(tmpTags[0]);
+        if(tmpTags.length > 0) {
+          setAxonVersion(tmpTags[0]);
+        }
       }
     }
   };
+
   const getInternetConnection = async () => {
+    console.log("Requesting connection info");
     const ipcRenderer: IpcRenderer = window.require("electron").ipcRenderer;
     await ipcRenderer.on("internet-status", (event, arg: boolean) => {
       setInternetConnection(arg);
@@ -130,6 +138,12 @@ export default function Launch(): ReactElement {
     });
     ipcRenderer.send("request-internet");
   };
+
+  if(!internetConnection){
+    setInterval(getInternetConnection, 30000);
+  } else {
+    clearInterval();
+  }
 
   if (!requested) {
     getVersions();
@@ -164,12 +178,12 @@ export default function Launch(): ReactElement {
         console.log("No Internet Connection Detected, Skipping Pulling Images");
         const images = await docker.getImages();
         if (images !== null && images.length > 0) {
+
           let count = 0;
-          for (let i = 0; i < images.length; i++) {
-            // Check if axonVersion is equal to the tag on the image name
-            if (axonVersion === images[i].RepoTags[0].substring(images[i].RepoTags[0].length - axonVersion.length)) {
+         for(const elem of images){
+            if (axonVersion === elem.RepoTags[0].substring(elem.RepoTags[0].length - axonVersion.length)) {
               count++;
-              console.log(images[i].RepoTags[0]);
+              console.log(elem.RepoTags[0]);
             }
           }
           if (count >= 6) {
