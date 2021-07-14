@@ -26,14 +26,28 @@ export default function ProjectMenu(props: { project: GetProjectData_project }):
   };
 
   return (
-    <>
+    <div style={{ display: "inline-flex", float: "right", textAlign: "right" }}>
       <IconButton onClick={handleClick}>
         <MoreVertIcon className={classes.largeIcon} />
       </IconButton>
-      <Menu id="simple-menu" anchorEl={anchorEl} keepMounted open={Boolean(anchorEl)} onClose={handleClose}>
+      <Menu
+        id="simple-menu"
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right"
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right"
+        }}
+      >
         <RenameProjectDialog id={props.project.id} handler={handleClose} />
         <DeleteProjectDialogButton project={props.project} handler={handleClose} />
       </Menu>
-    </>
+    </div>
   );
 }
