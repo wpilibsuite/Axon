@@ -123,6 +123,7 @@ interface TestAttributes {
   fullPath: string;
   directory: string;
   downloadPath: string;
+  percentDone: number;
 }
 
 type TestCreationAttributes = Optional<TestAttributes, keyof TestAttributes>;
@@ -134,6 +135,7 @@ export class Test extends Model<TestAttributes, TestCreationAttributes> implemen
   fullPath: string;
   directory: string;
   downloadPath: string;
+  percentDone: number;
 
   public readonly id!: string;
   public readonly createdAt!: Date;
@@ -350,6 +352,10 @@ Test.init(
     },
     downloadPath: {
       type: new DataTypes.STRING(),
+      allowNull: false
+    },
+    percentDone: {
+      type: new DataTypes.FLOAT(),
       allowNull: false
     }
   },

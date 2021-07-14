@@ -193,6 +193,7 @@ type Testjob {
   exportID: String!
   projectID: String!
   streamPort: String!
+  percentDone: Float!
 }
 
 type CreateJob {
