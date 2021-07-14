@@ -105,7 +105,7 @@ export default function Launch(): ReactElement {
       const images = await docker.getImages();
       if (images !== null && images.length > 0) {
         const imageMap = new Map();
-        for(const elem of images){
+        for (const elem of images) {
           const tmpTag = elem.RepoTags[0].split(":")[1];
           if (imageMap.has(tmpTag)) {
             imageMap.set(tmpTag, imageMap.get(tmpTag) + 1);
@@ -118,7 +118,7 @@ export default function Launch(): ReactElement {
           if (value >= 6) tmpTags.push(key);
         });
         console.log(tmpTags);
-        if(tmpTags.length > 0) {
+        if (tmpTags.length > 0) {
           setAxonVersion(tmpTags[0]);
         }
       }
@@ -139,7 +139,7 @@ export default function Launch(): ReactElement {
     ipcRenderer.send("request-internet");
   };
 
-  if(!internetConnection){
+  if (!internetConnection) {
     setInterval(getInternetConnection, 30000);
   } else {
     clearInterval();
@@ -178,9 +178,8 @@ export default function Launch(): ReactElement {
         console.log("No Internet Connection Detected, Skipping Pulling Images");
         const images = await docker.getImages();
         if (images !== null && images.length > 0) {
-
           let count = 0;
-         for(const elem of images){
+          for (const elem of images) {
             if (axonVersion === elem.RepoTags[0].substring(elem.RepoTags[0].length - axonVersion.length)) {
               count++;
               console.log(elem.RepoTags[0]);
