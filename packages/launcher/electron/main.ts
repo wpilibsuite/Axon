@@ -76,6 +76,7 @@ function bufferToSortedArray(buffer: Buffer): string[] {
     sorted.push("latest");
   }
   array.sort();
+  array.reverse();
   array.forEach((element: string) => {
     if (element.match(/^\d+\.\d+\.\d+$/)) {
       sorted.push(element);
