@@ -2,6 +2,9 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
+  "directories": {
+    "buildResources": "src/assets"
+  },
   "dependencies": {
     "@apollo/client": "^3.0.2",
     "@material-ui/core": "^4.11.0",
