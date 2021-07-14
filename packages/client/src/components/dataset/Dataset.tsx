@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import React, { ReactElement, useEffect } from "react";
 import gql from "graphql-tag";
 import {
   Card,
@@ -18,6 +18,7 @@ import {
   ListItemIcon
 } from "@material-ui/core";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
+import Pagination from "@material-ui/lab/Pagination";
 import { LazyLoadImage, ScrollPosition, trackWindowScroll } from "react-lazy-load-image-component";
 import { GetDataset, GetDataset_dataset_images, GetDatasetVariables } from "./__generated__/GetDataset";
 import { useQuery } from "@apollo/client";
@@ -37,6 +38,13 @@ const useStyles = makeStyles((theme) => ({
   },
   card: {
     padding: 10
+  },
+  centered: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 10
   }
 }));
 
@@ -79,13 +87,29 @@ const DataGallery = trackWindowScroll(DataGalleryBase);
 
 export default function Dataset(props: { id: string }): ReactElement {
   const classes = useStyles();
+  const [pageNumber, setPageNumber] = React.useState(0);
+  const [idState, setIdState] = React.useState(props.id);
   const { data, loading, error } = useQuery<GetDataset, GetDatasetVariables>(GET_DATASET, {
     variables: {
       id: props.id
     }
   });
 
+  if (idState !== props.id) {
+    setIdState(props.id);
+  }
+
+  useEffect(() => {
+    setPageNumber(0);
+  }, [idState]);
+
+  const imagesPerPage = 48;
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  const handlePage = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPageNumber(value - 1);
+  };
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -96,7 +120,10 @@ export default function Dataset(props: { id: string }): ReactElement {
   };
 
   if (loading) return <CircularProgress className={classes.progress} />;
-  if (error || !data || !data.dataset) return <p>ERROR</p>;
+  if (error || !data || !data.dataset) {
+    console.log(error);
+    return <p>ERROR</p>;
+  }
   console.log(data.dataset.classes);
   return (
     <div className={classes.root}>
@@ -165,7 +192,15 @@ export default function Dataset(props: { id: string }): ReactElement {
           </Card>
         </Grid>
         <Grid item xs={10}>
-          <DataGallery images={data.dataset?.images || []} />
+          <DataGallery
+            images={data.dataset?.images.slice(pageNumber * imagesPerPage, (pageNumber + 1) * imagesPerPage) || []}
+          />
+          <Pagination
+            className={classes.centered}
+            count={Math.floor((data?.dataset?.images.length || 0) / imagesPerPage + 1)}
+            page={pageNumber + 1}
+            onChange={handlePage}
+          />
         </Grid>
       </Grid>
     </div>
