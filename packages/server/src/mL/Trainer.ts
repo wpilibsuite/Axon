@@ -195,7 +195,6 @@ export default class Trainer {
     if (fs.existsSync(METRICSPATH)) {
       const metrics = JSON.parse(fs.readFileSync(METRICSPATH, "utf8"));
       const jssteps: number[] = Object.keys(metrics.precision).map((s) => parseInt(s)); //we must change the metrics.json soon
-      this.epoch = jssteps.length > 0 ? jssteps.sort()[jssteps.length - 1] : 0;
       const dbsteps: number[] = (await this.project.getCheckpoints()).map((ckpt) => ckpt.step);
 
       for (const jsonstep of jssteps) {
@@ -215,10 +214,12 @@ export default class Trainer {
           await checkpoint.save();
           await this.project.addCheckpoint(checkpoint);
           await Trainer.copyCheckpoint(ckptSrcPath, checkpoint.fullPath);
-          return;
+          if (this.epoch < jsonstep) {
+            this.epoch = jsonstep;
+          }
         }
       }
-    } else this.epoch = 0;
+    }
   }
 
   /**
