@@ -1,4 +1,4 @@
-import React, { ChangeEvent, ReactElement } from "react";
+import React, { ChangeEvent, ReactElement, useEffect } from "react";
 import {
   Button,
   CircularProgress,
@@ -49,6 +49,12 @@ const useStyles = makeStyles((theme) => ({
   inline: {
     display: "inline-flex"
   },
+  progress: {
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: "50%"
+  },
   selector: {
     width: "25%"
   }
@@ -73,35 +79,131 @@ export default function Launch(): ReactElement {
   const [axonVersions, setAxonVersions] = React.useState([""]);
   const [requested, setRequested] = React.useState(false);
   const [axonVersion, setAxonVersion] = React.useState("edge");
+  const [internetConnection, setInternetConnection] = React.useState(false);
+  const [checkedInternetConnection, setCheckedInternetConnection] = React.useState(false);
+  const [hasImages, setHasImages] = React.useState(true);
+  const [clickedImageDialog, setClickedImageDialog] = React.useState(false);
+
+  useEffect(() => {
+    getVersions();
+  }, [internetConnection]);
 
   const getVersions = async () => {
     const ipcRenderer: IpcRenderer = window.require("electron").ipcRenderer;
 
-    ipcRenderer.on("axon-tags", (event, args: string[]) => {
+    await ipcRenderer.on("axon-tags", (event, args: string[]) => {
       setAxonVersions(args);
       setAxonVersion(args[0]);
     });
     ipcRenderer.send("request-tags");
     ipcRenderer.send("request-version");
   };
+
+  const getTagsFromSystem = async () => {
+    const connected = await docker.isConnected();
+    if (connected) {
+      const images = await docker.getImages();
+      if (images !== null && images.length > 0) {
+        const imageMap = new Map();
+        for (const elem of images) {
+          const tmpTag = elem.RepoTags[0].split(":")[1];
+          if (imageMap.has(tmpTag)) {
+            imageMap.set(tmpTag, imageMap.get(tmpTag) + 1);
+          } else {
+            imageMap.set(tmpTag, 1);
+          }
+        }
+        const tmpTags: string[] = [];
+        imageMap.forEach((value: number, key: string) => {
+          if (value >= 6) tmpTags.push(key);
+        });
+        console.log(tmpTags);
+        if (tmpTags.length > 0) {
+          setAxonVersion(tmpTags[0]);
+        }
+      }
+    }
+  };
+
+  const getInternetConnection = async () => {
+    console.log("Requesting connection info");
+    const ipcRenderer: IpcRenderer = window.require("electron").ipcRenderer;
+    await ipcRenderer.on("internet-status", (event, arg: boolean) => {
+      setInternetConnection(arg);
+      setCheckedInternetConnection(true);
+      if (!arg) {
+        // need to look for own tags
+        getTagsFromSystem();
+      }
+    });
+    ipcRenderer.send("request-internet");
+  };
+
+  if (!internetConnection) {
+    setInterval(getInternetConnection, 30000);
+  } else {
+    clearInterval();
+  }
+
   if (!requested) {
     getVersions();
     setRequested(true);
     return <CircularProgress />;
   }
 
+  if (!checkedInternetConnection) {
+    getInternetConnection();
+    return <CircularProgress className={classes.progress} />;
+  }
+
   const handleClose = () => {
     setClicked(true);
+  };
+
+  const handleImageDialogClose = () => {
+    setClickedImageDialog(true);
   };
 
   const startContainer = async () => {
     const connected = await docker.isConnected();
     if (connected) {
-      // setPulling(true);
-      setStatus("Pulling Axon image");
-      await docker.pullImage(axonVersion);
-      // setPulling(false);
-      setStatus("Finished pulling.");
+      if (internetConnection) {
+        console.log("Valid Internet Connection");
+        setStatus("Pulling Axon image");
+        await docker.pullImage(axonVersion);
+        // setPulling(false);
+        setStatus("Finished pulling.");
+        setHasImages(true);
+      } else {
+        console.log("No Internet Connection Detected, Skipping Pulling Images");
+        const images = await docker.getImages();
+        if (images !== null && images.length > 0) {
+          let count = 0;
+          for (const elem of images) {
+            if (axonVersion === elem.RepoTags[0].substring(elem.RepoTags[0].length - axonVersion.length)) {
+              count++;
+              console.log(elem.RepoTags[0]);
+            }
+          }
+          if (count >= 6) {
+            // more than six images w/ the correct tag
+            console.log("Proceeding with previously pulled container");
+            setHasImages(true);
+          } else {
+            console.log("No Internet Connected and the Selected images have not been found");
+            setHasImages(false);
+            setClickedImageDialog(false);
+            return;
+          }
+          // also check go through the list to see if they match the version
+        } else {
+          console.log("No Internet Connected and the Selected images have not been found");
+          setHasImages(false);
+          setClickedImageDialog(false);
+          return;
+        }
+      }
+
       // image downloaded
       const containers = await docker.getContainers();
       if (containers !== null && containers.length > 0) {
@@ -119,6 +221,7 @@ export default function Launch(): ReactElement {
         setActiveContainer(null);
       });
       setActiveContainer(container);
+      console.log("Active container set.");
       localhost.waitForStart();
     } else {
       setClicked(false);
@@ -170,6 +273,18 @@ export default function Launch(): ReactElement {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={!hasImages && !clickedImageDialog} onClose={handleImageDialogClose}>
+        <DialogTitle>{"Issue Pulling Images"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Axon had trouble pulling the images for the selected version. Either select a version that you have run
+            before, or connect to the internet to pull the required images.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleImageDialogClose}>Cancel</Button>
         </DialogActions>
       </Dialog>
       <div className={classes.centered}>

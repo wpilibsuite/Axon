@@ -5,6 +5,7 @@ import Trainer from "./Trainer";
 import Tester from "./Tester";
 import Docker from "./Docker";
 import Creator from "./Creator";
+import * as https from "https";
 
 export default class MLService {
   private dockerState: DockerState;
@@ -35,14 +36,24 @@ export default class MLService {
 
     await this.docker.reset();
 
-    this.dockerState = DockerState.TrainPull;
-    await this.docker.pullImages(Object.values(Trainer.images));
+    https
+      .get("https://hub.docker.com/", async (res) => {
+        if (res.statusCode === 200) {
+          this.dockerState = DockerState.TrainPull;
+          await this.docker.pullImages(Object.values(Trainer.images));
 
-    this.dockerState = DockerState.ExportPull;
-    await this.docker.pullImages(Object.values(Exporter.images));
+          this.dockerState = DockerState.ExportPull;
+          await this.docker.pullImages(Object.values(Exporter.images));
 
-    this.dockerState = DockerState.TestPull;
-    await this.docker.pullImages(Object.values(Tester.images));
+          this.dockerState = DockerState.TestPull;
+          await this.docker.pullImages(Object.values(Tester.images));
+        } else {
+          console.log("No internet, skipping pull containers");
+        }
+      })
+      .on("error", () => {
+        console.log("No internet, skipping pull containers");
+      });
 
     this.dockerState = DockerState.Ready;
   }
