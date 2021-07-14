@@ -115,6 +115,8 @@ type Export {
   tarfileName: String!
   downloadPath: String!
   relativeDirPath: String!
+  step: Int!
+  precision: Float!
 }
 
 type Video {
@@ -191,6 +193,7 @@ type Testjob {
   exportID: String!
   projectID: String!
   streamPort: String!
+  percentDone: Float!
 }
 
 type CreateJob {

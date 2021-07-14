@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemIcon, ListItemText, Typography } from "@material-ui/core";
+import { List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
 import { GetTests, GetTestsVariables } from "./__generated__/GetTests";
 import { CloudDownload } from "@material-ui/icons";
 import DeleteTestButton from "./DeleteTestButton";
@@ -26,7 +26,7 @@ export default function TestList(props: { exprtID: string }): React.ReactElement
   if (loading) return <p>LOADING</p>;
   if (error) return <p>{error.message}</p>;
   if (data === undefined || data.export === undefined) return <p>NO DATA</p>;
-  if (data.export?.tests?.length === 0) return <Typography> Nothing here yet. </Typography>;
+  if (data.export?.tests?.length === 0) return <></>;
   return (
     <List style={{ minWidth: 400, maxHeight: "250px", overflow: "auto" }}>
       {data.export?.tests?.map((test) => (

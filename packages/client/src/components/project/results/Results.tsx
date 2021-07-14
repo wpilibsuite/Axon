@@ -1,9 +1,10 @@
-import { List, ListItem, Typography, Card } from "@material-ui/core";
+import { Radio, Typography, Card, Grid } from "@material-ui/core";
 import { GetProjectData_project_exports, GetProjectData_project_videos } from "../__generated__/GetProjectData";
 import { GetTestjobs_testjobs } from "./__generated__/GetTestjobs";
 import { gql, useQuery } from "@apollo/client";
 import ExportJobsList from "./ExportJobsList";
 import React, { ReactElement } from "react";
+import ExportButtons from "./ExportButtons";
 import ExportMenu from "./ExportMenu";
 
 const GET_TESTJOBS = gql`
@@ -25,6 +26,7 @@ export default function Results(props: {
   const { data, loading, error } = useQuery(GET_TESTJOBS, {
     pollInterval: 2000
   });
+  const [selectedExport, setSelectedExprt] = React.useState<GetProjectData_project_exports>();
 
   if (loading) return <p>LOADING</p>;
   if (error) return <p>{error.message}</p>;
@@ -34,13 +36,19 @@ export default function Results(props: {
     <>
       {props.exports.length > 0 && <Typography>Exported Models</Typography>}
       <ExportJobsList id={props.id} />
-      <List>
+      <ExportButtons exprt={selectedExport} videos={props.videos} jobs={data.testjobs} />
+      <Grid container spacing={3}>
         {props.exports.map((exprt) => (
-          <Card key={exprt.name} variant="outlined">
-            <ExportInfo exprt={exprt} videos={props.videos} jobs={data.testjobs} />
-          </Card>
+          <ExportInfo
+            exprt={exprt}
+            videos={props.videos}
+            jobs={data.testjobs}
+            key={exprt.name}
+            selected={selectedExport}
+            setSelected={setSelectedExprt}
+          />
         ))}
-      </List>
+      </Grid>
     </>
   );
 }
@@ -49,15 +57,32 @@ function ExportInfo(props: {
   exprt: GetProjectData_project_exports;
   videos: GetProjectData_project_videos[];
   jobs: GetTestjobs_testjobs[];
+  selected: GetProjectData_project_exports | undefined;
+  setSelected: (arg: GetProjectData_project_exports) => void;
 }): JSX.Element {
   return (
-    <>
-      <ListItem>
-        <Typography variant="h6" style={{ flexGrow: 1 }}>
-          {props.exprt.name}
-        </Typography>
-        <ExportMenu exprt={props.exprt} videos={props.videos} jobs={props.jobs} />
-      </ListItem>
-    </>
+    <Grid item xs={4} key={props.exprt.name}>
+      <Card onClick={() => props.setSelected(props.exprt)} style={{ width: "100%", padding: "5px" }}>
+        <Grid container spacing={3}>
+          <Grid item xs={1}>
+            <Radio checked={props.selected !== undefined && props.exprt.id === props.selected.id} color={"primary"} />
+          </Grid>
+          <Grid item xs={11}>
+            <Grid container>
+              <Grid item xs={11}>
+                <Typography variant={"h6"} style={{ display: "inline-block", width: "100%" }}>
+                  Export: {props.exprt.name}
+                </Typography>
+              </Grid>
+              <Grid item xs={1}>
+                <ExportMenu exprt={props.exprt} videos={props.videos} jobs={props.jobs} />
+              </Grid>
+            </Grid>
+            <Typography>Epoch: {props.exprt.step}</Typography>
+            <Typography>Precision: {Math.round(props.exprt.precision * 1000) / 1000}</Typography>
+          </Grid>
+        </Grid>
+      </Card>
+    </Grid>
   );
 }

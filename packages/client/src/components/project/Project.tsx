@@ -45,6 +45,8 @@ const GET_PROJECT_DATA = gql`
         name
         directory
         downloadPath
+        step
+        precision
       }
       videos {
         id
@@ -74,12 +76,23 @@ export default function Project(props: { id: string }): ReactElement {
       <div className={classes.root}>
         <Grid container spacing={3} justify={"center"} alignItems={"center"}>
           <Grid item xs={12}>
-            <div className={classes.heading}>
-              <Typography align={"center"} variant={"h2"} className={classes.projectName}>
-                {data.project.name}
-              </Typography>
-              <ProjectMenu project={data.project} />
-            </div>
+            <Grid container>
+              <Grid item xs={11}>
+                <div className={classes.heading}>
+                  <Typography
+                    align={"center"}
+                    variant={"h2"}
+                    className={classes.projectName}
+                    style={{ textAlign: "center" }}
+                  >
+                    {data.project.name}
+                  </Typography>
+                </div>
+              </Grid>
+              <Grid item xs={1}>
+                <ProjectMenu project={data.project} />
+              </Grid>
+            </Grid>
           </Grid>
           <Grid item xs={12}>
             <Input id={props.id} dataset={data.project.dataset} />
