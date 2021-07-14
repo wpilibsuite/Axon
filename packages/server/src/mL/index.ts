@@ -115,6 +115,11 @@ export default class MLService {
 
     await tester.writeParameterFile(mountedModelPath, mountedVideoPath);
 
+    console.log("Starting update");
+    tester.startCheckpointRoutine().then(() => {
+      console.log("done.");
+    });
+
     await tester.testModel();
 
     await tester.saveOutputVid();

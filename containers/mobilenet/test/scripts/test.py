@@ -1,13 +1,14 @@
 import argparse
+import collections
+import os
+import tarfile
+from time import time
 
 import cv2
 import numpy as np
-from time import time
 import tflite_runtime.interpreter as tflite
-import parse_hyperparams
-import tarfile
-import collections
 
+import parse_hyperparams
 from mjpegstreamer import MJPEGServer
 from pbtxt import PBTXTParser
 
@@ -27,12 +28,14 @@ class BBox(collections.namedtuple('BBox', ['xmin', 'ymin', 'xmax', 'ymax'])):
                     ymax=sy * self.ymax)
 
 
-
 class Tester:
     def __init__(self, model_dir):
         data = parse_hyperparams.parse(model_dir + "/testparameters.json")
         output_vid_path = data["output-vid-path"]
         self.video_path = data["test-video"]
+        self.test_dir = data["test-dir"]
+        if not os.path.isdir(self.test_dir):
+            os.mkdir(self.test_dir)
         model_path = data["model-tar"]
         tar = tarfile.open(model_path)
         tar.extractall("/tensorflow/models/research/")
@@ -41,12 +44,13 @@ class Tester:
 
         parser = PBTXTParser("/tensorflow/models/research/map.pbtxt")
         parser.parse()
-        self.labels = parser.file
+        self.labels = parser.get_labels()
 
         self.input_video = cv2.VideoCapture(self.video_path)
         width = self.input_video.get(cv2.CAP_PROP_FRAME_WIDTH)
         height = self.input_video.get(cv2.CAP_PROP_FRAME_HEIGHT)
         fps = self.input_video.get(cv2.CAP_PROP_FPS)
+        self.total_frames = self.input_video.get(cv2.CAP_PROP_FRAME_COUNT)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         self.output_video = cv2.VideoWriter(output_vid_path, fourcc, fps, (int(width), int(height)))
         self.server = MJPEGServer(300, 300)
@@ -84,16 +88,21 @@ class Tester:
                     class_id = int(class_id)
                     if class_id not in range(len(self.labels)):
                         continue
-                    
-                    frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale, y_scale)
-                    
+
+                    frame_cv2 = self.label_frame(frame_cv2, self.labels[class_id], boxes[i], scores[i], x_scale,
+                                                 y_scale)
+
             self.output_video.write(frame_cv2)
             self.server.set_image(frame_cv2)
-            if self.frames % 1000 == 0:
+            if self.frames % 250 == 0:
                 print("Completed", self.frames, "frames. FPS:", (1 / (time() - start)))
+                with open(self.test_dir + "/progress.json", 'w+') as progress:
+                    progress.write('{"percentDone": %f}' % (self.frames / self.total_frames))
             self.frames += 1
 
         self.input_video.release()
+        with open(self.test_dir + "/progress.json", 'w+') as progress:
+            progress.write('{"percentDone": 1.0}')
 
     def label_frame(self, frame, object_name, box, score, x_scale, y_scale):
         ymin, xmin, ymax, xmax = box
@@ -136,9 +145,9 @@ class Tester:
         """
         width, height = self.input_size()
         h, w, _ = frame.shape
-        new_img = np.reshape(cv2.resize(frame, (300, 300)), (1,300,300,3))
+        new_img = np.reshape(cv2.resize(frame, (300, 300)), (1, 300, 300, 3))
         self.interpreter.set_tensor(self.interpreter.get_input_details()[0]['index'], np.copy(new_img))
-        return width/w, height/h
+        return width / w, height / h
 
     def output_tensor(self, i):
         """Returns output tensor view."""
@@ -157,8 +166,8 @@ class Tester:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--dir', type=str, help='Path of the folder to export in.')
-    DIRECTORY = parser.parse_args().dir
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('--dir', type=str, help='Path of the folder to export in.')
+    DIRECTORY = argparser.parse_args().dir
     tester = Tester(DIRECTORY)
     tester.run()
