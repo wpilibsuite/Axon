@@ -5,10 +5,19 @@ import { ReactElement } from "react";
 import gql from "graphql-tag";
 import { useQuery } from "@apollo/client";
 import { GetAxonVersionHeader } from "./__generated__/GetAxonVersionHeader";
+import logo from "../../assets/logo.png";
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
     zIndex: theme.zIndex.drawer + 1
+  },
+  logo: {
+    height: 25,
+    width: 25
+  },
+  logoDiv: {
+    paddingRight: "25px",
+    paddingTop: "5px"
   }
 }));
 
@@ -30,6 +39,9 @@ export default function Header(): ReactElement {
   return (
     <AppBar position="fixed" className={classes.appBar}>
       <Toolbar>
+        <div className={classes.logoDiv}>
+          <img src={logo} alt={logo} className={classes.logo} />
+        </div>
         <Typography variant="h6" color="inherit" noWrap>
           Axon: {getVersion()}
         </Typography>
