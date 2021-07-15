@@ -17,7 +17,7 @@ jobs:
             extension: deb
             cmd: mv packages/launcher/dist/*.deb packages/launcher/dist/Axon_Installer_Ubuntu.deb
           - os: macos-latest
-            artifact-name: macOS
+            artifact-name: MacOS
             extension: dmg
             cmd: mv packages/launcher/dist/*.dmg packages/launcher/dist/Axon_Installer_MacOS.dmg
     name: "Build - ${{ matrix.artifact-name }}"
@@ -36,6 +36,7 @@ jobs:
         run: ${{matrix.cmd}}
       - uses: actions/upload-artifact@v2
         with:
+          name: axon-installer-${{ matrix.artifact-name }}
           path: packages/launcher/dist/*.${{ matrix.extension }}
 
   release:
