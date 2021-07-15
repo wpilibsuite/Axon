@@ -11,12 +11,15 @@ jobs:
           - os: windows-latest
             artifact-name: Win64
             extension: exe
+            cmd: move packages/launcher/dist/*.exe packages/launcher/dist/Axon_Installer_Win64.exe
           - os: ubuntu-latest
             artifact-name: Linux
             extension: deb
+            cmd: mv packages/launcher/dist/*.deb packages/launcher/dist/Axon_Installer_Ubuntu.deb
           - os: macos-latest
             artifact-name: macOS
             extension: dmg
+            cmd: mv packages/launcher/dist/*.dmg packages/launcher/dist/Axon_Installer_MacOS.dmg
     name: "Build - ${{ matrix.artifact-name }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -29,9 +32,10 @@ jobs:
         run: yarn --network-timeout 500000
       - name: Build
         run: yarn launch:build
+      - name: Rename artifact
+        run: ${{matrix.cmd}}
       - uses: actions/upload-artifact@v2
         with:
-          name: axon-installer-${{ matrix.artifact-name }}
           path: packages/launcher/dist/*.${{ matrix.extension }}
 
   release:
