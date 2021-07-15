@@ -36,7 +36,6 @@ jobs:
         run: ${{matrix.cmd}}
       - uses: actions/upload-artifact@v2
         with:
-          name: axon-installer-${{ matrix.artifact-name }}
           path: packages/launcher/dist/*.${{ matrix.extension }}
 
   release:
