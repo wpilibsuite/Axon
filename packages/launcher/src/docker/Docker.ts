@@ -42,6 +42,20 @@ export default class Docker {
       console.log(containers);
       return containers;
     } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
+  /**
+   * Checks if our image exists
+   */
+  async getImages(): Promise<Dockerode.ImageInfo[] | null> {
+    try {
+      const images = await this.docker.listImages();
+      return images;
+    } catch (e) {
+      console.log(e);
       return null;
     }
   }

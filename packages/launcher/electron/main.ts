@@ -105,3 +105,13 @@ ipcMain.on("launcher-version", (event) => {
   // gets build version for launcher. ENV variables are difficult with electron.
   event.returnValue = app.getVersion();
 });
+
+ipcMain.on("request-internet", (event) => {
+  https
+    .get("https://hub.docker.com/", (res) => {
+      event.reply("internet-status", res.statusCode === 200);
+    })
+    .on("error", (e) => {
+      event.reply("internet-status", false);
+    });
+});
