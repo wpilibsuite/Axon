@@ -29,8 +29,6 @@ jobs:
         run: yarn --network-timeout 500000
       - name: Build
         run: yarn launch:build
-      - name: Rename artifact
-        run: ${{matrix.cmd}}
       - uses: actions/upload-artifact@v2
         with:
           name: Axon-Installer-${{ matrix.artifact-name }}
