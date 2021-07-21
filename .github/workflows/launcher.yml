@@ -15,7 +15,7 @@ jobs:
             artifact-name: Linux
             extension: deb
           - os: macos-latest
-            artifact-name: macOS
+            artifact-name: MacOS
             extension: dmg
     name: "Build - ${{ matrix.artifact-name }}"
     runs-on: ${{ matrix.os }}
@@ -29,9 +29,11 @@ jobs:
         run: yarn --network-timeout 500000
       - name: Build
         run: yarn launch:build
+      - name: Rename artifact
+        run: ${{matrix.cmd}}
       - uses: actions/upload-artifact@v2
         with:
-          name: axon-installer-${{ matrix.artifact-name }}
+          name: Axon-Installer-${{ matrix.artifact-name }}
           path: packages/launcher/dist/*.${{ matrix.extension }}
 
   release:

@@ -24,7 +24,7 @@
     "linux": {
       "target": "deb"
     },
-    "artifactName": "Axon-Installer.${ext}"
+    "artifactName": "Axon-Installer-${os}.${ext}"
   },
   "dependencies": {
     "@babel/helper-skip-transparent-expression-wrappers": "^7.12.1",
