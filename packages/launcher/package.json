@@ -23,7 +23,8 @@
     "copyright": "Copyright (c) FIRST and other WPILib contributors.",
     "linux": {
       "target": "deb"
-    }
+    },
+    "artifactName": "Axon-Installe_${version}.${ext}"
   },
   "dependencies": {
     "@babel/helper-skip-transparent-expression-wrappers": "^7.12.1",
