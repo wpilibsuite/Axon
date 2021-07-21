@@ -164,7 +164,7 @@ export default function Dataset(props: { id: string }): ReactElement {
         </Menu>
       </Toolbar>
       <Grid container spacing={3} style={{ paddingLeft: 50 }}>
-        <Grid item>
+        <Grid item xs={2}>
           <Card className={classes.card}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
