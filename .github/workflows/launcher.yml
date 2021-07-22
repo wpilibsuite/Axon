@@ -15,7 +15,7 @@ jobs:
             artifact-name: Linux
             extension: deb
           - os: macos-latest
-            artifact-name: MacOS
+            artifact-name: macOS
             extension: dmg
     name: "Build - ${{ matrix.artifact-name }}"
     runs-on: ${{ matrix.os }}
