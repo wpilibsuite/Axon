@@ -14,10 +14,11 @@ import {
   Typography
 } from "@material-ui/core";
 import gql from "graphql-tag";
-import { useApolloClient, useMutation } from "@apollo/client";
-import { TreeItem } from "@material-ui/lab";
+import { useApolloClient, useMutation, useQuery } from "@apollo/client";
+import { Autocomplete, TreeItem } from "@material-ui/lab";
 import { makeStyles } from "@material-ui/core/styles";
 import { CloudDownload, ControlPoint, Create, RemoveCircleOutline } from "@material-ui/icons";
+import { GetValidLabels } from "./__generated__/GetValidLabels";
 
 const useStyles = makeStyles((theme) => ({
   link: {
@@ -62,6 +63,12 @@ enum CreateState {
   Done
 }
 
+const GET_VALID_LABELS = gql`
+  query GetValidLabels {
+    validLabels
+  }
+`;
+
 const CREATE_DATASET_MUTATION = gql`
   mutation CreateDataset($classes: [String!]!, $maxImages: Int!) {
     createDataset(classes: $classes, maxImages: $maxImages) {
@@ -76,6 +83,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const [keys, setKeys] = React.useState([""]);
+  const [inputs, setInputs] = React.useState([""]);
   const [errors, setErrors] = React.useState([false]);
   const [maxNumber, setMaxNumber] = React.useState(0);
   const [numberError, setNumberError] = React.useState(false);
@@ -83,6 +91,14 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const [zipPath, setZipPath] = React.useState("");
   const [createState, setCreateState] = React.useState(CreateState.Entering);
   const apolloClient = useApolloClient();
+
+  const { data, loading } = useQuery<GetValidLabels>(GET_VALID_LABELS);
+  console.log(data);
+  const labelOptions = data
+    ? data.validLabels
+    : loading
+    ? ["Loading Class Suggestions"]
+    : ["Error w/ Class Suggestions"];
 
   const [createDataset] = useMutation<Created>(CREATE_DATASET_MUTATION, {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -102,6 +118,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
 
   const handleClose = () => {
     setKeys([""]);
+    setInputs([""]);
     setErrors([false]);
     setCreateID("");
     setMaxNumber(0);
@@ -111,6 +128,7 @@ export default function CreateDatasetDialogButton(): ReactElement {
   };
   const handleFailed = () => {
     setKeys([""]);
+    setInputs([""]);
     setErrors([false]);
     setCreateID("");
     setMaxNumber(0);
@@ -120,18 +138,30 @@ export default function CreateDatasetDialogButton(): ReactElement {
   const append = () => {
     const test: string[] = [...keys];
     setKeys(test.concat([""]));
+    const testInputs: string[] = [...inputs];
+    setInputs(testInputs.concat([""]));
     const testErrors: boolean[] = [...errors];
     setErrors(testErrors.concat([false]));
   };
   const update = (index: number, element: string) => {
     const test: string[] = [...keys];
+    console.log(element);
     test[index] = element;
     setKeys(test);
+  };
+  const updateInputs = (index: number, element: string) => {
+    const test: string[] = [...inputs];
+    console.log(element);
+    test[index] = element;
+    setInputs(test);
   };
   const remove = (index: number) => {
     const test: string[] = [...keys];
     test.splice(index, 1);
     setKeys(test);
+    const testInputs: string[] = [...inputs];
+    testInputs.splice(index, 1);
+    setInputs(testInputs);
     const testErrors: boolean[] = [...errors];
     testErrors.splice(index, 1);
     setErrors(testErrors);
@@ -141,7 +171,8 @@ export default function CreateDatasetDialogButton(): ReactElement {
     let error = false;
     const testErrors: boolean[] = [...errors];
     for (let i = 0; i < keys.length; i++) {
-      testErrors[i] = keys[i].length === 0;
+      testErrors[i] = keys[i].length === 0 && inputs[i].length === 0;
+      console.log(keys[i] + " " + inputs[i]);
       error = error || testErrors[i];
     }
     setErrors(testErrors);
@@ -212,12 +243,27 @@ export default function CreateDatasetDialogButton(): ReactElement {
                 </Grid>
               )}
               <Grid item xs={10}>
-                <TextField
-                  error={errors[index]}
-                  helperText={errors[index] ? "Please enter a class name or remove this field." : "Class name"}
-                  placeholder={"Type class name here"}
-                  onChange={(event) => update(index, event.target.value)}
-                  className={classes.textfield}
+                <Autocomplete
+                  options={labelOptions}
+                  value={keys[index]}
+                  inputValue={inputs[index]}
+                  onInputChange={(event, newInputValue) => {
+                    updateInputs(index, newInputValue);
+                    console.log(newInputValue);
+                  }}
+                  onChange={(event, newValue) => {
+                    update(index, newValue as string);
+                    console.log(newValue as string);
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={errors[index]}
+                      helperText={errors[index] ? "Please enter a class name or remove this field." : "Class name"}
+                      placeholder={"Type class name here"}
+                      className={classes.textfield}
+                    />
+                  )}
                 />
               </Grid>
             </>

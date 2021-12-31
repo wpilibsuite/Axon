@@ -214,6 +214,11 @@ export class DatasetService extends DataSource {
       fs.createReadStream(savePath).pipe(unzipper.Extract({ path: savePath.replace(".zip", "") }));
   }
 
+  async getValidLabels(): Promise<string[]> {
+    const buffer = await fs.promises.readFile("src/assets/valid_labels.json");
+    return JSON.parse(buffer.toString());
+  }
+
   async reset(): Promise<boolean> {
     const datasets = await this.getDatasets();
     for (const dataset of datasets) {

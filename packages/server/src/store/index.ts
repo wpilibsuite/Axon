@@ -189,6 +189,29 @@ export class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   public readonly updatedAt!: Date;
 }
 
+interface DatasetCreatorAttributes {
+  name: string;
+}
+
+type DatasetCreatorCreationAttributes = Optional<DatasetCreatorAttributes, keyof DatasetCreatorAttributes>;
+
+export class DatasetCreator extends Model<DatasetCreatorAttributes, DatasetCreatorCreationAttributes>
+  implements DatasetCreatorAttributes {
+  name: string;
+}
+
+DatasetCreator.init(
+  {
+    name: {
+      type: new DataTypes.STRING(),
+      allowNull: false
+    }
+  },
+  {
+    sequelize
+  }
+);
+
 Dataset.init(
   {
     id: {

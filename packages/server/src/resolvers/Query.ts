@@ -36,5 +36,8 @@ export const Query: QueryResolvers = {
   },
   testjobs: (_, args, { dataSources }) => {
     return dataSources.projectService.getTestjobs();
+  },
+  validLabels: (_, args, { dataSources }) => {
+    return dataSources.datasetService.getValidLabels();
   }
 };
